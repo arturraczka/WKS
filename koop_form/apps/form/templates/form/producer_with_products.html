@@ -1,0 +1,51 @@
+{% extends "form/base_one.html" %}
+{% load custom_filters %}
+{% block content %}
+    <div class="col-md-8">
+    <label for="producers">Zmień producenta:</label>
+    <select name="producers" id="producers">
+      {% for producer in producers %}
+          <option value="{% url 'producer-products-detail' slug=producer.slug %}">{{ producer.name }}</option>
+      {% endfor %}
+    </select>
+
+    <button onclick="goToSelectedLink()">Idź</button>
+
+    <h3>{{ producer.name }}</h3>
+    <p>{{ producer.description }}</p>
+
+    {% for product in products_with_related %}
+        <article class="media content-section">
+          <div class="media-body">
+            <h5 class="article-title">{{ product.name }}</h5>
+            <div>
+                <a class="mr-2"><strong>Cena (za szt/kg): {{ product.price }} zł</strong></a>
+              <a class="article-content">Opis: {{ product.description }}</a>
+            </div>
+            <div class="article-metadata">
+                <a class="text-muted">Dostępne wagi(kg)/liczba sztuk: </a>
+                {% for weight_scheme in product.weight_schemes.all %}
+                    <a class="text-muted">{{ weight_scheme.quantity|format_decimal:3 }},</a>
+                {% endfor %}
+            </div>
+            <div class="article-metadata">
+                <a class="text-muted">Status produktu: </a>
+                {% for status in product.statuses.all %}
+                    <a class="text-muted">{{ status.status_type }},</a>
+                {% endfor %}
+            </div>
+          </div>
+        </article>
+    {% endfor %}
+    </div>
+
+    <script>
+        function goToSelectedLink() {
+            var select = document.getElementById("producers");
+            var selectedOption = select.options[select.selectedIndex].value;
+            if (selectedOption) {
+                window.location.href = selectedOption;
+            }
+        }
+    </script>
+{% endblock content%}

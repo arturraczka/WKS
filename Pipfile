@@ -1,0 +1,24 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+psycopg2 = "*"
+pytest-django = "*"
+pytest = "*"
+environ = "*"
+django-environ = "*"
+django-extensions = "*"
+pytest-cov = "*"
+django-cors-headers = "*"
+factory-boy = "*"
+pytz = "*"
+black = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.10"
+python_full_version = "3.10.12"

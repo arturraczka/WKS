@@ -1,0 +1,25 @@
+{% extends "form/base_one.html" %}
+{% load custom_filters %}
+{% block content %}
+
+<div class="col-md-8">
+  <div class="content-section">
+    <h3>Zamówione produkty:</h3>
+    <p class='text-muted'>Przychód z zamówienia: {{ total_income|floatformat:"2" }} zł.</p>
+
+    {% for product in products %}
+        <article class="media content-section">
+            <div class="media-body">
+            <h5 class="article-title">{{ product.name }}</h5>
+            <div>
+              <a class="article-content">Zamówiono: {{ product.ordered_quantity }} sztuk/kg</a>
+              <a class="article-content">Przychód: {{ product.income|floatformat:"2" }} zł</a>
+            </div>
+            </div>
+        </article>
+    {% endfor %}
+
+  </div>
+</div>
+
+{% endblock content%}
