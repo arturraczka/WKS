@@ -19,35 +19,32 @@
         {{ form.management_form }}
 
         {% for form, product in products_with_forms %}
-            <article class="media content-section">
+            <article class="media ">
               <div class="media-body">
 
 
                 <div>
                   <a class="article-title"><strong>{{ product.name }}</strong> | </a>
-                  <a class="mr-2">Cena: <strong>{{ product.price }} zł</strong> za szt/kg |</a>
                   <a class="mr-2">{{ product.description }}</a>
                 </div>
 
-                <div class="article-metadata">
-                    <a class="text-muted">Dostępne wagi(kg)/liczba sztuk: </a>
-                    {% for weight_scheme in product.weight_schemes.all %}
-                        <a class="text-muted">{{ weight_scheme.quantity|format_decimal:3 }},</a>
-                    {% endfor %}
+                <div>
+                  <a class="mr-2"><strong>{{ product.price }} zł</strong> za szt/kg | </a>
+                  <a class="text-muted">Dostępne wagi(kg)/liczba sztuk: </a>
+                  {% for weight_scheme in product.weight_schemes.all %}
+                    <a class="text-muted">{{ weight_scheme.quantity|format_decimal:3 }},</a>
+                  {% endfor %}
+                  <a class="text-muted"> | Status produktu: </a>
+                  {% for status in product.statuses.all %}
+                    <a class="text-muted"><strong>{{ status.status_type }},</strong></a>
+                  {% endfor %}
                 </div>
-                <div class="article-metadata">
-                    <a class="text-muted">Status produktu: </a>
-                    {% for status in product.statuses.all %}
-                        <a class="text-muted">{{ status.status_type }},</a>
-                    {% endfor %}
-                </div>
-                <div class="article-metadata">
-                    <a class="text-muted">Zostało jeszcze: {{ product.available_quantity|format_decimal:3 }} sztuk/kg </a>
-                </div>
-                    {{ form }}
-                    <input type="submit" name="submit" value="Dodaj">
 
-
+                <div class="article-metadata">
+                  {{ form }}
+                  <input type="submit" name="submit" value="Dodaj">
+                  <a class="mr-2"> Maksymalnie możesz zamówić: {{ product.available_quantity|format_decimal:3 }} sztuk/kg </a>
+                </div>
 
               </div>
             </article>
