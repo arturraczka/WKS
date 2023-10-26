@@ -237,9 +237,6 @@ class OrderFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
         self.order = Order.objects.get(
             user=self.request.user, date_created__gte=self.previous_friday
         )
-        # self.producer = get_object_or_404(Producer, slug=self.kwargs['slug'])
-        # self.products_with_related = filter_objects_prefetch_related(Product, *['weight_schemes', 'statuses'], producer=self.producer)
-        # self.products = Product.objects.filter(producer=self.producer).only('id')
         self.products_with_related = Product.objects.filter(
             orders=self.order
         ).prefetch_related("weight_schemes", "statuses")

@@ -180,7 +180,7 @@ class OrderItem(models.Model):
     item_ordered_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["item_ordered_date"]
+        ordering = ["product"]
         indexes = [
             models.Index(fields=["order", "product"]),
         ]
