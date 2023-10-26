@@ -6,6 +6,7 @@ from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 
 from apps.form.services import calculate_order_number, add_0_as_weight_scheme
+import time
 
 ModelUser = get_user_model()
 
@@ -79,7 +80,8 @@ class Product(models.Model):
         max_digits=9, decimal_places=3, default=0, null=True, blank=True
     )  # do I
     # need this?
-    weight_schemes = models.ManyToManyField(WeightScheme, related_name="products")
+    # weight_schemes = models.ManyToManyField(WeightScheme, related_name="products")
+    weight_schemes = models.ManyToManyField(WeightScheme, related_name="products", through="product_weight_schemes")
     is_visible = models.BooleanField(default=True)
     statuses = models.ManyToManyField(Status, related_name="products", blank=True)
 
@@ -92,14 +94,6 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
-
-        add_0_as_weight_scheme(self.pk, Product, WeightScheme)
-        super(Product, self).save(*args, **kwargs)
-
-    # nie rozumiem czemu to kurwa nie działa ?????????
-
-
     def set_product_visibility(self):
         if self.is_visible:
             self.is_visible = False
@@ -107,7 +101,17 @@ class Product(models.Model):
             self.is_visible = True
 
 
-# czy to mi jest potrzebne??
+class product_weight_schemes(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE
+    )
+    weightscheme = models.ForeignKey(
+        WeightScheme, on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return f"{self.product}: " f"{self.weightscheme}"
+
 
 
 class Order(models.Model):
@@ -122,7 +126,6 @@ class Order(models.Model):
     )
     pick_up_day = models.CharField(max_length=10, choices=PICKUP_CHOICES)
     date_created = models.DateTimeField(auto_now_add=True)
-    # total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)  # do I need this?
     is_given = models.BooleanField(default=False)  # do I need this?
     order_number = models.IntegerField(blank=True)
 
