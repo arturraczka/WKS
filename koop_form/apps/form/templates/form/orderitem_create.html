@@ -21,11 +21,14 @@
         {% for form, product in products_with_forms %}
             <article class="media content-section">
               <div class="media-body">
-                <h5 class="article-title">{{ product.name }}</h5>
+
+
                 <div>
-                    <a class="mr-2"><strong>Cena (za szt/kg): {{ product.price }} zł</strong></a>
-                  <a class="article-content">Opis: {{ product.description }}</a>
+                  <a class="article-title"><strong>{{ product.name }}</strong> | </a>
+                  <a class="mr-2">Cena: <strong>{{ product.price }} zł</strong> za szt/kg |</a>
+                  <a class="mr-2">{{ product.description }}</a>
                 </div>
+
                 <div class="article-metadata">
                     <a class="text-muted">Dostępne wagi(kg)/liczba sztuk: </a>
                     {% for weight_scheme in product.weight_schemes.all %}
@@ -43,6 +46,9 @@
                 </div>
                     {{ form }}
                     <input type="submit" name="submit" value="Dodaj">
+
+
+
               </div>
             </article>
         {% endfor %}
