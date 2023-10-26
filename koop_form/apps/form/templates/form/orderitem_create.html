@@ -1,8 +1,7 @@
 {% extends "form/base_one.html" %}
 {% load custom_filters %}
 {% block content %}
-
-<div class="col-md-8">
+<div class="col-md-9">
     <label for="producers">Zmień producenta:</label>
     <select name="producers" id="producers">
       {% for producer in producers %}
@@ -51,21 +50,20 @@
     </form>
 </div>
 
-
-<div class="col-md-4">
-  <a href="{% url 'order-formset-update' %}">
-      <div class="content-section sticky-element">
-        <h3>Twoje zamówienie:</h3>
-        <p class='text-muted'>Wartość zamówienia: {{ order_cost|floatformat:"2" }} zł.</p>
-        <p class='text-muted'>Numer zamówienia/skrzynki: {{ order.order_number }}.</p>
-        <ul class="list-group">
-        {% for orderitem in orderitems %}
-          <li class="list-group-item list-group-item-light">{{ orderitem.product.name }}: {{ orderitem.quantity|format_decimal:3 }}</li>
-        {% endfor %}
-        </ul>
-      </div>
-  </a>
-</div>
+    <div class="col-md-3">
+      <a href="{% url 'order-formset-update' %}">
+          <div class="content-section sticky-element">
+            <h3>Twoje zamówienie:</h3>
+            <p class='text-muted'>Wartość zamówienia: {{ order_cost|floatformat:"2" }} zł.</p>
+            <p class='text-muted'>Numer zamówienia/skrzynki: {{ order.order_number }}.</p>
+            <ul class="list-group">
+            {% for orderitem in orderitems %}
+              <li class="list-group-item list-group-item-light">{{ orderitem.product.name }}: {{ orderitem.quantity|format_decimal:3 }}</li>
+            {% endfor %}
+            </ul>
+          </div>
+      </a>
+    </div>
 
 <script>
     function goToSelectedLink() {

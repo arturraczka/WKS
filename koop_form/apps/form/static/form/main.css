@@ -122,3 +122,9 @@ a.article-title:hover {
   color: #fff; /* Change background color on hover */
   text-decoration: none;
 }
+
+/* Custom CSS to widen the container */
+.custom-container {
+    min-width: 800px;
+    max-width: 1600px; /* Adjust the value as per your requirements */
+}
