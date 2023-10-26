@@ -107,7 +107,7 @@ def perform_update_orderitem_validations(instance, request):
         return True
 
 
-def validate_order_exists(request):
-    if order_exists_test(request):
+def validate_order_exists(request, order):
+    if order_exists_test(request, order):
         messages.error(request, "Masz już zamówienie na ten tydzień.")
         return True

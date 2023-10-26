@@ -198,7 +198,7 @@ class CreateOrderView(SuccessMessageMixin, CreateView):
     success_message = "Zamówienie zostało utworzone. Dodaj produkty."
 
     def form_valid(self, form):
-        if validate_order_exists(self.request):
+        if validate_order_exists(self.request, Order):
             return self.form_invalid(form)
 
         form.instance.user = self.request.user
