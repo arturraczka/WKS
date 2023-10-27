@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 import datetime
 from apps.form.models import Order, OrderItem, Producer, Product
-from apps.form.services import list_messages
+from apps.form.services import list_messages, calculate_available_quantity
 from apps.form.tests.factories import (
     ProducerFactory,
     UserFactory,
@@ -95,6 +95,7 @@ class TestOrderItemListCreateProductListView(TestCase):
             weight_scheme2,
             weight_scheme3,
             weight_scheme4,
+            weight_scheme0,
         ]
         self.product1 = ProductFactory(producer=self.producer)
         self.order = OrderWithProductFactory(user=self.user)
@@ -110,12 +111,13 @@ class TestOrderItemListCreateProductListView(TestCase):
         order_cost = 0
         for orderitem in orderitem_with_products_qs:
             order_cost += orderitem.product.price * orderitem.quantity
-        producers = list(Producer.objects.all())
+        producers = list(Producer.objects.all().values("slug", "name", "order"))
         producer = Producer.objects.get(pk=self.producer.id)
-        products_with_related = list(
-            Product.objects.filter(producer=producer.id).prefetch_related(
+        products_with_related = Product.objects.filter(producer=producer.id).prefetch_related(
                 "weight_schemes", "statuses"
             )
+        products_with_available_quantity = calculate_available_quantity(
+            products_with_related
         )
 
         response = self.client.get(self.url)
@@ -127,7 +129,7 @@ class TestOrderItemListCreateProductListView(TestCase):
         assert context_data["order_cost"] == order_cost != 0
         assert list(context_data["producers"]) == producers
         assert context_data["producer"] == producer
-        assert list(context_data["products_with_related"]) == products_with_related
+        assert list(context_data["products_with_forms"]) == list(zip(context_data["form"], products_with_available_quantity))
 
     def test_create(self):
         product2 = ProductFactory(
