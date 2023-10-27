@@ -39,6 +39,7 @@ class TestProducerWithProductsDetailView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
+        self.weight_scheme_zero = WeightSchemeFactory(quantity=0)
         self.product = ProductFactory()
         self.url = reverse(
             "producer-products-detail", kwargs={"slug": self.product.producer.slug}
@@ -88,6 +89,7 @@ class TestOrderItemListCreateProductListView(TestCase):
         weight_scheme2 = WeightSchemeFactory(quantity=0.2)
         weight_scheme3 = WeightSchemeFactory(quantity=8)
         weight_scheme4 = WeightSchemeFactory(quantity=2)
+        weight_scheme0 = WeightSchemeFactory(quantity=0)
         self.weight_scheme_list = [
             weight_scheme1,
             weight_scheme2,

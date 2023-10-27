@@ -52,7 +52,6 @@ class OrderFactory(DjangoModelFactory):
     date_created = Faker(
         "past_datetime", start_date="-2d", tzinfo=pytz.timezone("Europe/Warsaw")
     )
-    total_price = Faker("random_int", min=1, max=40)
     is_given = False
 
     @post_generation
