@@ -139,7 +139,7 @@ class Order(models.Model):
         return f"{self.user}: " f"Order: {self.pk}"
 
     def save(self, *args, **kwargs):
-        self.order_number = calculate_order_number(Order)
+        self.order_number = calculate_order_number(Order)  # do zrobienia test
         super(Order, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -148,15 +148,8 @@ class Order(models.Model):
         )
         return absolute_url
 
-    def archive_order(self):
-        self.is_archived = True
-
-    # czy to mi jest potrzebne??
     def give_order(self):
         self.is_given = True
-
-
-# czy to mi jest potrzebne??
 
 
 class OrderItem(models.Model):
