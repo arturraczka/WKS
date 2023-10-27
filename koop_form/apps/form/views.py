@@ -291,12 +291,15 @@ class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = Order
     fields = ["pick_up_day"]
     template_name = "form/order_create.html"
-    success_url = "order-detail"
+    success_url = None
     success_message = "Dzień odbioru zamówienia został zmieniony."
 
     def test_func(self):
         order = Order.objects.get(id=self.kwargs["pk"])
         return self.request.user == order.user
+
+    def get_success_url(self):
+        return reverse('order-formset-update')
 
 
 @method_decorator(login_required, name="dispatch")

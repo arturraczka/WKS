@@ -139,17 +139,7 @@ class Order(models.Model):
         return f"{self.user}: " f"Order: {self.pk}"
 
     def save(self, *args, **kwargs):
-        # order_number = 1
-        # previous_friday = calculate_previous_friday()
-        # order_count = Order.objects.filter(date_created__gte=previous_friday).count()
         self.order_number = calculate_order_number(Order)
-
-        # if not self.pk and self.quantity == 0:
-        #     raise ValidationError("Ilość zamawianego produktu nie może być równa 0.")
-        #
-        # if self.quantity == 0:
-        #     self.delete()
-        # else:
         super(Order, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
