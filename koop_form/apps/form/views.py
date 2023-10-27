@@ -161,15 +161,20 @@ class OrderItemFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
         context["orderitems"] = orderitems
         context["order_cost"] = calculate_order_cost(orderitems)
 
-        context["producers"] = Producer.objects.all().values("slug", "name", "order")
+        context["producers"] = Producer.objects.all().values("slug", "name", "order")  # pytanie: czy takie zabiegi mogą mieć sens?
         context["producer"] = self.producer
 
         products_with_available_quantity = calculate_available_quantity(
             self.products_with_related
-        )
+        )  # do testowania
         products_with_forms = zip(context["form"], products_with_available_quantity)
         context["products_with_forms"] = products_with_forms
         return context
+
+        # refactoring idea: przerzucić do innej metody budowanie składowych i w metodzie get_context zostawić jedynie dodawanie elementów do kontekstu
+        # do zrobienia po testach
+        # bo ewidentnie ta metoda robi za dużo, teraz to widzę!!!!!!!!!!!!!!!!!
+
 
     def get_initial(self):
         return self.initial_data
