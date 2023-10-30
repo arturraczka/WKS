@@ -130,8 +130,8 @@ class TestOrderItemListCreateProductListView(TestCase):
         )
         OrderItemFactory(product=product2, quantity=9, order=self.order2)
         form_data = {
-            'form-TOTAL_FORMS': 1,
-            'form-INITIAL_FORMS': 0,
+            "form-TOTAL_FORMS": 1,
+            "form-INITIAL_FORMS": 0,
             "form-0-product": product2.id,
             "form-0-quantity": 0.5,
         }
@@ -155,8 +155,8 @@ class TestOrderItemListCreateProductListView(TestCase):
         OrderItemFactory(product=product2, quantity=quantity_already, order=self.order2)
 
         form_data = {
-            'form-TOTAL_FORMS': 1,
-            'form-INITIAL_FORMS': 0,
+            "form-TOTAL_FORMS": 1,
+            "form-INITIAL_FORMS": 0,
             "form-0-product": product2.id,
             "form-0-quantity": quantity_posted,
         }
@@ -178,8 +178,8 @@ class TestOrderItemListCreateProductListView(TestCase):
         OrderItemFactory(product=product2, order=self.order)
 
         form_data = {
-            'form-TOTAL_FORMS': 1,
-            'form-INITIAL_FORMS': 0,
+            "form-TOTAL_FORMS": 1,
+            "form-INITIAL_FORMS": 0,
             "form-0-product": product2.id,
             "form-0-quantity": 0.5,
         }
@@ -197,8 +197,8 @@ class TestOrderItemListCreateProductListView(TestCase):
         product2 = ProductFactory(weight_schemes=[*self.weight_scheme_list])
 
         form_data = {
-            'form-TOTAL_FORMS': 1,
-            'form-INITIAL_FORMS': 0,
+            "form-TOTAL_FORMS": 1,
+            "form-INITIAL_FORMS": 0,
             "form-0-product": product2.id,
             "form-0-quantity": 0.7,
         }
@@ -223,8 +223,8 @@ class TestOrderItemListCreateProductListView(TestCase):
         OrderItemFactory(product=product2, quantity=9, order=self.order2)
 
         form_data = {
-            'form-TOTAL_FORMS': 1,
-            'form-INITIAL_FORMS': 0,
+            "form-TOTAL_FORMS": 1,
+            "form-INITIAL_FORMS": 0,
             "form-0-product": product2.id,
             "form-0-quantity": 0.5,
         }
@@ -336,10 +336,6 @@ class TestGetOrderUpdateOrderDeleteViews(TestCase):
 #         assert context_data["order"] == order
 #         assert list(context_data["orderitems"]) == orderitem_with_products
 #         assert context_data["order_cost"] == order_cost
-
-
-
-
 
 
 # @pytest.mark.django_db

@@ -78,7 +78,9 @@ class Product(models.Model):
     quantity_delivered_this_week = models.DecimalField(
         max_digits=9, decimal_places=3, default=0, null=True, blank=True
     )
-    weight_schemes = models.ManyToManyField(WeightScheme, related_name="products", through="product_weight_schemes")
+    weight_schemes = models.ManyToManyField(
+        WeightScheme, related_name="products", through="product_weight_schemes"
+    )
     is_visible = models.BooleanField(default=True)
     statuses = models.ManyToManyField(Status, related_name="products", blank=True)
 
@@ -99,16 +101,11 @@ class Product(models.Model):
 
 
 class product_weight_schemes(models.Model):
-    product = models.ForeignKey(
-        Product, on_delete=models.CASCADE
-    )
-    weightscheme = models.ForeignKey(
-        WeightScheme, on_delete=models.CASCADE
-    )
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    weightscheme = models.ForeignKey(WeightScheme, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.product}: " f"{self.weightscheme}"
-
 
 
 class Order(models.Model):

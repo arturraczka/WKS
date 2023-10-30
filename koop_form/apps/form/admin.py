@@ -1,5 +1,13 @@
 from django.contrib import admin
-from apps.form.models import Producer, WeightScheme, Status, Product, Order, OrderItem, product_weight_schemes
+from apps.form.models import (
+    Producer,
+    WeightScheme,
+    Status,
+    Product,
+    Order,
+    OrderItem,
+    product_weight_schemes,
+)
 
 
 class ProductWeightSchemeInLine(admin.TabularInline):

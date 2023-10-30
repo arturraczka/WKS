@@ -27,7 +27,8 @@ from apps.form.services import (
     calculate_order_cost,
     order_exists_test,
     filter_objects_prefetch_related,
-    calculate_available_quantity, calculate_total_income,
+    calculate_available_quantity,
+    calculate_total_income,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -81,7 +82,7 @@ class ProducerReport(ListView):
             Product.objects.prefetch_related("orderitems")
             .filter(producer=producer)
             .filter(Q(orderitems__item_ordered_date__gte=previous_friday))
-            .only('name', 'orderitems__quantity')
+            .only("name", "orderitems__quantity")
         )
 
         products_with_ordered_quantity_and_income = products.annotate(
@@ -160,11 +161,12 @@ class OrderItemFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
             .only("product_id", "quantity", "product__price", "product__name")
         )
         self.order_cost = calculate_order_cost(self.orderitems)
-        self.producers = Producer.objects.all().values("slug", "name", "order")  # pytanie: czy takie zabiegi mogą mieć sens?
+        self.producers = Producer.objects.all().values(
+            "slug", "name", "order"
+        )  # pytanie: czy używanie values() ma tutaj sens?
         self.products_with_available_quantity = calculate_available_quantity(
             self.products_with_related
         )  # not tested
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -175,7 +177,9 @@ class OrderItemFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
         context["order_cost"] = self.order_cost
         context["producers"] = self.producers
         context["producer"] = self.producer
-        products_with_forms = zip(context["form"], self.products_with_available_quantity)  # not tested
+        products_with_forms = zip(
+            context["form"], self.products_with_available_quantity
+        )  # not tested
         context["products_with_forms"] = products_with_forms  # not tested
         return context
 
@@ -301,7 +305,7 @@ class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
         return self.request.user == order.user
 
     def get_success_url(self):
-        return reverse('order-formset-update')
+        return reverse("order-formset-update")
 
 
 @method_decorator(login_required, name="dispatch")

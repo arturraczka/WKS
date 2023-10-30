@@ -41,8 +41,8 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AlterModelTable(
-            name='product_weight_schemes',
-            table='form_product_weight_schemes',
+            name="product_weight_schemes",
+            table="form_product_weight_schemes",
         ),
         migrations.AlterField(
             model_name="product",
@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.SeparateDatabaseAndState(state_operations=state_operations),
         migrations.AlterModelTable(
-            name='product_weight_schemes',
-            table='form_product_weight_schemes',
+            name="product_weight_schemes",
+            table="form_product_weight_schemes",
         ),
     ]
