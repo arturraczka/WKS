@@ -1,4 +1,4 @@
-from django.db.models import Sum, Q
+from django.db.models import Sum
 from django.contrib import messages
 from apps.form.models import Order, Product
 from apps.form.services import (

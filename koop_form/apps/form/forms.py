@@ -1,4 +1,4 @@
-from django.forms import ModelForm, HiddenInput, modelformset_factory
+from django.forms import ModelForm, HiddenInput
 from apps.form.models import OrderItem, Order
 from django.forms import BaseModelFormSet
 

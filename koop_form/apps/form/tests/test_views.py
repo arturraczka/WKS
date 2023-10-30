@@ -1,9 +1,8 @@
 import pytest
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 import datetime
 from apps.form.models import Order, OrderItem, Producer, Product
-from apps.form.services import list_messages, calculate_available_quantity
+from apps.form.services import list_messages
 from apps.form.tests.factories import (
     ProducerFactory,
     UserFactory,

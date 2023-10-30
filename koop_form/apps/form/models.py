@@ -1,12 +1,9 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.text import slugify
-from django.core.exceptions import ValidationError
 
-from apps.form.services import calculate_order_number, add_0_as_weight_scheme
-import time
+from apps.form.services import calculate_order_number
 
 ModelUser = get_user_model()
 

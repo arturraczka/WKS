@@ -6,4 +6,4 @@ class FormConfig(AppConfig):
     name = "apps.form"
 
     def ready(self):
-        from . import signals
+        pass

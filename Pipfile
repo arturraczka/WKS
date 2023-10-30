@@ -16,6 +16,7 @@ django-cors-headers = "*"
 factory-boy = "*"
 pytz = "*"
 black = "*"
+ruff = "*"
 
 [dev-packages]
 

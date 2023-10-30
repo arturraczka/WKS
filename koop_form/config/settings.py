@@ -1,7 +1,5 @@
 import os
-from pathlib import Path
 import environ
-import pytz
 
 env = environ.Env(DEBUG=(bool, False))
 
