@@ -121,6 +121,10 @@ class OrderItemFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
         self.products_with_related = None
         self.products = None
         self.initial_data = None
+        self.orderitems = None
+        self.order_cost = None
+        self.producers = None
+        self.products_with_available_quantity = None
 
     def get_producer_order_and_products(self):
         self.order = Order.objects.get(
@@ -149,32 +153,31 @@ class OrderItemFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
     def get_success_url(self):
         return self.request.path
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        orderitems = (
+    def get_additional_context(self):
+        self.orderitems = (
             OrderItem.objects.filter(order=self.order.id)
             .select_related("product")
             .only("product_id", "quantity", "product__price", "product__name")
         )
-        context["order"] = self.order
-        context["orderitems"] = orderitems
-        context["order_cost"] = calculate_order_cost(orderitems)
-
-        context["producers"] = Producer.objects.all().values("slug", "name", "order")  # pytanie: czy takie zabiegi mogą mieć sens?
-        context["producer"] = self.producer
-
-        products_with_available_quantity = calculate_available_quantity(
+        self.order_cost = calculate_order_cost(self.orderitems)
+        self.producers = Producer.objects.all().values("slug", "name", "order")  # pytanie: czy takie zabiegi mogą mieć sens?
+        self.products_with_available_quantity = calculate_available_quantity(
             self.products_with_related
         )  # not tested
-        products_with_forms = zip(context["form"], products_with_available_quantity)  # not tested
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        self.get_additional_context()
+
+        context["order"] = self.order
+        context["orderitems"] = self.orderitems
+        context["order_cost"] = self.order_cost
+        context["producers"] = self.producers
+        context["producer"] = self.producer
+        products_with_forms = zip(context["form"], self.products_with_available_quantity)  # not tested
         context["products_with_forms"] = products_with_forms  # not tested
         return context
-
-        # refactoring idea: przerzucić do innej metody budowanie składowych i w metodzie get_context zostawić jedynie dodawanie elementów do kontekstu
-        # do zrobienia po testach
-        # bo ewidentnie ta metoda robi za dużo, teraz to widzę!!!!!!!!!!!!!!!!!
-
 
     def get_initial(self):
         return self.initial_data
