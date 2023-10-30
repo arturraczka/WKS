@@ -166,9 +166,9 @@ class OrderItemFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
 
         products_with_available_quantity = calculate_available_quantity(
             self.products_with_related
-        )  # do testowania
-        products_with_forms = zip(context["form"], products_with_available_quantity)
-        context["products_with_forms"] = products_with_forms
+        )  # not tested
+        products_with_forms = zip(context["form"], products_with_available_quantity)  # not tested
+        context["products_with_forms"] = products_with_forms  # not tested
         return context
 
         # refactoring idea: przerzucić do innej metody budowanie składowych i w metodzie get_context zostawić jedynie dodawanie elementów do kontekstu
@@ -185,13 +185,7 @@ class OrderItemFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
             if not perform_create_orderitem_validations(instance, self.request):
                 return self.form_invalid(form)
             instance.order = self.order
-            try:
-                instance.save()
-            except ValidationError:
-                messages.error(
-                    self.request, "Ilość zamawianego produktu nie może być równa 0."
-                )
-                # to mi w sumie nie będzie potrzebne, gdy walidację wywalę z modelu do widoku
+            instance.save()
         return super().form_valid(form)
 
 

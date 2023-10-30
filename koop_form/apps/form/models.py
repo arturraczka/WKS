@@ -171,7 +171,7 @@ class OrderItem(models.Model):
     def save(self, *args, **kwargs):
         if self.quantity == 0:
             try:
-                self.delete()
+                self.delete()  # not tested
             except ValueError:
                 return None
         else:
