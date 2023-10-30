@@ -50,7 +50,7 @@ class OrderFactory(DjangoModelFactory):
     user = SubFactory(UserFactory)
     pick_up_day = "Środa"
     date_created = Faker(
-        "past_datetime", start_date="-2d", tzinfo=pytz.timezone("Europe/Warsaw")
+        "past_datetime", start_date="-1d", tzinfo=pytz.timezone("Europe/Warsaw")
     )
     is_given = False
 
