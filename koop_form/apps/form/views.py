@@ -51,7 +51,7 @@ class ProducersView(ListView):
 class ProductsView(DetailView):
     model = Producer
     context_object_name = "producer"
-    template_name = "form/producer_with_products.html"
+    template_name = "form/product_list.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -100,16 +100,16 @@ class ProducerReportView(ListView):
 
 @method_decorator(login_required, name="dispatch")
 class OrderProducersView(OrderExistsTestMixin, ProducersView):
-    template_name = "form/producer_form_list.html"
+    template_name = "form/order_producers.html"
 
     def test_func(self):
         return order_exists_test(self.request, Order)
 
 
 @method_decorator(login_required, name="dispatch")
-class OrderProductsView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
+class OrderProductsFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
     model = OrderItem
-    template_name = "form/orderitem_create.html"
+    template_name = "form/order_products_form.html"
     form_class = None
     success_message = "Produkt został dodany do zamówienia."
 
@@ -211,7 +211,7 @@ class OrderCreateView(SuccessMessageMixin, CreateView):
 
     def get_success_url(self):
         producer = Producer.objects.all().order_by("order").first()
-        success_url = reverse("orderitem-create", kwargs={"slug": producer.slug})
+        success_url = reverse("order-products-form", kwargs={"slug": producer.slug})
         return success_url
 
 
@@ -220,7 +220,7 @@ class OrderUpdateFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
     model = OrderItem
     success_message = "Zamówienie zostało zaktualizowane."
     form_class = None
-    template_name = "form/order_update_formset.html"
+    template_name = "form/order_update_form.html"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -304,7 +304,7 @@ class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
         return self.request.user == order.user
 
     def get_success_url(self):
-        return reverse("order-formset-update")
+        return reverse("order-update-form")
 
 
 @method_decorator(login_required, name="dispatch")

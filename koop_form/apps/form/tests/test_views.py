@@ -16,13 +16,13 @@ from django.test import TestCase
 
 
 @pytest.mark.django_db
-class TestProducerListView(TestCase):
+class TestProducersView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
         self.producer1 = ProducerFactory()
         self.producer2 = ProducerFactory()
-        self.url = reverse("producer-list")
+        self.url = reverse("producers")
 
     def test_get(self):
         response = self.client.get(self.url)
@@ -34,14 +34,14 @@ class TestProducerListView(TestCase):
 
 
 @pytest.mark.django_db
-class TestProducerWithProductsDetailView(TestCase):
+class TestProductsView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
         self.weight_scheme_zero = WeightSchemeFactory(quantity=0)
         self.product = ProductFactory()
         self.url = reverse(
-            "producer-with-products", kwargs={"slug": self.product.producer.slug}
+            "products", kwargs={"slug": self.product.producer.slug}
         )
 
     def test_get(self):
@@ -68,7 +68,7 @@ class TestProducerReport(TestCase):
 
 
 @pytest.mark.django_db
-class TestFormProducerListView(TestCase):
+class TestOrderProducersView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.producer = ProducerFactory()
@@ -76,17 +76,17 @@ class TestFormProducerListView(TestCase):
         self.order = OrderFactory(user=self.user)
 
     def test_get_update_view(self):
-        url = reverse("form-producer-list")
+        url = reverse("order-producers")
         response = self.client.get(url)
 
         assert response.status_code == 200
 
 
 @pytest.mark.django_db
-class TestOrderItemListCreateProductListView(TestCase):
+class TestOrderProductsFormView(TestCase):
     def setUp(self):
         self.producer = ProducerFactory()
-        self.url = reverse("orderitem-create", kwargs={"slug": self.producer.slug})
+        self.url = reverse("order-products-form", kwargs={"slug": self.producer.slug})
         self.user = UserFactory()
         self.client.force_login(self.user)
         self.weight_scheme_list = [

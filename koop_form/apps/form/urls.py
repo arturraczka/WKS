@@ -19,7 +19,7 @@ from django.urls import path
 from apps.form.views import (
     ProductsView,
     OrderCreateView,
-    OrderProductsView,
+    OrderProductsFormView,
     ProducersView,
     OrderUpdateView,
     OrderDeleteView,
@@ -30,11 +30,11 @@ from apps.form.views import (
 
 
 urlpatterns = [
-    path("producenci/", ProducersView.as_view(), name="producer-list"),
+    path("producenci/", ProducersView.as_view(), name="producers"),
     path(
         "producenci/<str:slug>/",
         ProductsView.as_view(),
-        name="producer-with-products",
+        name="products",
     ),
     path(
         "raporty/producenci/<str:slug>/",
@@ -44,26 +44,26 @@ urlpatterns = [
     path(
         "zamowienie/producenci/",
         OrderProducersView.as_view(),
-        name="form-producer-list",
+        name="order-producers",
     ),
     path(
         "zamowienie/producenci/<str:slug>/",
-        OrderProductsView.as_view(),
-        name="orderitem-create",
+        OrderProductsFormView.as_view(),
+        name="order-products-form",
     ),
     path("zamowienie/nowe/", OrderCreateView.as_view(), name="order-create"),
     path(
-        "zamowienie/edytuj-zamowienie/",
+        "zamowienie/edytuj/",
         OrderUpdateFormView.as_view(),
-        name="order-formset-update",
-    ),  # git
+        name="order-update-form",
+    ),
     path(
-        "zamowienie/szczegoly/<int:pk>/edytuj/",
+        "zamowienie/szczegoly/edytuj/<int:pk>/",
         OrderUpdateView.as_view(),
         name="order-update",
     ),
     path(
-        "zamowienie/szczegoly/<int:pk>/usun/",
+        "zamowienie/szczegoly/usun/<int:pk>/",
         OrderDeleteView.as_view(),
         name="order-delete",
     ),

@@ -5,7 +5,7 @@
     <label for="producers">Zmień producenta:</label>
     <select name="producers" id="producers">
       {% for producer in producers %}
-          <option value="{% url 'producer-with-products' slug=producer.slug %}">{{ producer.name }}</option>
+          <option value="{% url 'products' slug=producer.slug %}">{{ producer.name }}</option>
       {% endfor %}
     </select>
 
