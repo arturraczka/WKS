@@ -165,7 +165,7 @@ class OrderProductsFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView)
         )  # pytanie: czy używanie values() ma tutaj sens?
         self.products_with_available_quantity = calculate_available_quantity(
             self.products_with_related
-        )  # not tested
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -178,8 +178,8 @@ class OrderProductsFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView)
         context["producer"] = self.producer
         products_with_forms = zip(
             context["form"], self.products_with_available_quantity
-        )  # not tested
-        context["products_with_forms"] = products_with_forms  # not tested
+        )
+        context["products_with_forms"] = products_with_forms
         return context
 
     def get_initial(self):
