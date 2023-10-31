@@ -41,7 +41,7 @@ class TestProducerWithProductsDetailView(TestCase):
         self.weight_scheme_zero = WeightSchemeFactory(quantity=0)
         self.product = ProductFactory()
         self.url = reverse(
-            "producer-products-detail", kwargs={"slug": self.product.producer.slug}
+            "producer-with-products", kwargs={"slug": self.product.producer.slug}
         )
 
     def test_get(self):

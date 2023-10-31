@@ -34,7 +34,7 @@ urlpatterns = [
     path(
         "producenci/<str:slug>/",
         ProducerWithProductsView.as_view(),
-        name="producer-products-detail",
+        name="producer-with-products",
     ),
     path(
         "raporty/producenci/<str:slug>/",
