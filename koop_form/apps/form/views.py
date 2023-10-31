@@ -67,6 +67,7 @@ class ProducerWithProductsView(DetailView):
         return producer
 
 
+# TODO: do napisania test dla całej klasy
 @method_decorator(login_required, name="dispatch")
 class ProducerReport(ListView):
     model = Product
