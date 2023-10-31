@@ -74,12 +74,18 @@ class TestOrderProducersView(TestCase):
         self.producer = ProducerFactory()
         self.client.force_login(self.user)
         self.order = OrderFactory(user=self.user)
+        self.url = reverse("order-producers")
 
     def test_get_update_view(self):
-        url = reverse("order-producers")
-        response = self.client.get(url)
+        response = self.client.get(self.url)
 
         assert response.status_code == 200
+
+    def test_test_func(self):
+        Order.objects.get(pk=self.order.id).delete()
+        response = self.client.get(self.url)
+
+        assert response.status_code == 403
 
 
 @pytest.mark.django_db
@@ -98,6 +104,12 @@ class TestOrderProductsFormView(TestCase):
         self.orderitem = OrderItemFactory(
             product=self.product1, quantity=5, order=self.order
         )
+
+    def test_test_func(self):
+        Order.objects.get(pk=self.order.id).delete()
+        response = self.client.get(self.url)
+
+        assert response.status_code == 403
 
     def test_get(self):
         orderitem_with_products_qs = list(
@@ -147,6 +159,29 @@ class TestOrderProductsFormView(TestCase):
         messages = list_messages(response)
         assert before_create_orderitem_count + 1 == after_create_orderitem_count
         assert "Produkt został dodany do zamówienia." in messages
+        assert response.status_code == 200
+
+    def test_quantity_equals_zero_validation(self):
+        product2 = ProductFactory(
+            producer=self.producer,
+            order_max_quantity=10,
+            weight_schemes=self.weight_scheme_list,
+        )
+
+        form_data = {
+            "form-TOTAL_FORMS": 1,
+            "form-INITIAL_FORMS": 0,
+            "form-0-product": product2.id,
+            "form-0-quantity": 0,
+        }
+
+        before_create_orderitem_count = OrderItem.objects.count()
+        response = self.client.post(self.url, data=form_data, follow=True)
+        after_create_orderitem_count = OrderItem.objects.count()
+
+        messages = list_messages(response)
+        assert "Ilość zamawianego produktu nie może być równa 0." in messages
+        assert before_create_orderitem_count == after_create_orderitem_count
         assert response.status_code == 200
 
     def test_max_quantity_validation(self):
