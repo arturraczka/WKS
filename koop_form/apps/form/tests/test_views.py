@@ -63,6 +63,11 @@ class TestProducerWithProductsDetailView(TestCase):
 
 
 @pytest.mark.django_db
+class TestProducerReport(TestCase):
+    pass
+
+
+@pytest.mark.django_db
 class TestFormProducerListView(TestCase):
     def setUp(self):
         self.user = UserFactory()

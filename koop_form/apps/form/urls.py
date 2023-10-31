@@ -37,9 +37,9 @@ urlpatterns = [
         name="producer-products-detail",
     ),
     path(
-        "producenci/<str:slug>/zamowienie/",
+        "raporty/producenci/<str:slug>/",
         ProducerReport.as_view(),
-        name="producer_ordered_products",
+        name="producer-report",
     ),
     path(
         "zamowienie/producenci/",
