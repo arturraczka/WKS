@@ -40,7 +40,7 @@ from django.db.models import F
 
 
 @method_decorator(login_required, name="dispatch")
-class ProducerListView(ListView):
+class ProducersView(ListView):
     model = Producer
     context_object_name = "producers"
     template_name = "form/producer_list.html"
@@ -48,7 +48,7 @@ class ProducerListView(ListView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ProducerWithProductsView(DetailView):
+class ProductsView(DetailView):
     model = Producer
     context_object_name = "producer"
     template_name = "form/producer_with_products.html"
@@ -69,7 +69,7 @@ class ProducerWithProductsView(DetailView):
 
 # TODO: do napisania test dla całej klasy
 @method_decorator(login_required, name="dispatch")
-class ProducerReport(ListView):
+class ProducerReportView(ListView):
     model = Product
     context_object_name = "products"
     template_name = "form/producer_report.html"
@@ -99,7 +99,7 @@ class ProducerReport(ListView):
 
 
 @method_decorator(login_required, name="dispatch")
-class FormProducerListView(OrderExistsTestMixin, ProducerListView):
+class OrderProducersView(OrderExistsTestMixin, ProducersView):
     template_name = "form/producer_form_list.html"
 
     def test_func(self):
@@ -107,7 +107,7 @@ class FormProducerListView(OrderExistsTestMixin, ProducerListView):
 
 
 @method_decorator(login_required, name="dispatch")
-class OrderItemFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
+class OrderProductsView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
     model = OrderItem
     template_name = "form/orderitem_create.html"
     form_class = None
@@ -196,7 +196,7 @@ class OrderItemFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
 
 
 @method_decorator(login_required, name="dispatch")
-class CreateOrderView(SuccessMessageMixin, CreateView):
+class OrderCreateView(SuccessMessageMixin, CreateView):
     model = Order
     template_name = "form/order_create.html"
     form_class = CreateOrderForm
@@ -216,7 +216,7 @@ class CreateOrderView(SuccessMessageMixin, CreateView):
 
 
 @method_decorator(login_required, name="dispatch")
-class OrderFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
+class OrderUpdateFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
     model = OrderItem
     success_message = "Zamówienie zostało zaktualizowane."
     form_class = None

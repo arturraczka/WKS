@@ -17,44 +17,44 @@ Including another URLconf
 from django.urls import path
 
 from apps.form.views import (
-    ProducerWithProductsView,
-    CreateOrderView,
-    OrderItemFormView,
-    ProducerListView,
+    ProductsView,
+    OrderCreateView,
+    OrderProductsView,
+    ProducersView,
     OrderUpdateView,
     OrderDeleteView,
-    FormProducerListView,
-    OrderFormView,
-    ProducerReport,
+    OrderProducersView,
+    OrderUpdateFormView,
+    ProducerReportView,
 )
 
 
 urlpatterns = [
-    path("producenci/", ProducerListView.as_view(), name="producer-list"),
+    path("producenci/", ProducersView.as_view(), name="producer-list"),
     path(
         "producenci/<str:slug>/",
-        ProducerWithProductsView.as_view(),
+        ProductsView.as_view(),
         name="producer-with-products",
     ),
     path(
         "raporty/producenci/<str:slug>/",
-        ProducerReport.as_view(),
+        ProducerReportView.as_view(),
         name="producer-report",
     ),
     path(
         "zamowienie/producenci/",
-        FormProducerListView.as_view(),
+        OrderProducersView.as_view(),
         name="form-producer-list",
     ),
     path(
         "zamowienie/producenci/<str:slug>/",
-        OrderItemFormView.as_view(),
+        OrderProductsView.as_view(),
         name="orderitem-create",
     ),
-    path("zamowienie/nowe/", CreateOrderView.as_view(), name="order-create"),
+    path("zamowienie/nowe/", OrderCreateView.as_view(), name="order-create"),
     path(
         "zamowienie/edytuj-zamowienie/",
-        OrderFormView.as_view(),
+        OrderUpdateFormView.as_view(),
         name="order-formset-update",
     ),  # git
     path(
