@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Sum
@@ -6,13 +7,16 @@ from django.contrib.messages import get_messages
 from django.db.models import Q
 from django.db.models import Case, When, F
 
+logger = logging.getLogger()
 
+# TODO: try/except w ogóle nie działa, nie przechwytuje MultipleObjectsReturned
 def get_object_prefetch_related(model_class, *args, **kwargs):
     try:
         object_with_related = get_object_or_404(
             model_class.objects.filter(**kwargs).prefetch_related(*args)
         )
     except MultipleObjectsReturned:
+        logger.error("User has two active Orders for this week!")
         return None
     return object_with_related
 
@@ -85,6 +89,7 @@ def calculate_total_income(products):
         try:
             total_income += product.income
         except TypeError:
+            logger.error("Error in counting total income for an order.")
             pass
     return total_income
 
@@ -93,5 +98,3 @@ def add_0_as_weight_scheme(pk, product_model, weight_scheme_model):
     product_instance = product_model.objects.get(pk=pk)
     quantity_zero = weight_scheme_model.objects.get(quantity=1.000)
     product_instance.weight_schemes.set([quantity_zero])
-
-    # nie rozumiem czemu to kurwa nie działa ?????????
