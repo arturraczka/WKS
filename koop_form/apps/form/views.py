@@ -300,7 +300,7 @@ class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     success_message = "Dzień odbioru zamówienia został zmieniony."
 
     def test_func(self):
-        order = Order.objects.get(id=self.kwargs["pk"])
+        order = get_object_or_404(Order, id=self.kwargs["pk"])
         return self.request.user == order.user
 
     def get_success_url(self):
@@ -315,7 +315,7 @@ class OrderDeleteView(UserPassesTestMixin, SuccessMessageMixin, DeleteView):
     success_message = "Zamówienie zostało usunięte."
 
     def test_func(self):
-        order = Order.objects.get(id=self.kwargs["pk"])
+        order = get_object_or_404(Order, id=self.kwargs["pk"])
         return self.request.user == order.user
 
 
