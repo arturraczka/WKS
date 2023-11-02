@@ -95,6 +95,12 @@ a.article-title:hover {
     color: white; /* White text color */
 }
 
+/* Style for warning messages */
+.alert-warning {
+    background-color: #FF8000; /* Yellow background color */
+    color: white; /* White text color */
+}
+
 /* order widget */
 .sticky-element {
     position: sticky;

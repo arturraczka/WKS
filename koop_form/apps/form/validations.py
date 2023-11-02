@@ -17,7 +17,7 @@ def validate_product_already_in_order(product, request):
     if order_with_products.products.filter(
         pk=product.id,
     ).exists():
-        messages.error(
+        messages.warning(
             request, "Dodałeś już ten produkt do zamówienia."
         )  # być może to nie będzie dość jasne
         return True
@@ -37,7 +37,7 @@ def validate_order_max_quantity(product, product_with_related, instance, request
         if ordered_quantity is None:
             ordered_quantity = 0
         if order_max_quantity < ordered_quantity + instance.quantity:
-            messages.error(
+            messages.warning(
                 request,
                 "Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle.",
             )
@@ -46,7 +46,7 @@ def validate_order_max_quantity(product, product_with_related, instance, request
 
 def validate_quantity_equals_zero(instance, request):
     if instance.quantity == 0:
-        messages.error(
+        messages.warning(
             request,
             "Ilość zamawianego produktu nie może być równa 0.",
         )
@@ -55,7 +55,7 @@ def validate_quantity_equals_zero(instance, request):
 
 def validate_order_deadline(product, request):
     if product.order_deadline and product.order_deadline < timezone.now():
-        messages.error(
+        messages.warning(
             request, "Termin minął, nie możesz już dodać tego produktu do zamówienia."
         )
         return True
@@ -65,7 +65,7 @@ def validate_weight_scheme(product_with_related, instance, request):
     if instance.quantity not in product_with_related.weight_schemes.all().values_list(
         "quantity", flat=True
     ):
-        messages.error(
+        messages.warning(
             request,
             "Nieprawidłowa waga zamawianego produtku. Wybierz wagę z dostępnego schematu.",
         )
@@ -109,5 +109,5 @@ def perform_update_orderitem_validations(instance, request):
 
 def validate_order_exists(request, order):
     if order_exists_test(request, order):
-        messages.error(request, "Masz już zamówienie na ten tydzień.")
+        messages.warning(request, "Masz już zamówienie na ten tydzień.")
         return True
