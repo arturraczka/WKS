@@ -17,6 +17,7 @@ factory-boy = "*"
 pytz = "*"
 black = "*"
 ruff = "*"
+python-json-logger = "*"
 
 [dev-packages]
 
