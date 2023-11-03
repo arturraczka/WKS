@@ -7,7 +7,7 @@ from django.contrib.messages import get_messages
 from django.db.models import Q
 from django.db.models import Case, When, F
 
-logger = logging.getLogger()
+logger = logging.getLogger("django.server")
 
 
 # TODO: try/except w ogóle nie działa, nie przechwytuje MultipleObjectsReturned
@@ -101,5 +101,28 @@ def add_0_as_weight_scheme(pk, product_model, weight_scheme_model):
     product_instance.weight_schemes.set([quantity_zero])
 
 
-def do_the_magic():
-    pass
+# TODO: product_with_ordered_quantity wypierdala się gdy nie ma zamówień na dany produkt
+# TODO aczkolwiek to nie powinno się dziać, ponieważ jeśli produkt nie był zamawiany, to nie będzie dostarczany
+# TODO już nie ma product_with_ordered_quantity, ale funkcja jest podatna na errory!
+def reduce_order_quantity(orderitem_model, product_pk, quantity):
+    previous_friday = calculate_previous_friday()
+
+    delivered_quantity_lower_than_ordered_quantity = True
+    while delivered_quantity_lower_than_ordered_quantity:
+        orderitems = (
+            orderitem_model.objects.filter(product=product_pk)
+            .filter(Q(item_ordered_date__gte=previous_friday))
+            .order_by("item_ordered_date")
+        )
+        ordered_quantity = 0
+        for item in orderitems:
+            ordered_quantity += item.quantity
+
+        logger.info(ordered_quantity)
+
+        if quantity < ordered_quantity:
+            orderitems.reverse()[0].delete()
+        else:
+            remnant = quantity - ordered_quantity
+            logger.info(remnant)
+            delivered_quantity_lower_than_ordered_quantity = False

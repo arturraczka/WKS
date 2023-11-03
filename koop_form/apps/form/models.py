@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.text import slugify
 
-from apps.form.services import calculate_order_number, do_the_magic
+from apps.form.services import calculate_order_number, reduce_order_quantity
 
 ModelUser = get_user_model()
 
@@ -91,17 +91,18 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-        if update_fields is not None and "quantity_delivered_this_week" in update_fields:
-            do_the_magic()
-        super().save(
-            force_insert=force_insert,
-            force_update=force_update,
-            using=using,
-            update_fields=update_fields,
-        )
+    # TODO: testing
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            product_db = Product.objects.get(pk=self.pk)
+            if (
+                product_db.quantity_delivered_this_week
+                != self.quantity_delivered_this_week
+            ):
+                reduce_order_quantity(
+                    OrderItem, self.pk, self.quantity_delivered_this_week
+                )
+        super(Product, self).save(*args, **kwargs)
 
 
 class product_weight_schemes(models.Model):
@@ -136,6 +137,7 @@ class Order(models.Model):
     def __str__(self):
         return f"{self.user}: " f"Order: {self.pk}"
 
+    # TODO: testing
     def save(self, *args, **kwargs):
         self.order_number = calculate_order_number(Order)  # not tested
         super(Order, self).save(*args, **kwargs)
