@@ -27,8 +27,7 @@ class Producer(models.Model):
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
         self.slug = slugify(self.name)
-        # if update_fields is not None and "name" in update_fields:
-        if "name" in update_fields:
+        if update_fields is not None and "name" in update_fields:
             update_fields = {"slug"}.union(update_fields)
         super().save(
             force_insert=force_insert,
@@ -95,7 +94,7 @@ class Product(models.Model):
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
-        if "quantity_delivered_this_week" in update_fields:
+        if update_fields is not None and "quantity_delivered_this_week" in update_fields:
             do_the_magic()
         super().save(
             force_insert=force_insert,
