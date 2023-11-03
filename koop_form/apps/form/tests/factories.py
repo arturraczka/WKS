@@ -14,6 +14,7 @@ class ProducerFactory(DjangoModelFactory):
     name = Faker("name")
     description = Faker("paragraph")
     order = Faker("random_int", min=1, max=10000)
+    is_active = True
 
 
 class StatusFactory(DjangoModelFactory):
@@ -79,7 +80,7 @@ class ProductFactory(DjangoModelFactory):
         "future_datetime", end_date="+30d", tzinfo=pytz.timezone("Europe/Warsaw")
     )
     quantity_delivered_this_week = Faker("random_int", min=0, max=10)
-    is_visible = True
+    is_active = True
 
     @post_generation
     def statuses(self, create, extracted, **kwargs):
