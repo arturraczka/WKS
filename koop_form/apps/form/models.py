@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.text import slugify
 
-from apps.form.services import calculate_order_number
+from apps.form.services import calculate_order_number, do_the_magic
 
 ModelUser = get_user_model()
 
@@ -15,6 +15,7 @@ class Producer(models.Model):
     order = models.IntegerField(
         default=10
     )  # Default order or use choices for specific values
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["order"]
@@ -26,7 +27,8 @@ class Producer(models.Model):
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
         self.slug = slugify(self.name)
-        if update_fields is not None and "name" in update_fields:
+        # if update_fields is not None and "name" in update_fields:
+        if "name" in update_fields:
             update_fields = {"slug"}.union(update_fields)
         super().save(
             force_insert=force_insert,
@@ -78,7 +80,7 @@ class Product(models.Model):
     weight_schemes = models.ManyToManyField(
         WeightScheme, related_name="products", through="product_weight_schemes"
     )
-    is_visible = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
     statuses = models.ManyToManyField(Status, related_name="products", blank=True)
 
     class Meta:
@@ -90,11 +92,17 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    def set_product_visibility(self):  # not tested
-        if self.is_visible:
-            self.is_visible = False
-        else:
-            self.is_visible = True
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        if "quantity_delivered_this_week" in update_fields:
+            do_the_magic()
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
 
 class product_weight_schemes(models.Model):

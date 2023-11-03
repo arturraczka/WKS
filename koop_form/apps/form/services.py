@@ -9,6 +9,7 @@ from django.db.models import Case, When, F
 
 logger = logging.getLogger()
 
+
 # TODO: try/except w ogóle nie działa, nie przechwytuje MultipleObjectsReturned
 def get_object_prefetch_related(model_class, *args, **kwargs):
     try:
@@ -98,3 +99,7 @@ def add_0_as_weight_scheme(pk, product_model, weight_scheme_model):
     product_instance = product_model.objects.get(pk=pk)
     quantity_zero = weight_scheme_model.objects.get(quantity=1.000)
     product_instance.weight_schemes.set([quantity_zero])
+
+
+def do_the_magic():
+    pass
