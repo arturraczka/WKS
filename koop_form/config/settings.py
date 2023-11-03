@@ -122,39 +122,27 @@ INTERNAL_IPS = [
     # ...
 ]
 
-# LOGGING = {
-#     "version": 1,
-#     "disable_existing_loggers": False,  # może być potrzeba zmienić na True, gdy w produkcji logger nie będzie działał
-#     "handlers": {
-#         "console": {
-#             "class": "logging.StreamHandler",
-#         },
-#     },
-#     "loggers": {
-#         "django.db.backends": {
-#             "level": "DEBUG",
-#             "handlers": ["console"],
-#         },
-#     },
-# }
+LOGGING_FORMAT_VERBOSE = "%(levelname) %(asctime)s %(threadName) %(thread)d %(module) %(filename) %(lineno)d %(name) %(funcName) %(process)d %(message)"
+
+LOGGING_FORMAT_SIMPLE = "%(levelname) %(asctime)s %(module) %(filename) %(lineno)d %(funcName) %(message)"
 
 FORMATTERS = (
     {
-        "verbose": {
-            "format": "{levelname} {asctime:s} {threadName} {thread:d} {module} {filename} {lineno:d} {name} {funcName} {process:d} {message}",
-            "style": "{",
+        "json-verbose": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "format": LOGGING_FORMAT_VERBOSE,
         },
-        "simple": {
-            "format": "{levelname} {asctime:s} {module} {filename} {lineno:d} {funcName} {message}",
-            "style": "{",
+        "json-simple": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "format": LOGGING_FORMAT_SIMPLE,
         },
-    },
+    }
 )
 
 HANDLERS = {
     "console_handler": {
         "class": "logging.StreamHandler",
-        "formatter": "simple",
+        "formatter": "json-simple",
         "level": "DEBUG"
     },
     "info_handler": {
@@ -162,7 +150,7 @@ HANDLERS = {
         "filename": f"{BASE_DIR}/logs/wks_info.log",
         "mode": "a",
         "encoding": "utf-8",
-        "formatter": "verbose",
+        "formatter": "json-verbose",
         "level": "INFO",
         "backupCount": 5,
         "maxBytes": 1024 * 1024 * 5,  # 5 MB
@@ -171,7 +159,7 @@ HANDLERS = {
         "class": "logging.handlers.RotatingFileHandler",
         "filename": f"{BASE_DIR}/logs/wks_error.log",
         "mode": "a",
-        "formatter": "verbose",
+        "formatter": "json-verbose",
         "level": "WARNING",
         "backupCount": 5,
         "maxBytes": 1024 * 1024 * 5,  # 5 MB
@@ -205,10 +193,9 @@ LOGGERS = (
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,  # może być potrzeba zmienić na True, gdy w produkcji logger nie będzie działał
-    "formatters": FORMATTERS[0],
+    "formatters": FORMATTERS,
     "handlers": HANDLERS,
     "loggers": LOGGERS[0],
 }
 
-# dodać logging w jsonie
 # na ten moment walidacje idą jako INFO i są nierozróżnialne od prawidłowych requestów hmmmm
