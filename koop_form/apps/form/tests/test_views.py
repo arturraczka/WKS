@@ -40,9 +40,7 @@ class TestProductsView(TestCase):
         self.client.force_login(self.user)
         self.weight_scheme_zero = WeightSchemeFactory(quantity=0)
         self.product = ProductFactory()
-        self.url = reverse(
-            "products", kwargs={"slug": self.product.producer.slug}
-        )
+        self.url = reverse("products", kwargs={"slug": self.product.producer.slug})
 
     def test_get(self):
         response = self.client.get(self.url)

@@ -124,26 +124,26 @@ INTERNAL_IPS = [
 
 LOGGING_FORMAT_VERBOSE = "%(levelname) %(asctime)s %(threadName) %(thread)d %(module) %(filename) %(lineno)d %(name) %(funcName) %(process)d %(message)"
 
-LOGGING_FORMAT_SIMPLE = "%(levelname) %(asctime)s %(module) %(filename) %(lineno)d %(funcName) %(message)"
-
-FORMATTERS = (
-    {
-        "json-verbose": {
-            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
-            "format": LOGGING_FORMAT_VERBOSE,
-        },
-        "json-simple": {
-            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
-            "format": LOGGING_FORMAT_SIMPLE,
-        },
-    }
+LOGGING_FORMAT_SIMPLE = (
+    "%(levelname) %(asctime)s %(module) %(filename) %(lineno)d %(funcName) %(message)"
 )
+
+FORMATTERS = {
+    "json-verbose": {
+        "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+        "format": LOGGING_FORMAT_VERBOSE,
+    },
+    "json-simple": {
+        "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+        "format": LOGGING_FORMAT_SIMPLE,
+    },
+}
 
 HANDLERS = {
     "console_handler": {
         "class": "logging.StreamHandler",
         "formatter": "json-simple",
-        "level": "DEBUG"
+        "level": "DEBUG",
     },
     "info_handler": {
         "class": "logging.handlers.RotatingFileHandler",
