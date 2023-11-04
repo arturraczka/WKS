@@ -3,6 +3,7 @@ from factory import Faker, SubFactory, post_generation, RelatedFactory
 from factory.django import DjangoModelFactory
 import pytz
 from apps.form.models import Producer, Product, Status, WeightScheme, Order, OrderItem
+from django.utils import timezone
 
 ModelUser = get_user_model()
 
@@ -50,9 +51,7 @@ class OrderFactory(DjangoModelFactory):
 
     user = SubFactory(UserFactory)
     pick_up_day = "Środa"
-    date_created = Faker(
-        "past_datetime", start_date="-1d", tzinfo=pytz.timezone("Europe/Warsaw")
-    )
+    date_created = timezone.now()
     is_given = False
 
     @post_generation
