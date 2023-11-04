@@ -9,6 +9,8 @@ from django.db.models import Case, When, F
 
 logger = logging.getLogger("django.server")
 
+# TODO tutaj wszystko muszę sprawdzić, czy jest testowane czy nie
+
 
 # TODO: try/except w ogóle nie działa, nie przechwytuje MultipleObjectsReturned
 def get_object_prefetch_related(model_class, *args, **kwargs):
@@ -32,6 +34,7 @@ def filter_objects_select_related(model_class, *args, **kwargs):
     return objects_with_related
 
 
+# TODO to by się przydało przetestować, bo nie sądzę, żebym to testował w widokach hmmm
 def calculate_previous_friday():
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     friday = 4
@@ -101,9 +104,6 @@ def add_0_as_weight_scheme(pk, product_model, weight_scheme_model):
     product_instance.weight_schemes.set([quantity_zero])
 
 
-# TODO: product_with_ordered_quantity wypierdala się gdy nie ma zamówień na dany produkt
-# TODO aczkolwiek to nie powinno się dziać, ponieważ jeśli produkt nie był zamawiany, to nie będzie dostarczany
-# TODO już nie ma product_with_ordered_quantity, ale funkcja jest podatna na errory!
 def reduce_order_quantity(orderitem_model, product_pk, quantity):
     previous_friday = calculate_previous_friday()
 
@@ -118,11 +118,8 @@ def reduce_order_quantity(orderitem_model, product_pk, quantity):
         for item in orderitems:
             ordered_quantity += item.quantity
 
-        logger.info(ordered_quantity)
-
         if quantity < ordered_quantity:
             orderitems.reverse()[0].delete()
         else:
-            remnant = quantity - ordered_quantity
-            logger.info(remnant)
+            # remnant = quantity - ordered_quantity
             delivered_quantity_lower_than_ordered_quantity = False
