@@ -91,7 +91,6 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    # TODO: testing
     def save(self, *args, **kwargs):
         if self.pk is not None:
             product_db = Product.objects.get(pk=self.pk)
