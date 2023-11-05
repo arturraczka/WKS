@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.text import slugify
 
-from apps.form.services import calculate_order_number, reduce_order_quantity
+from apps.form.services import calculate_order_number, reduce_order_quantity, recalculate_order_numbers
 
 ModelUser = get_user_model()
 
@@ -136,10 +136,14 @@ class Order(models.Model):
     def __str__(self):
         return f"{self.user}: " f"Order: {self.pk}"
 
-    # TODO: testing
     def save(self, *args, **kwargs):
-        self.order_number = calculate_order_number(Order)  # not tested
+        if self.pk is None:
+            self.order_number = calculate_order_number(Order)
         super(Order, self).save(*args, **kwargs)
+
+    def delete(self, using=None, keep_parents=False):
+        recalculate_order_numbers(Order, self.date_created, self.order_number)
+        super(Order, self).delete(using=using, keep_parents=keep_parents)
 
     def get_absolute_url(self):
         absolute_url = reverse(
@@ -170,6 +174,7 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.order}: " f"{self.product}"
 
+# TODO testing
     def save(self, *args, **kwargs):
         if self.quantity == 0:
             try:
