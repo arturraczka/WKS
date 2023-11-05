@@ -123,3 +123,13 @@ def reduce_order_quantity(orderitem_model, product_pk, quantity):
         else:
             # remnant = quantity - ordered_quantity
             delivered_quantity_lower_than_ordered_quantity = False
+
+
+def recalculate_order_numbers(order_model, date, number):
+    orders_qs = order_model.objects.filter(date_created__gt=date).order_by('date_created')
+    initial = number
+    for order in orders_qs:
+        # logger.info(initial)
+        order.order_number = initial
+        order.save()
+        initial += 1
