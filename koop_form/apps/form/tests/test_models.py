@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from django.db.models import Q
 from apps.form.models import OrderItem, Product, Order
@@ -42,17 +44,14 @@ class TestProductModel(TestCase):
             OrderItemFactory(product=self.product)
 
         ordered_quantity = self.calculate_ordered_quantity(previous_friday)
-        logger.info(ordered_quantity)
 
         product_db = Product.objects.get(id=self.product.id)
         product_db.quantity_delivered_this_week = random.randint(7, 12)
-        logger.info(product_db.quantity_delivered_this_week)
         product_db.save()
 
         assert ordered_quantity > product_db.quantity_delivered_this_week
 
         ordered_quantity = self.calculate_ordered_quantity(previous_friday)
-        logger.info(ordered_quantity)
 
         assert ordered_quantity <= product_db.quantity_delivered_this_week
 
@@ -60,8 +59,10 @@ class TestProductModel(TestCase):
 @pytest.mark.django_db
 class TestOrderModel(TestCase):
     def setUp(self):
-        for _ in range(5, random.randint(10, 20)):
-            OrderFactory()
+        for _ in range(1, 20):
+            number = random.randint(1, 20)
+            past_date = datetime.datetime.now() - datetime.timedelta(days=number)
+            OrderFactory(date_created=past_date)
 
     def test_calculate_order_number(self):
         previous_friday = calculate_previous_friday()
@@ -70,7 +71,6 @@ class TestOrderModel(TestCase):
         initial_number = 0
         for order in orders_qs:
             initial_number += 1
-            logger.info(order.order_number)
             assert order.order_number == initial_number
 
     def test_recalculate_order_numbers(self):
@@ -80,3 +80,19 @@ class TestOrderModel(TestCase):
         list(Order.objects.filter(date_created__gte=previous_friday))[rand_int].delete()
 
         self.test_calculate_order_number()
+
+
+@pytest.mark.django_db
+class TestOrderItemModel(TestCase):
+    def setUp(self):
+        self.orderitem = OrderItemFactory()
+
+    def test_quantity_eq_0_triggers_delete(self):
+        orderitem_qs_count = OrderItem.objects.filter().count()
+        assert orderitem_qs_count == 1
+
+        self.orderitem.quantity = 0
+        self.orderitem.save()
+
+        orderitem_qs_count = OrderItem.objects.filter().count()
+        assert orderitem_qs_count == 0
