@@ -8,7 +8,7 @@ from apps.form.tests.factories import (
     UserFactory,
     ProductFactory,
     OrderItemFactory,
-    OrderFactory,
+    OrderFactory, ProducerFactory,
 )
 from django.test import TestCase
 import logging
@@ -96,3 +96,12 @@ class TestOrderItemModel(TestCase):
 
         orderitem_qs_count = OrderItem.objects.filter().count()
         assert orderitem_qs_count == 0
+
+
+@pytest.mark.django_db
+class TestProducerModel(TestCase):
+    def setUp(self):
+        self.producer = ProducerFactory(name='Wielka! Korba p.13')
+
+    def test_slug_creation(self):
+        assert self.producer.slug == 'wielka-korba-p13'
