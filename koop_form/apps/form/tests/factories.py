@@ -107,6 +107,7 @@ class OrderItemFactory(DjangoModelFactory):
     order = SubFactory(OrderFactory)
     product = SubFactory(ProductFactory)
     quantity = Faker("random_int", min=1, max=4)
+    item_ordered_date = timezone.now()
 
 
 class OrderWithProductFactory(OrderFactory):

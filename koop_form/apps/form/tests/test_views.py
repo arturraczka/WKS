@@ -1,3 +1,5 @@
+import random
+
 import pytest
 from django.urls import reverse
 import datetime
@@ -13,6 +15,9 @@ from apps.form.tests.factories import (
     OrderFactory,
 )
 from django.test import TestCase
+import logging
+
+logger = logging.getLogger("django.server")
 
 
 @pytest.mark.django_db
@@ -60,17 +65,79 @@ class TestProductsView(TestCase):
         assert list(context_data["producers"]) == producers
 
 
+def get_test_data(context_data, product):
+    orderitem1_qs = OrderItem.objects.filter(product=product)
+    quantity = 0
+
+    for item1 in orderitem1_qs:
+        quantity += item1.quantity
+
+    income = quantity * product.price
+    product_context = context_data['products'].get(id=product.id)
+    return quantity, income, product_context
+
+
 @pytest.mark.django_db
 class TestProducerReport(TestCase):
-    pass
+    def setUp(self):
+        self.user = UserFactory()
+        self.client.force_login(self.user)
+        self.producer = ProducerFactory()
+        self.url = reverse("producer-report", kwargs={"slug": self.producer.slug})
+        self.product1 = ProductFactory(producer=self.producer)
+        self.product2 = ProductFactory(producer=self.producer)
+        self.product3 = ProductFactory()
+        for _ in range(0, 5):
+            OrderItemFactory(product=self.product1)
+            OrderItemFactory(product=self.product2)
+            number = random.randint(7, 20)
+            past_date = datetime.datetime.now() - datetime.timedelta(days=number)
+            OrderItemFactory(item_ordered_date=past_date)
+
+    def test_get(self):
+        response = self.client.get(self.url)
+        context_data = response.context
+
+        orderitem1_qs = OrderItem.objects.filter(product=self.product1)
+        product1_ordered_quantity = 0
+
+        for item1 in orderitem1_qs:
+            product1_ordered_quantity += item1.quantity
+
+        product1_income = product1_ordered_quantity * self.product1.price
+        product1 = context_data['products'].get(id=self.product1.id)
+
+
+        orderitem2_qs = OrderItem.objects.filter(product=self.product2)
+        product2_ordered_quantity = 0
+        for item2 in orderitem2_qs:
+            product2_ordered_quantity += item2.quantity
+        product2_income = product2_ordered_quantity * self.product2.price
+        product2 = context_data['products'].get(id=self.product2.id)
+
+
+        total_income = product1_income + product2_income
+
+
+
+        assert product1.ordered_quantity == product1_ordered_quantity
+        assert product1.income == product1_income
+
+        assert product2.ordered_quantity == product2_ordered_quantity
+        assert product2.income == product2_income
+
+        assert context_data['total_income'] == total_income
+        assert self.product1 in list(context_data['products'])
+        assert self.product2 in list(context_data['products'])
+        assert not self.product3 in list(context_data['products'])
 
 
 @pytest.mark.django_db
 class TestOrderProducersView(TestCase):
     def setUp(self):
         self.user = UserFactory()
-        self.producer = ProducerFactory()
         self.client.force_login(self.user)
+        self.producer = ProducerFactory()
         self.order = OrderFactory(user=self.user)
         self.url = reverse("order-producers")
 
@@ -204,8 +271,8 @@ class TestOrderProductsFormView(TestCase):
 
         messages = list_messages(response)
         assert (
-            "Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle."
-            in messages
+                "Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle."
+                in messages
         )
         assert before_create_orderitem_count == after_create_orderitem_count
         assert response.status_code == 200
@@ -246,8 +313,8 @@ class TestOrderProductsFormView(TestCase):
 
         messages = list_messages(response)
         assert (
-            "Nieprawidłowa waga zamawianego produtku. Wybierz wagę z dostępnego schematu."
-            in messages
+                "Nieprawidłowa waga zamawianego produtku. Wybierz wagę z dostępnego schematu."
+                in messages
         )
         assert before_create_orderitem_count == after_create_orderitem_count
         assert response.status_code == 200
@@ -272,8 +339,8 @@ class TestOrderProductsFormView(TestCase):
 
         messages = list_messages(response)
         assert (
-            "Termin minął, nie możesz już dodać tego produktu do zamówienia."
-            in messages
+                "Termin minął, nie możesz już dodać tego produktu do zamówienia."
+                in messages
         )
         assert before_create_orderitem_count == after_create_orderitem_count
         assert response.status_code == 200
@@ -342,7 +409,6 @@ class TestGetOrderUpdateOrderDeleteViews(TestCase):
         url = reverse("order-delete", kwargs={"pk": self.order.id})
         response = self.client.get(url)
         assert response.status_code == 200
-
 
 # @pytest.mark.django_db
 # class TestOrderDetailOrderItemListView(TestCase):
