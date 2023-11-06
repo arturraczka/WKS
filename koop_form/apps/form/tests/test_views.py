@@ -66,11 +66,11 @@ class TestProductsView(TestCase):
 
 
 def get_test_data(context_data, product):
-    orderitem1_qs = OrderItem.objects.filter(product=product)
+    orderitem_qs = OrderItem.objects.filter(product=product)
     quantity = 0
 
-    for item1 in orderitem1_qs:
-        quantity += item1.quantity
+    for item in orderitem_qs:
+        quantity += item.quantity
 
     income = quantity * product.price
     product_context = context_data['products'].get(id=product.id)
@@ -78,7 +78,7 @@ def get_test_data(context_data, product):
 
 
 @pytest.mark.django_db
-class TestProducerReport(TestCase):
+class TestProducerReportView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
@@ -98,27 +98,9 @@ class TestProducerReport(TestCase):
         response = self.client.get(self.url)
         context_data = response.context
 
-        orderitem1_qs = OrderItem.objects.filter(product=self.product1)
-        product1_ordered_quantity = 0
-
-        for item1 in orderitem1_qs:
-            product1_ordered_quantity += item1.quantity
-
-        product1_income = product1_ordered_quantity * self.product1.price
-        product1 = context_data['products'].get(id=self.product1.id)
-
-
-        orderitem2_qs = OrderItem.objects.filter(product=self.product2)
-        product2_ordered_quantity = 0
-        for item2 in orderitem2_qs:
-            product2_ordered_quantity += item2.quantity
-        product2_income = product2_ordered_quantity * self.product2.price
-        product2 = context_data['products'].get(id=self.product2.id)
-
-
+        product1_ordered_quantity, product1_income, product1 = get_test_data(context_data, self.product1)
+        product2_ordered_quantity, product2_income, product2 = get_test_data(context_data, self.product2)
         total_income = product1_income + product2_income
-
-
 
         assert product1.ordered_quantity == product1_ordered_quantity
         assert product1.income == product1_income
