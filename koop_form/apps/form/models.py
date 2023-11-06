@@ -174,11 +174,10 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.order}: " f"{self.product}"
 
-# TODO testing
     def save(self, *args, **kwargs):
         if self.quantity == 0:
             try:
-                self.delete()  # not tested
+                self.delete()
             except ValueError:
                 return None
         else:
