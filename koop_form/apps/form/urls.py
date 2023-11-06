@@ -25,7 +25,7 @@ from apps.form.views import (
     OrderDeleteView,
     OrderProducersView,
     OrderUpdateFormView,
-    ProducerReportView,
+    ProducerReportView, ProductsReportView,
 )
 
 
@@ -66,6 +66,11 @@ urlpatterns = [
         "zamowienie/szczegoly/usun/<int:pk>/",
         OrderDeleteView.as_view(),
         name="order-delete",
+    ),
+    path(
+        "raporty/produkty-skrzynki/",
+        ProductsReportView.as_view(),
+        name="products-report",
     ),
     # path('zamowienie/szczegoly/', OrderDetailOrderItemListView.as_view(), name='order-detail'),
     # path('zamowienie/szczegoly/produkt/<int:pk>/edytuj/', OrderItemUpdateView.as_view(), name='orderitem-update'),

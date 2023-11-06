@@ -1,0 +1,19 @@
+{% extends "form/base_one.html" %}
+{% block content %}
+    <div class="col-md-9">
+        {% for product, data in products %}
+            <article class="media ">
+              <div class="media-body">
+
+                <div>
+                  <a class="mr-2">{{ product.name }}</a>
+                  <a class="mr-2">{{ data }}</a>
+                </div>
+
+              </div>
+            </article>
+        {% endfor %}
+
+
+    </div>
+{% endblock content%}

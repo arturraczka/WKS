@@ -262,6 +262,7 @@ class OrderUpdateFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
         kwargs["queryset"] = self.orderitems
         return kwargs
 
+# TODO to raczej do refactoringu tak jak w OrderProductFormView
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -316,3 +317,31 @@ class OrderDeleteView(UserPassesTestMixin, SuccessMessageMixin, DeleteView):
     def test_func(self):
         order = get_object_or_404(Order, id=self.kwargs["pk"])
         return self.request.user == order.user
+
+
+@method_decorator(login_required, name="dispatch")
+class ProductsReportView(ListView):
+    model = Product
+    context_object_name = "products"
+    template_name = "form/products_report.html"
+
+    def get_queryset(self):
+        previous_friday = calculate_previous_friday()
+        products_qs = Product.objects.filter(Q(orders__date_created__gte=previous_friday)).distinct()
+        return products_qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        products = context["products"]
+        order_data_list = []
+        for product in products:
+            orders_qs = Order.objects.filter(products=product).order_by('order_number')
+            order_data = ''
+            for order in orders_qs:
+                orderitem = OrderItem.objects.filter(order=order).get(product=product)
+                order_data += f'| {order.order_number}: {orderitem.quantity} '
+            order_data_list.append(order_data)
+
+        products_with_order_data = zip(products, order_data_list)
+        context["products"] = products_with_order_data
+        return context
