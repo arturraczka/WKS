@@ -23,18 +23,9 @@ class Producer(models.Model):
     def __str__(self):
         return self.name
 
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
+    def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
-        if update_fields is not None and "name" in update_fields:
-            update_fields = {"slug"}.union(update_fields)
-        super().save(
-            force_insert=force_insert,
-            force_update=force_update,
-            using=using,
-            update_fields=update_fields,
-        )
+        super(Producer, self).save(*args, **kwargs)
 
 
 class WeightScheme(models.Model):
