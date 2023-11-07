@@ -1,5 +1,7 @@
 import logging
 from datetime import datetime, timedelta
+from decimal import Decimal
+
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
@@ -133,3 +135,15 @@ def recalculate_order_numbers(order_model, date, number):
         order.order_number = initial
         order.save()
         initial += 1
+
+
+def create_order_data_list(products, order_model, orderitem_model):
+    order_data_list = []
+    for product in products:
+        orders_qs = order_model.objects.filter(products=product).order_by('order_number')
+        order_data = ''
+        for order in orders_qs:
+            orderitem = orderitem_model.objects.filter(order=order).get(product=product)
+            order_data += f'(skrz{order.order_number}: {Decimal(orderitem.quantity).normalize()}) '
+        order_data_list.append(order_data)
+    return order_data_list

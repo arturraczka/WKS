@@ -28,7 +28,7 @@ from apps.form.services import (
     order_exists_test,
     filter_objects_prefetch_related,
     calculate_available_quantity,
-    calculate_total_income,
+    calculate_total_income, create_order_data_list,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -335,15 +335,6 @@ class ProductsReportView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         products = context["products"]
-        order_data_list = []
-        for product in products:
-            orders_qs = Order.objects.filter(products=product).order_by('order_number')
-            order_data = ''
-            for order in orders_qs:
-                orderitem = OrderItem.objects.filter(order=order).get(product=product)
-                order_data += f'(skrz{order.order_number}: {Decimal(orderitem.quantity).normalize()}) '
-            order_data_list.append(order_data)
-
-        products_with_order_data = zip(products, order_data_list)
-        context["products"] = products_with_order_data
+        order_data_list = create_order_data_list(products, Order, OrderItem)
+        context["order_data"] = order_data_list
         return context
