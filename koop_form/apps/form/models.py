@@ -92,6 +92,7 @@ class Product(models.Model):
                 reduce_order_quantity(
                     OrderItem, self.pk, self.quantity_delivered_this_week
                 )
+                self.quantity_delivered_this_week = -1
         super(Product, self).save(*args, **kwargs)
 
 

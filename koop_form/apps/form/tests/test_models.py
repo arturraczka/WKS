@@ -46,14 +46,15 @@ class TestProductModel(TestCase):
         ordered_quantity = self.calculate_ordered_quantity(previous_friday)
 
         product_db = Product.objects.get(id=self.product.id)
-        product_db.quantity_delivered_this_week = random.randint(7, 12)
+        rand_quantity = random.randint(7, 12)
+        product_db.quantity_delivered_this_week = rand_quantity
         product_db.save()
 
-        assert ordered_quantity > product_db.quantity_delivered_this_week
+        ordered_quantity_post_save = self.calculate_ordered_quantity(previous_friday)
 
-        ordered_quantity = self.calculate_ordered_quantity(previous_friday)
-
-        assert ordered_quantity <= product_db.quantity_delivered_this_week
+        assert product_db.quantity_delivered_this_week == -1
+        assert ordered_quantity > rand_quantity
+        assert ordered_quantity_post_save <= rand_quantity
 
 
 @pytest.mark.django_db
