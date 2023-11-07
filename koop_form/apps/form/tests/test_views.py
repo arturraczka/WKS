@@ -338,7 +338,6 @@ class TestOrderCreateView(TestCase):
 
     def test_get(self):
         response = self.client.get(self.url)
-
         assert response.status_code == 200
 
     def test_order_exists_validation(self):
@@ -379,15 +378,47 @@ class TestGetOrderUpdateOrderDeleteViews(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.order = OrderFactory(user=self.user)
+        self.order = OrderFactory(user=self.user, pick_up_day='środa')
+        for _ in range(0, 5):
+            OrderItemFactory(order=self.order)
 
-    def test_get_update_view(self):
+    def test_update_view(self):
+        form_data = {
+            "pick_up_day": "czwartek",
+        }
         url = reverse("order-update", kwargs={"pk": self.order.id})
-        response = self.client.get(url)
+        response = self.client.post(url, data=form_data, follow=True)
+        order_db = Order.objects.get(id=self.order.id)
 
+        messages = list_messages(response)
+        assert "Dzień odbioru zamówienia został zmieniony." in messages
+        assert order_db.pick_up_day == 'czwartek'
         assert response.status_code == 200
 
-    def test_get_delete_view(self):
+    def test_delete_view(self):
+        order_count = Order.objects.count()
+        orderitem_count = OrderItem.objects.count()
         url = reverse("order-delete", kwargs={"pk": self.order.id})
-        response = self.client.get(url)
-        assert response.status_code == 200
+        response = self.client.delete(url)
+        order_count_post_del = Order.objects.count()
+        orderitem_count_post_del = OrderItem.objects.count()
+
+        assert order_count == 1
+        assert order_count_post_del == 0
+        assert orderitem_count == 5
+        assert orderitem_count_post_del == 0
+        assert response.status_code == 302
+
+    def test_delete_nonexistent_order(self):
+        pk = 9999
+        url = reverse("order-delete", kwargs={"pk": pk})
+        response = self.client.delete(url)
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestProductsReportView(TestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.client.force_login(self.user)
+        self.url = reverse('products-report')
