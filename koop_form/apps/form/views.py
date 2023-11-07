@@ -320,7 +320,6 @@ class OrderDeleteView(UserPassesTestMixin, SuccessMessageMixin, DeleteView):
         return self.request.user == order.user
 
 
-# TODO testing, polishing
 @method_decorator(login_required, name="dispatch")
 class ProductsReportView(ListView):
     model = Product
