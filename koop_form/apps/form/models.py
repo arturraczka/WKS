@@ -105,8 +105,8 @@ class product_weight_schemes(models.Model):
 
 class Order(models.Model):
     PICKUP_CHOICES = [
-        ("wednesday", "Środa"),
-        ("thursday", "Czwartek"),
+        ("środa", "środa"),
+        ("czwartek", "czwartek"),
     ]
 
     user = models.ForeignKey(ModelUser, on_delete=models.CASCADE, related_name="orders")
