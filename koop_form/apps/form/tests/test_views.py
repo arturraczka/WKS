@@ -422,3 +422,18 @@ class TestProductsReportView(TestCase):
         self.user = UserFactory()
         self.client.force_login(self.user)
         self.url = reverse('products-report')
+        for _ in range(0, 5):
+            ProductFactory()
+        self.orderitem1 = OrderItemFactory(product=ProductFactory(name='Alaska'), quantity=4)
+        self.orderitem2 = OrderItemFactory(product=ProductFactory(name='Barabasz'), quantity=1)
+        self.orderitem3 = OrderItemFactory(product=ProductFactory(name='Celuloza'), quantity=2)
+
+    def test_get(self):
+        response = self.client.get(self.url)
+        context_data = response.context
+
+        products = Product.objects.filter(orderitems__isnull=False)
+
+        assert list(context_data["products"]) == list(products)
+        assert list(context_data["order_data"]) == ['(skrz1: 4) ', '(skrz2: 1) ', '(skrz3: 2) ']
+        assert response.status_code == 200
