@@ -1,3 +1,5 @@
+import random
+
 from django.contrib.auth import get_user_model
 from factory import Faker, SubFactory, post_generation, RelatedFactory
 from factory.django import DjangoModelFactory
@@ -50,7 +52,7 @@ class OrderFactory(DjangoModelFactory):
         model = Order
 
     user = SubFactory(UserFactory)
-    pick_up_day = "Środa"
+    pick_up_day = ['środa', 'czwartek'][random.randint(0, 1)]
     date_created = timezone.now()
     is_given = False
 
