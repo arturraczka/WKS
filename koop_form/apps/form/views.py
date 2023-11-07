@@ -37,6 +37,7 @@ from apps.form.validations import (
 )
 from django.forms import modelformset_factory
 from django.db.models import F
+from decimal import Decimal
 
 
 @method_decorator(login_required, name="dispatch")
@@ -319,6 +320,7 @@ class OrderDeleteView(UserPassesTestMixin, SuccessMessageMixin, DeleteView):
         return self.request.user == order.user
 
 
+# TODO testing, polishing
 @method_decorator(login_required, name="dispatch")
 class ProductsReportView(ListView):
     model = Product
@@ -339,7 +341,7 @@ class ProductsReportView(ListView):
             order_data = ''
             for order in orders_qs:
                 orderitem = OrderItem.objects.filter(order=order).get(product=product)
-                order_data += f'| {order.order_number}: {orderitem.quantity} '
+                order_data += f'(skrz{order.order_number}: {Decimal(orderitem.quantity).normalize()}) '
             order_data_list.append(order_data)
 
         products_with_order_data = zip(products, order_data_list)
