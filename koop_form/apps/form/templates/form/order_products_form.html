@@ -24,12 +24,12 @@
 
 
                 <div>
-                  <a class="article-title"><strong>{{ product.name }}</strong> | </a>
-                  <a class="mr-2">{{ product.description }}</a>
+                  <a class="article-title border-1">{{ product.name }}</a>
+                  <a class="mr-2"> {{ product.description }}</a>
                 </div>
 
                 <div>
-                  <a class="mr-2"><strong>{{ product.price }} zł</strong> za szt/kg | </a>
+                    <a class="mr-2"><strong>{{ product.price }}</strong> zł za szt/kg</a>
                   <a class="text-muted">Dostępne wagi(kg)/liczba sztuk: </a>
                   {% for weight_scheme in product.weight_schemes.all %}
                     <a class="text-muted">{{ weight_scheme.quantity|format_decimal:3 }},</a>
