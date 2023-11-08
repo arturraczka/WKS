@@ -1,10 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "form/base_one.html" %}
 
-</body>
-</html>
+{% block content %}
+
+    <h2>Usuń zamówienie na ten tydzień</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" value="Usuń">
+    </form>
+    <form action='{% url "order-update-form" %}'>
+        <input type="submit" value="Anuluj" />
+    </form>
+
+{% endblock content %}
