@@ -37,7 +37,6 @@ from apps.form.validations import (
 )
 from django.forms import modelformset_factory
 from django.db.models import F
-from decimal import Decimal
 
 
 @method_decorator(login_required, name="dispatch")

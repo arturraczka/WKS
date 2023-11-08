@@ -72,7 +72,4 @@ urlpatterns = [
         ProductsReportView.as_view(),
         name="products-report",
     ),
-    # path('zamowienie/szczegoly/', OrderDetailOrderItemListView.as_view(), name='order-detail'),
-    # path('zamowienie/szczegoly/produkt/<int:pk>/edytuj/', OrderItemUpdateView.as_view(), name='orderitem-update'),
-    # path('zamowienie/szczegoly/produkt/<int:pk>/usun/', OrderItemDeleteView.as_view(), name='orderitem-delete'),
 ]
