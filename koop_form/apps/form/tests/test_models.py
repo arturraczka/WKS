@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 from django.db.models import Q
-from apps.form.models import OrderItem, Product, Order
+from apps.form.models import OrderItem, Product, Order, WeightScheme
 from apps.form.services import calculate_previous_friday
 from apps.form.tests.factories import (
     UserFactory,
@@ -55,6 +55,10 @@ class TestProductModel(TestCase):
         assert product_db.quantity_delivered_this_week == -1
         assert ordered_quantity > rand_quantity
         assert ordered_quantity_post_save <= rand_quantity
+
+    def test_signal_add_zero_as_weight_scheme(self):
+        zero_weight_scheme = WeightScheme.objects.get(quantity=0)
+        assert zero_weight_scheme in list(self.product.weight_schemes.all())
 
 
 @pytest.mark.django_db
