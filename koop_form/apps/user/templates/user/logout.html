@@ -1,0 +1,10 @@
+{% extends 'form/base_one.html' %}
+
+{% block content %}
+
+    <h2>Zostałeś wylogowany.</h2>
+    <div>
+        Pomyłka? Zaloguj się ponownie: <a href="{% url 'login' %}">Logowanie</a>
+    </div>
+
+{% endblock content %}
