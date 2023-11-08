@@ -21,7 +21,7 @@ from apps.form.forms import (
     UpdateOrderItemFormSet,
 )
 from apps.form.models import Producer, Order, OrderItem, Product
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from apps.form.services import (
     calculate_previous_friday,
     calculate_order_cost,
@@ -297,22 +297,19 @@ class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = Order
     fields = ["pick_up_day"]
     template_name = "form/order_create.html"
-    success_url = None
+    success_url = reverse_lazy('order-update-form')
     success_message = "Dzień odbioru zamówienia został zmieniony."
 
     def test_func(self):
         order = get_object_or_404(Order, id=self.kwargs["pk"])
         return self.request.user == order.user
 
-    def get_success_url(self):
-        return reverse("order-update-form")
-
 
 @method_decorator(login_required, name="dispatch")
 class OrderDeleteView(UserPassesTestMixin, SuccessMessageMixin, DeleteView):
     model = Order
     template_name = "form/order_delete.html"
-    success_url = "producer-list"
+    success_url = reverse_lazy("producers")
     success_message = "Zamówienie zostało usunięte."
 
     def test_func(self):
