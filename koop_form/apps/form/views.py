@@ -273,7 +273,13 @@ class OrderUpdateFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
         )
         context["order"] = self.order
         context["orderitems"] = orderitems
+
+        user_fund = self.request.user.userprofile.fund
+        if user_fund is None:
+            user_fund = 1.3
+        context["fund"] = user_fund
         context["order_cost"] = calculate_order_cost(orderitems)
+        context["order_cost_with_fund"] = context["order_cost"] * user_fund
 
         orderitems_with_forms = zip(
             self.products_with_related, context["orderitems"], context["form"]
