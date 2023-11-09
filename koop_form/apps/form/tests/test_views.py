@@ -105,7 +105,7 @@ class TestProducerReportView(TestCase):
             past_date = datetime.datetime.now() - datetime.timedelta(days=number)
             OrderItemFactory(item_ordered_date=past_date)
 
-    def test_get(self):
+    def test_response_and_context(self):
         response = self.client.get(self.url)
         context_data = response.context
 
@@ -113,12 +113,11 @@ class TestProducerReportView(TestCase):
         product2_ordered_quantity, product2_income, product2 = get_test_data(context_data, self.product2)
         total_income = product1_income + product2_income
 
+        assert response.status_code == 200
         assert product1.ordered_quantity == product1_ordered_quantity
         assert product1.income == product1_income
-
         assert product2.ordered_quantity == product2_ordered_quantity
         assert product2.income == product2_income
-
         assert context_data['total_income'] == total_income
         assert self.product1 in list(context_data['products'])
         assert self.product2 in list(context_data['products'])
@@ -134,7 +133,7 @@ class TestOrderProducersView(TestCase):
         self.order = OrderFactory(user=self.user)
         self.url = reverse("order-producers")
 
-    def test_get_update_view(self):
+    def test_response(self):
         response = self.client.get(self.url)
 
         assert response.status_code == 200
@@ -169,7 +168,7 @@ class TestOrderProductsFormView(TestCase):
 
         assert response.status_code == 403
 
-    def test_get(self):
+    def test_response_and_context(self):
         orderitem_with_products_qs = list(
             OrderItem.objects.filter(order=self.order.id).select_related("product")
         )
@@ -347,7 +346,7 @@ class TestOrderCreateView(TestCase):
         self.user = UserFactory()
         self.client.force_login(self.user)
 
-    def test_get(self):
+    def test_response(self):
         response = self.client.get(self.url)
         assert response.status_code == 200
 
@@ -439,7 +438,7 @@ class TestProductsReportView(TestCase):
         self.orderitem2 = OrderItemFactory(product=ProductFactory(name='Barabasz'), quantity=1)
         self.orderitem3 = OrderItemFactory(product=ProductFactory(name='Celuloza'), quantity=2)
 
-    def test_get(self):
+    def test_response_and_context(self):
         response = self.client.get(self.url)
         context_data = response.context
 
