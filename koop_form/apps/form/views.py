@@ -28,7 +28,8 @@ from apps.form.services import (
     order_exists_test,
     filter_objects_prefetch_related,
     calculate_available_quantity,
-    calculate_total_income, create_order_data_list,
+    calculate_total_income,
+    create_order_data_list,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -59,11 +60,13 @@ class ProductsView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["producers"] = Producer.objects.all()
-        products_with_related = filter_objects_prefetch_related(
-            Product, *["weight_schemes", "statuses"], producer=context["producer"]
+
+        context["products_with_related"] = (
+            Product.objects.filter(producer=context["producer"])
+            .filter(is_active=True)
+            .prefetch_related("weight_schemes", "statuses")
         )
-        context["products_with_related"] = products_with_related
+        context["producers"] = Producer.objects.filter(is_active=True)
         return context
 
     def get_object(self, queryset=None):
@@ -266,7 +269,7 @@ class OrderUpdateFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
         kwargs["queryset"] = self.orderitems
         return kwargs
 
-# TODO to raczej do refactoringu tak jak w OrderProductFormView
+    # TODO to raczej do refactoringu tak jak w OrderProductFormView
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -306,7 +309,7 @@ class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = Order
     fields = ["pick_up_day"]
     template_name = "form/order_create.html"
-    success_url = reverse_lazy('order-update-form')
+    success_url = reverse_lazy("order-update-form")
     success_message = "Dzień odbioru zamówienia został zmieniony."
 
     def test_func(self):
@@ -334,7 +337,9 @@ class ProductsReportView(ListView):
 
     def get_queryset(self):
         previous_friday = calculate_previous_friday()
-        products_qs = Product.objects.filter(Q(orders__date_created__gte=previous_friday)).distinct()
+        products_qs = Product.objects.filter(
+            Q(orders__date_created__gte=previous_friday)
+        ).distinct()
         return products_qs
 
     def get_context_data(self, **kwargs):
