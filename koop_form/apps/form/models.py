@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.text import slugify
 
-from apps.form.services import calculate_order_number, reduce_order_quantity, recalculate_order_numbers
+from apps.form.services import calculate_order_number, reduce_order_quantity, recalculate_order_numbers, set_products_quantity_to_0
 
 ModelUser = get_user_model()
 
@@ -16,6 +16,7 @@ class Producer(models.Model):
         default=10
     )  # Default order or use choices for specific values
     is_active = models.BooleanField(default=True)
+    not_arrived = models.BooleanField(default=False, blank=True)
 
     class Meta:
         ordering = ["order"]
@@ -25,6 +26,9 @@ class Producer(models.Model):
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
+        if self.not_arrived is True:
+            set_products_quantity_to_0(Product, self.pk)
+            self.not_arrived = False
         super(Producer, self).save(*args, **kwargs)
 
 
@@ -65,7 +69,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=7, decimal_places=2)
     order_deadline = models.DateTimeField(null=True, blank=True)
     quantity_delivered_this_week = models.DecimalField(
-        max_digits=9, decimal_places=3, default=0, null=True, blank=True
+        max_digits=9, decimal_places=3, default=-1, null=True, blank=True
     )
     weight_schemes = models.ManyToManyField(
         WeightScheme, related_name="products", through="product_weight_schemes"

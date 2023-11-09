@@ -147,3 +147,10 @@ def create_order_data_list(products, order_model, orderitem_model):
             order_data += f'(skrz{order.order_number}: {Decimal(orderitem.quantity).normalize()}) '
         order_data_list.append(order_data)
     return order_data_list
+
+
+def set_products_quantity_to_0(product_model, pk):
+    product_qs = product_model.objects.filter(producer=pk)
+    for product in product_qs:
+        product.quantity_delivered_this_week = 0
+        product.save()
