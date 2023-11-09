@@ -25,8 +25,8 @@ class TestProducersView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.producer1 = ProducerFactory()
-        self.producer2 = ProducerFactory()
+        for _ in range(0, 5,):
+            ProducerFactory()
         self.url = reverse("producers")
 
     def test_get(self):
@@ -36,6 +36,15 @@ class TestProducersView(TestCase):
 
         assert response.status_code == 200
         assert list(context_data["producers"]) == producers
+
+    def test_get_queryset(self):
+        for _ in range(0, 5,):
+            ProducerFactory(is_active=False)
+        response = self.client.get(self.url)
+        context_data = response.context
+
+        for producer in context_data["producers"]:
+            assert producer.is_active is True
 
 
 @pytest.mark.django_db
