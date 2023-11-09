@@ -80,7 +80,7 @@ class ProductFactory(DjangoModelFactory):
     order_deadline = Faker(
         "future_datetime", end_date="+30d", tzinfo=pytz.timezone("Europe/Warsaw")
     )
-    quantity_delivered_this_week = Faker("random_int", min=0, max=10)
+    quantity_delivered_this_week = -1
     is_active = True
 
     @post_generation

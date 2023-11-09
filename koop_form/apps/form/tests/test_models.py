@@ -108,5 +108,25 @@ class TestProducerModel(TestCase):
     def setUp(self):
         self.producer = ProducerFactory(name='Wielka! Korba p.13')
 
+        for _ in range(0, 5):
+            product = ProductFactory(producer=self.producer)
+            for _ in range(0, 3):
+                OrderItemFactory(product=product)
+
     def test_slug_creation(self):
         assert self.producer.slug == 'wielka-korba-p13'
+
+    def test_set_products_quantity_to_0(self):
+        count_pre_save = OrderItem.objects.count()
+
+        self.producer.not_arrived = True
+        self.producer.save()
+
+        products_qs = Product.objects.filter(producer=self.producer)
+        count_post_save = OrderItem.objects.count()
+
+        assert self.producer.not_arrived is False
+        for product in products_qs:
+            assert product.quantity_delivered_this_week == -1
+        assert count_pre_save == 15
+        assert count_post_save == 0
