@@ -114,7 +114,7 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-LOGIN_URL = '/uzytkownik/logowanie/'
+LOGIN_URL = 'login'
 
 INTERNAL_IPS = [
     # ...
