@@ -137,10 +137,16 @@ class OrderProductsFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView)
             user=self.request.user, date_created__gte=self.previous_friday
         )
         self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
-        self.products_with_related = filter_objects_prefetch_related(
-            Product, *["weight_schemes", "statuses"], producer=self.producer
+        self.products_with_related = (
+            Product.objects.filter(producer=self.producer)
+            .filter(is_active=True)
+            .prefetch_related("weight_schemes", "statuses")
         )
-        self.products = Product.objects.filter(producer=self.producer).only("id")
+        self.products = (
+            Product.objects.filter(producer=self.producer)
+            .filter(is_active=True)
+            .only("id")
+        )
         self.initial_data = [{"product": product.id} for product in self.products]
 
     def get_form_class(self):
@@ -166,7 +172,7 @@ class OrderProductsFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView)
             .only("product_id", "quantity", "product__price", "product__name")
         )
         self.order_cost = calculate_order_cost(self.orderitems)
-        self.producers = Producer.objects.all().values(
+        self.producers = Producer.objects.filter(is_active=True).values(
             "slug", "name", "order"
         )  # pytanie: czy używanie values() ma tutaj sens?
         self.products_with_available_quantity = calculate_available_quantity(
