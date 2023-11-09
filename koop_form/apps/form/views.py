@@ -46,6 +46,10 @@ class ProducersView(ListView):
     template_name = "form/producer_list.html"
     paginate_by = 25
 
+    def get_queryset(self):
+        queryset = Producer.objects.filter(is_active=True)
+        return queryset
+
 
 @method_decorator(login_required, name="dispatch")
 class ProductsView(DetailView):
