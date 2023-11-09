@@ -154,3 +154,11 @@ def set_products_quantity_to_0(product_model, pk):
     for product in product_qs:
         product.quantity_delivered_this_week = 0
         product.save()
+
+
+def switch_products_isactive_bool_value(product_model, pk, is_active):
+    product_qs = product_model.objects.filter(producer=pk)
+    operator = True if is_active else False
+    for product in product_qs:
+        product.is_active = operator
+        product.save()

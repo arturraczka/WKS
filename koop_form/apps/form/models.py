@@ -1,11 +1,14 @@
+import logging
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.text import slugify
 
-from apps.form.services import calculate_order_number, reduce_order_quantity, recalculate_order_numbers, set_products_quantity_to_0
+from apps.form.services import calculate_order_number, reduce_order_quantity, recalculate_order_numbers, \
+    set_products_quantity_to_0, switch_products_isactive_bool_value
 
 ModelUser = get_user_model()
+logger = logging.getLogger("django.server")
 
 
 class Producer(models.Model):
@@ -26,9 +29,16 @@ class Producer(models.Model):
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
-        if self.not_arrived is True:
-            set_products_quantity_to_0(Product, self.pk)
-            self.not_arrived = False
+
+        if self.pk is not None:
+            if self.not_arrived is True:
+                set_products_quantity_to_0(Product, self.pk)
+                self.not_arrived = False
+
+            producer_db = Producer.objects.get(pk=self.pk)
+            if producer_db.is_active != self.is_active:
+                switch_products_isactive_bool_value(Product, self.pk, self.is_active)
+
         super(Producer, self).save(*args, **kwargs)
 
 
