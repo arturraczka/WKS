@@ -29,7 +29,7 @@ class TestProducersView(TestCase):
             ProducerFactory()
         self.url = reverse("producers")
 
-    def test_get(self):
+    def test_response_and_context(self):
         response = self.client.get(self.url)
         context_data = response.context
         producers = list(Producer.objects.all())
@@ -52,21 +52,23 @@ class TestProductsView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.weight_scheme_zero = WeightSchemeFactory(quantity=0)
-        self.product = ProductFactory()
-        self.url = reverse("products", kwargs={"slug": self.product.producer.slug})
+        self.producer = ProducerFactory()
+        for _ in range(0, 5):
+            ProductFactory(producer=self.producer)
+            ProductFactory()
+        self.url = reverse("products", kwargs={"slug": self.producer.slug})
 
-    def test_get(self):
+    def test_response_and_context(self):
         response = self.client.get(self.url)
         context_data = response.context
 
         products_with_related = list(
-            Product.objects.filter(producer=self.product.producer.id).prefetch_related(
+            Product.objects.filter(producer=self.producer.id).filter(is_active=True).prefetch_related(
                 "weight_schemes", "statuses"
             )
         )
-        producer = Producer.objects.get(pk=self.product.producer.id)
-        producers = list(Producer.objects.all())
+        producer = Producer.objects.get(pk=self.producer.id)
+        producers = list(Producer.objects.filter(is_active=True))
 
         assert response.status_code == 200
         assert context_data["producer"] == producer
