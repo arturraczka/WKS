@@ -17,7 +17,6 @@ class ProducerFactory(DjangoModelFactory):
     name = Faker("name")
     description = Faker("paragraph")
     order = Faker("random_int", min=1, max=10000)
-    is_active = True
 
 
 class StatusFactory(DjangoModelFactory):

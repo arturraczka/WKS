@@ -130,3 +130,18 @@ class TestProducerModel(TestCase):
             assert product.quantity_delivered_this_week == -1
         assert count_pre_save == 15
         assert count_post_save == 0
+
+    def test_switch_products_isactive_bool_value(self):
+        self.producer.is_active = False
+        self.producer.save()
+
+        products_qs = Product.objects.filter(producer=self.producer)
+        for product in products_qs:
+            assert product.is_active is False
+
+        self.producer.is_active = True
+        self.producer.save()
+
+        products_qs = Product.objects.filter(producer=self.producer)
+        for product in products_qs:
+            assert product.is_active is True
