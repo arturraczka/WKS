@@ -7,6 +7,9 @@ class CreateOrderForm(ModelForm):
     class Meta:
         model = Order
         fields = ["pick_up_day"]
+        labels = {
+            'pick_up_day': 'Wybierz dzień odbioru:',
+        }
 
 
 class CreateOrderItemForm(ModelForm):
