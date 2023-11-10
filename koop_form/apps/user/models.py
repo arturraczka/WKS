@@ -13,3 +13,6 @@ class UserProfile(models.Model):
     user = models.OneToOneField(ModelUser, on_delete=models.CASCADE)
     fund = models.DecimalField(max_digits=3, decimal_places=1, choices=FUND_CHOICES, blank=True, default=Decimal('1.3'))
     phone_number = models.PositiveIntegerField(blank=True, null=True)
+
+    def __str__(self):
+        return f'profile: {self.user.username}'
