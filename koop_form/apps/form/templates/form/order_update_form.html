@@ -22,20 +22,22 @@
             <div class="media-body">
             <h5 class="article-title">{{ product.name }}</h5>
             <div>
-                <a class="mr-2"><strong>Cena (za szt/kg): {{ product.price }} zł</strong></a>
-              <a class="article-content">Opis: {{ product.description }}</a>
+                <p class="mr-2"><strong>Cena (za szt/kg): {{ product.price }} zł</strong></p>
+              <p class="article-content">Opis: {{ product.description }}</p>
             </div>
             <div class="article-metadata">
-                <a class="text-muted">Dostępne wagi(kg)/liczba sztuk: </a>
+                <p class="text-muted">Dostępne wagi(kg)/liczba sztuk:
                 {% for weight_scheme in product.weight_schemes.all %}
-                    <a class="text-muted">{{ weight_scheme.quantity|format_decimal }},</a>
+                    {{ weight_scheme.quantity|format_decimal }},
                 {% endfor %}
+                </p>
             </div>
             <div class="article-metadata">
-                <a class="text-muted">Status produktu: </a>
+                <p class="text-muted">Status produktu:
                 {% for status in product.statuses.all %}
-                    <a class="text-muted">{{ status.status_type }},</a>
+                    {{ status.status_type }},
                 {% endfor %}
+                </p>
             </div>
           <div class="media-body">
             <h5 class="article-title">{{ orderitem.product.name }}</h5>

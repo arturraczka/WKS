@@ -22,28 +22,27 @@
             <article class="media ">
               <div class="media-body">
 
-
                 <div>
-                  <a class="article-title border-1">{{ product.name }}</a>
-                  <a class="mr-2"> {{ product.description }}</a>
+                  <span class="article-title border-1">{{ product.name }}</span>
+                  <span class="mr-2">{{ product.description }}</span>
                 </div>
 
                 <div>
-                    <a class="mr-2"><strong>{{ product.price }}</strong> zł za szt/kg</a>
-                  <a class="text-muted">Dostępne wagi(kg)/liczba sztuk: </a>
+                    <span class="mr-2"><strong>{{ product.price }}</strong> zł za szt/kg</span>
+                  <span class="text-muted">Dostępne wagi(kg)/liczba sztuk: </span>
                   {% for weight_scheme in product.weight_schemes.all %}
-                    <a class="text-muted">{{ weight_scheme.quantity|format_decimal:3 }},</a>
+                    <span class="text-muted">{{ weight_scheme.quantity|format_decimal:3 }},</span>
                   {% endfor %}
-                  <a class="text-muted"> | Status produktu: </a>
+                  <span class="text-muted"> | Status produktu: </span>
                   {% for status in product.statuses.all %}
-                    <a class="text-muted"><strong>{{ status.status_type }},</strong></a>
+                    <span class="text-muted"><strong>{{ status.status_type }},</strong></span>
                   {% endfor %}
                 </div>
 
                 <div class="article-metadata">
                   {{ form }}
                   <input type="submit" name="submit" value="Dodaj">
-                  <a class="mr-2"> Maksymalnie możesz zamówić: {{ product.available_quantity|format_decimal:3 }} sztuk lub kg </a>
+                  <span class="mr-2"> Maksymalnie możesz zamówić: {{ product.available_quantity|format_decimal:3 }} sztuk lub kg </span>
                 </div>
 
               </div>
