@@ -141,3 +141,7 @@ a.article-title:hover {
     border: 1px solid;
     border-radius: 2px
 }
+
+.asteriskField {
+    display: none;
+}
