@@ -12,12 +12,17 @@ from django.contrib.auth.views import (
 
 urlpatterns = [
     path(
-        "logowanie/",
+        "zaloguj/",
         LoginView.as_view(template_name="user/login.html", next_page="order-create"),
         name="login",
     ),
     path(
-        "wylogowanie/", LogoutView.as_view(template_name="user/logout.html"), name="logout"
+        "wylogowano/", LogoutView.as_view(template_name="user/logout.html"), name="logout"
+    ),
+    path(
+        "zmiana-hasla/prosba/",
+        PasswordChangeView.as_view(template_name="user/password_reset_confirm.html"),
+        name="password-change-request",
     ),
     path(
         "zmiana-hasla/sukces/",
@@ -25,11 +30,6 @@ urlpatterns = [
             template_name="user/password_reset_complete.html"
         ),
         name="password-change-done",
-    ),
-    path(
-        "zmiana-hasla/prosba/",
-        PasswordChangeView.as_view(template_name="user/password_reset_confirm.html"),
-        name="password-change-request",
     ),
     path(
         "reset-hasla/prosba/",
