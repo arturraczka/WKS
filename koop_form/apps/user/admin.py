@@ -16,14 +16,11 @@ class UserAdmin(BaseUserAdmin):
     inlines = [UserProfileInline]
 
 
-
-
-
 class UserProfileResource(resources.ModelResource):
 
     class Meta:
         model = UserProfile
-        import_id_fields = ('isbn',)
+        import_id_fields = ('phone_number',)
         fields = ('fund', 'phone_number',)
 
 
@@ -33,6 +30,4 @@ class UserProfileAdmin(ImportExportModelAdmin):
 
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
-
 admin.site.register(UserProfile, UserProfileAdmin)
-
