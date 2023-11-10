@@ -21,38 +21,38 @@ urlpatterns = [
     ),
     path(
         "zmiana-hasla/",
-        PasswordChangeView.as_view(template_name="user/password_change_confirm.html"),
-        name="password-change-request",
+        PasswordChangeView.as_view(template_name="user/password-change-confirm.html"),
+        name="password_change_request",
     ),
     path(
         "zmiana-hasla/sukces/",
         PasswordChangeDoneView.as_view(
-            template_name="user/password_change_complete.html"
+            template_name="user/password-change-done.html"
         ),
-        name="password-change-done",
+        name="password_change_done",
     ),
     path(
         "reset-hasla/",
-        PasswordResetView.as_view(template_name="user/password_reset_request.html"),
-        name="password-reset-request",
+        PasswordResetView.as_view(template_name="user/password-reset-request.html"),
+        name="password_reset_request",
     ),
     path(
         "reset-hasla/wyslano/",
-        PasswordResetDoneView.as_view(template_name="user/password_reset_done.html"),
+        PasswordResetDoneView.as_view(template_name="user/password-reset-done.html"),
         name="password_reset_done",
     ),
     path(
         "reset-hasla/potwierdzenie/<uidb64>/<token>/",
         PasswordResetConfirmView.as_view(
-            template_name="user/password_reset_confirm.html"
+            template_name="user/password-reset-confirm.html"
         ),
-        name="password-reset-confirm",
+        name="password_reset_confirm",
     ),
     path(
         "reset-hasla/sukces/",
         PasswordResetCompleteView.as_view(
-            template_name="user/password_reset_complete.html"
+            template_name="user/password-reset-complete.html"
         ),
-        name="password-reset-complete",
+        name="password_reset_complete",
     ),
 ]
