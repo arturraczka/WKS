@@ -20,6 +20,11 @@ ul {
   color: #cbd5db;
 }
 
+.navbar-right {
+  margin-left: auto;
+  margin-right: 0;
+}
+
 .site-header .navbar-nav .nav-link:hover {
   color: #ffffff;
 }

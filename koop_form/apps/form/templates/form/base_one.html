@@ -14,28 +14,29 @@
 </head>
 <body>
     <header class="site-header">
-      <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
-        <div class="container">
-          <a class="navbar-brand mr-4" href="/">Koop</a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarToggle">
-            <div class="navbar-nav mr-auto">
-              <a class="nav-item nav-link" href="{% url 'producers' %}">Producenci</a>
-              <a class="nav-item nav-link" href="{% url 'order-create' %}">Nowe zamówienie</a>
-              <a class="nav-item nav-link" href="{% url 'order-producers' %}">Formularz</a>
+        <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top d-flex">
+            <div class="container">
+                <a class="navbar-brand mr-4" href="/">Koop</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarToggle">
+                    <div class="navbar-nav">
+                        <a class="nav-item nav-link" href="{% url 'producers' %}">Producenci</a>
+                        <a class="nav-item nav-link" href="{% url 'order-create' %}">Nowe zamówienie</a>
+                        <a class="nav-item nav-link" href="{% url 'order-producers' %}">Formularz</a>
+                    </div>
+                    <!-- Navbar Right Side -->
+                    <div class="navbar-nav navbar-right">
+                        <a class="nav-item nav-link" href="{% url 'order-update-form' %}">Moje zamówienie</a>
+                        <a class="nav-item nav-link" href="{% url 'login' %}">Zaloguj</a>
+                        <a class="nav-item nav-link align-self-end text-right" href="{% url 'logout' %}">Wyloguj</a>
+                    </div>
+                </div>
             </div>
-            <!-- Navbar Right Side -->
-            <div class="navbar-nav">
-              <a class="nav-item nav-link" href="{% url 'order-update-form' %}">Moje zamówienie</a>
-              <a class="nav-item nav-link" href="{% url 'login' %}">Zaloguj</a>
-              <a class="nav-item nav-link" href="{% url 'logout' %}">Wyloguj</a>
-            </div>
-          </div>
-        </div>
-      </nav>
+        </nav>
     </header>
+
     <main role="main" class="container custom-container">
           {% if messages %}
             {% for message in messages %}
