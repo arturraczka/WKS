@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-
+from import_export import resources
 from apps.user.models import UserProfile
+from import_export.admin import ImportExportModelAdmin
 
 
 class UserProfileInline(admin.StackedInline):
@@ -15,5 +16,23 @@ class UserAdmin(BaseUserAdmin):
     inlines = [UserProfileInline]
 
 
+
+
+
+class UserProfileResource(resources.ModelResource):
+
+    class Meta:
+        model = UserProfile
+        import_id_fields = ('isbn',)
+        fields = ('fund', 'phone_number',)
+
+
+class UserProfileAdmin(ImportExportModelAdmin):
+    resource_classes = [UserProfileResource]
+
+
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
+
+admin.site.register(UserProfile, UserProfileAdmin)
+
