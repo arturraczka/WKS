@@ -32,11 +32,14 @@ urlpatterns = [
         name="password-change-request",
     ),
     path(
+        "reset-hasla/prosba/",
+        PasswordResetView.as_view(template_name="user/password_reset_request.html"),
+        name="password-reset-request",
+    ),
+    path(
         "reset-hasla/wyslany/",
-        PasswordResetCompleteView.as_view(
-            template_name="user/password_reset_complete.html"
-        ),
-        name="password-reset-complete",
+        PasswordResetDoneView.as_view(template_name="user/password_reset_done.html"),
+        name="password_reset_done",
     ),
     path(
         "reset-hasla/potwierdzenie/<uidb64>/<token>/",
@@ -47,12 +50,9 @@ urlpatterns = [
     ),
     path(
         "reset-hasla/sukces/",
-        PasswordResetDoneView.as_view(template_name="user/password_reset_done.html"),
-        name="password-reset-done",
-    ),
-    path(
-        "reset-hasla/prosba/",
-        PasswordResetView.as_view(template_name="user/password_reset_request.html"),
-        name="password-reset-request",
+        PasswordResetCompleteView.as_view(
+            template_name="user/password_reset_complete.html"
+        ),
+        name="password-reset-complete",
     ),
 ]
