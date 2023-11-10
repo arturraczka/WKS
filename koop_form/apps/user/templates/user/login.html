@@ -1,12 +1,25 @@
 {% extends 'form/base_one.html' %}
+{% load crispy_forms_tags %}
 
 {% block content %}
-
-    <h2>Cześć! Zaloguj się:</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form }}
-        <input type="submit" value="Zaloguj">
-    </form>
-
+<div class="col-md-4">
+    <div class="content-section">
+        <form method="POST">
+            {% csrf_token %}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Zaloguj się:</legend>
+                {{ form|crispy }}
+            </fieldset>
+            <div class="form-group">
+                <button class="btn btn-outline-info" type="submit">Zaloguj</button>
+            </div>
+        </form>
+        <div class="border-top pt-3">
+            <small class="text-muted">
+                Nie pamiętasz hasła?
+                <a href="{% url 'password-change-request' %}">Reset hasła</a>
+            </small>
+        </div>
+    </div>
+</div>
 {% endblock content %}
