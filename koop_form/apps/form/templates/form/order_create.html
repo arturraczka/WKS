@@ -1,17 +1,20 @@
 {% extends "form/base_one.html" %}
-{% load custom_filters %}
+{% load crispy_forms_tags %}
 {% block content %}
 
-<div class="col-md-8">
-    <form method="post">
-        {% csrf_token %}
-            <article class="media content-section">
-              <div class="media-body">
-                    {{ form.as_p }}
-                    <input type="submit" name="submit" value="Rozpocznij zamówienie">
-              </div>
-            </article>
-    </form>
+<div class="col-md-4">
+    <div class="content-section">
+        <form method="post">
+            {% csrf_token %}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Stwórz zamówienie na najbliższy tydzień</legend>
+                {{ form|crispy }}
+            </fieldset>
+            <div class="form-group">
+                <button class="btn btn-outline-secondary" type="submit">Utwórz zamówienie</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 
