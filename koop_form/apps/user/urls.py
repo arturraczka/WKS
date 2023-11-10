@@ -20,24 +20,24 @@ urlpatterns = [
         "wylogowano/", LogoutView.as_view(template_name="user/logout.html"), name="logout"
     ),
     path(
-        "zmiana-hasla/prosba/",
-        PasswordChangeView.as_view(template_name="user/password_reset_confirm.html"),
+        "zmiana-hasla/",
+        PasswordChangeView.as_view(template_name="user/password_change_confirm.html"),
         name="password-change-request",
     ),
     path(
         "zmiana-hasla/sukces/",
         PasswordChangeDoneView.as_view(
-            template_name="user/password_reset_complete.html"
+            template_name="user/password_change_complete.html"
         ),
         name="password-change-done",
     ),
     path(
-        "reset-hasla/prosba/",
+        "reset-hasla/",
         PasswordResetView.as_view(template_name="user/password_reset_request.html"),
         name="password-reset-request",
     ),
     path(
-        "reset-hasla/wyslany/",
+        "reset-hasla/wyslano/",
         PasswordResetDoneView.as_view(template_name="user/password_reset_done.html"),
         name="password_reset_done",
     ),
