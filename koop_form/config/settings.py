@@ -24,10 +24,12 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "debug_toolbar",
+    "crispy_forms",
+    "crispy_bootstrap5",
+    "corsheaders",
     "apps.form",
     "apps.user",
     "django_extensions",
-    "corsheaders",
     'import_export',
 ]
 
@@ -199,5 +201,9 @@ LOGGING = {
     "handlers": HANDLERS,
     "loggers": LOGGERS[0],
 }
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # na ten moment walidacje idą jako INFO i są nierozróżnialne od prawidłowych requestów hmmmm

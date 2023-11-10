@@ -20,6 +20,8 @@ ruff = "*"
 python-json-logger = "*"
 django-import-export = "*"
 tablib = "*"
+django-crispy-forms = "*"
+crispy-bootstrap5 = "*"
 
 [dev-packages]
 
