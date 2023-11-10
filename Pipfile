@@ -18,6 +18,8 @@ pytz = "*"
 black = "*"
 ruff = "*"
 python-json-logger = "*"
+django-import-export = "*"
+tablib = "*"
 
 [dev-packages]
 
