@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "05a0c25066755ab3029cbd9245bd5b74a1c2ecd7a7c567a0d88bbd9f89adaaa8"
+            "sha256": "f4397f735cf6606d13edc2c02c110c0f15d7d455829b3a1292bb95539c8965ee"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -150,13 +150,24 @@
             "index": "pypi",
             "version": "==4.2.7"
         },
-        "django-cors-headers": {
+        "django-axes": {
+            "extras": [
+                "ipware"
+            ],
             "hashes": [
-                "sha256:25aabc94d4837678c1edf442c7f68a5f5fd151f6767b0e0b01c61a2179d02711",
-                "sha256:bd36c7aea0d070e462f3383f0dc9ef717e5fdc2b10a99c98c285f16da84ffba2"
+                "sha256:29c48ff5f09046afd5e9a16e96d3bbb79f6c11c59f0a7bbd732559e60d0aa9fa",
+                "sha256:cd1bc4f7becc8e9243eb4090dffa258d7d7125ca0ce3153b6ffc920bccbf2c3f"
             ],
             "index": "pypi",
-            "version": "==4.3.0"
+            "version": "==6.1.1"
+        },
+        "django-cors-headers": {
+            "hashes": [
+                "sha256:0b1fd19297e37417fc9f835d39e45c8c642938ddba1acce0c1753d3edef04f36",
+                "sha256:0bf65ef45e606aff1994d35503e6b677c0b26cafff6506f8fd7187f3be840207"
+            ],
+            "index": "pypi",
+            "version": "==4.3.1"
         },
         "django-crispy-forms": {
             "hashes": [
@@ -184,11 +195,18 @@
         },
         "django-import-export": {
             "hashes": [
-                "sha256:9a5c7c191014e4defb01573ee94864b60724a203f1b8a7e5e67a03f06b27b62d",
-                "sha256:d13e7508190f46442280bd7d04efcf49af6521350a70a6f9e06447ef28d6a41d"
+                "sha256:2c1b16e1cf2ea5f62a165d8867e7c6dcff25673ab7201fd18aaf67c9ee90367e",
+                "sha256:78973202e93897326ab0411d64eaf89b72779fcb21ee9e5f64f3fb96571a5978"
             ],
             "index": "pypi",
-            "version": "==3.3.2"
+            "version": "==3.3.3"
+        },
+        "django-ipware": {
+            "hashes": [
+                "sha256:838b7aede77734603bd32ebd08ad7957304266580b646f8cbe982c4833b71c84",
+                "sha256:ab3ab7645e674df682c1146a5bddfa5151b1b7be7be9210872c3156bd836aad4"
+            ],
+            "version": "==5.0.2"
         },
         "environ": {
             "hashes": [
@@ -225,11 +243,11 @@
         },
         "faker": {
             "hashes": [
-                "sha256:14ccb0aec342d33aa3889a864a56e5b3c2d56bce1b89f9189f4fbc128b9afc1e",
-                "sha256:da880a76322db7a879c848a0771e129338e0a680a9f695fd9a3e7a6ac82b45e1"
+                "sha256:88316cfa7c8be892433bb10b2f1c2a7ce97246e18712680547e2fb1c4bd03912",
+                "sha256:f9af61c9223e1a3fd01ee2a48265352432f40a4fb21feb274d9d1d97b4943d75"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==19.13.0"
+            "version": "==20.0.3"
         },
         "iniconfig": {
             "hashes": [
@@ -285,11 +303,11 @@
         },
         "platformdirs": {
             "hashes": [
-                "sha256:cf8ee52a3afdb965072dcc652433e0c7e3e40cf5ea1477cd4b3b1d2eb75495b3",
-                "sha256:e9d171d00af68be50e9202731309c4e658fd8bc76f55c11c7dd760d023bda68e"
+                "sha256:118c954d7e949b35437270383a3f2531e99dd93cf7ce4dc8340d3356d30f173b",
+                "sha256:cb633b2bcf10c51af60beb0ab06d2f1d69064b43abf4c185ca6b28865f3f9731"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==3.11.0"
+            "version": "==4.0.0"
         },
         "pluggy": {
             "hashes": [
@@ -443,6 +461,14 @@
             ],
             "index": "pypi",
             "version": "==0.1.5"
+        },
+        "setuptools": {
+            "hashes": [
+                "sha256:4ac1475276d2f1c48684874089fefcd83bd7162ddaafb81fac866ba0db282a87",
+                "sha256:b454a35605876da60632df1a60f736524eb73cc47bbc9f3f1ef1b644de74fd2a"
+            ],
+            "markers": "python_version >= '3.8'",
+            "version": "==68.2.2"
         },
         "six": {
             "hashes": [

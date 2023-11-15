@@ -22,6 +22,7 @@ django-import-export = "*"
 tablib = "*"
 django-crispy-forms = "*"
 crispy-bootstrap5 = "*"
+django-axes = {version = "*", extras = ["ipware"]}
 
 [dev-packages]
 

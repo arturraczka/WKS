@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "apps.user",
     "django_extensions",
     'import_export',
+    'axes',
 ]
 
 MIDDLEWARE = [
@@ -43,6 +44,15 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "axes.middleware.AxesMiddleware",  # should be the last middleware
+]
+
+AUTHENTICATION_BACKENDS = [
+    # AxesStandaloneBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
+    'axes.backends.AxesStandaloneBackend',
+
+    # Django ModelBackend is the default authentication backend.
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -213,6 +223,10 @@ EMAIL_USE_SSL = True
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_TIMEOUT = 30
+
+AXES_FAILURE_LIMIT = 10
+
+AXES_COOLOFF_TIME = 1
 
 
 # na ten moment walidacje idą jako INFO i są nierozróżnialne od prawidłowych requestów hmmmm
