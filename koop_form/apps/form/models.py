@@ -32,11 +32,11 @@ class Producer(models.Model):
 
         if self.pk is not None:
             if self.not_arrived is True:
-                set_products_quantity_to_0(Product, self.pk)
+                set_products_quantity_to_0(Product, self.pk)  # czy tego typu taski powinny być atomic_requestem?
                 self.not_arrived = False
 
             producer_db = Producer.objects.get(pk=self.pk)
-            if producer_db.is_active != self.is_active:
+            if producer_db.is_active != self.is_active:  # czy tego typu taski powinny być atomic_requestem?
                 switch_products_isactive_bool_value(Product, self.pk, self.is_active)
 
         super(Producer, self).save(*args, **kwargs)
@@ -105,7 +105,7 @@ class Product(models.Model):
             ):
                 reduce_order_quantity(
                     OrderItem, self.pk, self.quantity_delivered_this_week
-                )
+                )  # czy tego typu taski powinny być atomic_requestem?
                 self.quantity_delivered_this_week = -1
         super(Product, self).save(*args, **kwargs)
 
@@ -148,7 +148,7 @@ class Order(models.Model):
         super(Order, self).save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
-        recalculate_order_numbers(Order, self.date_created, self.order_number)
+        recalculate_order_numbers(Order, self.date_created, self.order_number)    # czy tego typu taski powinny być atomic_requestem?
         super(Order, self).delete(using=using, keep_parents=keep_parents)
 
     def get_absolute_url(self):
@@ -156,9 +156,6 @@ class Order(models.Model):
             "order-detail", kwargs={"pk": self.pk, "user": self.user}
         )
         return absolute_url
-
-    def give_order(self):
-        self.is_given = True
 
 
 class OrderItem(models.Model):
