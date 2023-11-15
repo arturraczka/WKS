@@ -142,7 +142,7 @@ class TestOrderProducersView(TestCase):
         Order.objects.get(pk=self.order.id).delete()
         response = self.client.get(self.url)
 
-        assert response.status_code == 403
+        assert response.status_code == 302
 
 
 @pytest.mark.django_db
@@ -173,7 +173,7 @@ class TestOrderProductsFormView(TestCase):
         Order.objects.get(pk=self.order.id).delete()
         response = self.client.get(self.url)
 
-        assert response.status_code == 403
+        assert response.status_code == 302
 
     def test_response_and_context(self):
         orderitem_with_products_qs = list(
