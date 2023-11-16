@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Sum, Q
@@ -9,10 +10,10 @@ from django.views.generic import (
     UpdateView,
     DeleteView,
     FormView,
+    TemplateView,
 )
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
-from apps.form.custom_mixins import OrderExistsTestMixin
 from apps.form.forms import (
     CreateOrderForm,
     CreateOrderItemForm,
@@ -25,11 +26,9 @@ from django.urls import reverse, reverse_lazy
 from apps.form.services import (
     calculate_previous_friday,
     calculate_order_cost,
-    order_exists_test,
-    filter_objects_prefetch_related,
     calculate_available_quantity,
     calculate_total_income,
-    create_order_data_list,
+    create_order_data_list, order_check,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -38,10 +37,10 @@ from apps.form.validations import (
 )
 from django.forms import modelformset_factory
 from django.db.models import F
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
-@method_decorator(login_required, name="dispatch")
-class ProducersView(ListView):
+class ProducersView(LoginRequiredMixin, ListView):
     model = Producer
     context_object_name = "producers"
     template_name = "form/producer_list.html"
@@ -52,8 +51,7 @@ class ProducersView(ListView):
         return queryset
 
 
-@method_decorator(login_required, name="dispatch")
-class ProductsView(DetailView):
+class ProductsView(LoginRequiredMixin, DetailView):
     model = Producer
     context_object_name = "producer"
     template_name = "form/product_list.html"
@@ -74,8 +72,7 @@ class ProductsView(DetailView):
         return producer
 
 
-@method_decorator(login_required, name="dispatch")
-class ProducerReportView(ListView):
+class ProducerReportView(LoginRequiredMixin, ListView):
     model = Product
     context_object_name = "products"
     template_name = "form/producer_report.html"
@@ -105,15 +102,13 @@ class ProducerReportView(ListView):
 
 
 @method_decorator(login_required, name="dispatch")
-class OrderProducersView(OrderExistsTestMixin, ProducersView):
+@method_decorator(user_passes_test(order_check, login_url="/koop/zamowienie/nowe/"), name="dispatch")
+class OrderProducersView(ProducersView):
     template_name = "form/order_producers.html"
 
-    def test_func(self):
-        return order_exists_test(self.request, Order)
 
-
-@method_decorator(login_required, name="dispatch")
-class OrderProductsFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
+@method_decorator(user_passes_test(order_check, login_url="/koop/zamowienie/nowe/"), name="dispatch")
+class OrderProductsFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
     model = OrderItem
     template_name = "form/order_products_form.html"
     form_class = None
@@ -158,9 +153,6 @@ class OrderProductsFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView)
             extra=len(self.initial_data),
         )
         return order_item_formset
-
-    def test_func(self):
-        return order_exists_test(self.request, Order)
 
     def get_success_url(self):
         return self.request.path
@@ -207,15 +199,14 @@ class OrderProductsFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView)
         return super().form_valid(form)
 
 
-@method_decorator(login_required, name="dispatch")
-class OrderCreateView(SuccessMessageMixin, CreateView):
+class OrderCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Order
     template_name = "form/order_create.html"
     form_class = CreateOrderForm
     success_message = "Zamówienie zostało utworzone. Dodaj produkty."
 
     def form_valid(self, form):
-        if validate_order_exists(self.request, Order):
+        if validate_order_exists(self.request):
             return self.form_invalid(form)
 
         form.instance.user = self.request.user
@@ -227,8 +218,8 @@ class OrderCreateView(SuccessMessageMixin, CreateView):
         return success_url
 
 
-@method_decorator(login_required, name="dispatch")
-class OrderUpdateFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
+@method_decorator(user_passes_test(order_check, login_url="/koop/zamowienie/nowe/"), name="dispatch")
+class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
     model = OrderItem
     success_message = "Zamówienie zostało zaktualizowane."
     form_class = None
@@ -243,9 +234,6 @@ class OrderUpdateFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
         self.products = None
         self.initial_data = None
         self.orderitems = None
-
-    def test_func(self):
-        return order_exists_test(self.request, Order)
 
     def get_success_url(self):
         return self.request.path
@@ -310,8 +298,7 @@ class OrderUpdateFormView(OrderExistsTestMixin, SuccessMessageMixin, FormView):
         return super().form_valid(form)
 
 
-@method_decorator(login_required, name="dispatch")
-class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
+class OrderUpdateView(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = Order
     fields = ["pick_up_day"]
     template_name = "form/order_create.html"
@@ -323,8 +310,7 @@ class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
         return self.request.user == order.user
 
 
-@method_decorator(login_required, name="dispatch")
-class OrderDeleteView(UserPassesTestMixin, SuccessMessageMixin, DeleteView):
+class OrderDeleteView(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, DeleteView):
     model = Order
     template_name = "form/order_delete.html"
     success_url = reverse_lazy("producers")
@@ -335,8 +321,7 @@ class OrderDeleteView(UserPassesTestMixin, SuccessMessageMixin, DeleteView):
         return self.request.user == order.user
 
 
-@method_decorator(login_required, name="dispatch")
-class ProductsReportView(ListView):
+class ProductsReportView(LoginRequiredMixin, ListView):
     model = Product
     context_object_name = "products"
     template_name = "form/products_report.html"
