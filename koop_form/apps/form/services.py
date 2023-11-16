@@ -47,6 +47,10 @@ def order_check(user):
     return user.orders.filter(date_created__gte=previous_friday).exists()
 
 
+def staff_check(user):
+    return user.is_staff
+
+
 def list_messages(response):
     messages = [msg.message for msg in list(get_messages(response.wsgi_request))]
     return messages

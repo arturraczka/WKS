@@ -30,7 +30,9 @@ from apps.form.services import (
     calculate_order_cost,
     calculate_available_quantity,
     calculate_total_income,
-    create_order_data_list, order_check,
+    create_order_data_list,
+    order_check,
+    staff_check,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -43,6 +45,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 logger = logging.getLogger("django.server")
+
 
 class ProducersView(LoginRequiredMixin, ListView):
     model = Producer
@@ -76,6 +79,7 @@ class ProductsView(LoginRequiredMixin, DetailView):
         return producer
 
 
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducerReportView(LoginRequiredMixin, ListView):
     model = Product
     context_object_name = "products"
@@ -325,6 +329,7 @@ class OrderDeleteView(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMix
         return self.request.user == order.user
 
 
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProductsReportView(LoginRequiredMixin, ListView):
     model = Product
     context_object_name = "products"
@@ -345,8 +350,9 @@ class ProductsReportView(LoginRequiredMixin, ListView):
         return context
 
 
-class UserCoordinationView(LoginRequiredMixin, TemplateView):
-    template_name = "form/user_coordination.html"
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class UsersReportView(LoginRequiredMixin, TemplateView):
+    template_name = "form/users_report.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
