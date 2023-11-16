@@ -91,7 +91,7 @@ def get_test_data(context_data, product):
 @pytest.mark.django_db
 class TestProducerReportView(TestCase):
     def setUp(self):
-        self.user = UserFactory()
+        self.user = UserFactory(is_staff=True)
         self.client.force_login(self.user)
         self.producer = ProducerFactory()
         self.url = reverse("producer-report", kwargs={"slug": self.producer.slug})
@@ -123,6 +123,11 @@ class TestProducerReportView(TestCase):
         assert self.product2 in list(context_data['products'])
         assert not self.product3 in list(context_data['products'])
 
+    def test_user_is_not_staff(self):
+        self.client.force_login(UserFactory())
+        response = self.client.get(self.url)
+
+        assert response.status_code == 302
 
 @pytest.mark.django_db
 class TestOrderProducersView(TestCase):
@@ -425,7 +430,7 @@ class TestGetOrderUpdateOrderDeleteViews(TestCase):
 @pytest.mark.django_db
 class TestProductsReportView(TestCase):
     def setUp(self):
-        self.user = UserFactory()
+        self.user = UserFactory(is_staff=True)
         self.client.force_login(self.user)
         self.url = reverse('products-report')
         for _ in range(0, 5):
@@ -444,17 +449,29 @@ class TestProductsReportView(TestCase):
         assert list(context_data["order_data"]) == ['(skrz1: 4) ', '(skrz2: 1) ', '(skrz3: 2) ']
         assert response.status_code == 200
 
+    def test_user_is_not_staff(self):
+        self.client.force_login(UserFactory())
+        response = self.client.get(self.url)
+
+        assert response.status_code == 302
+
 
 @pytest.mark.django_db
-class TestUserCoordinationView(TestCase):
+class TestUsersReportView(TestCase):
     def setUp(self):
-        self.user = UserFactory()
+        self.user = UserFactory(is_staff=True)
         self.client.force_login(self.user)
         # self.producer = ProducerFactory()
         # self.order = OrderFactory(user=self.user)
-        self.url = reverse("user-coordination")
+        self.url = reverse("users-report")
 
     def test_response(self):
         response = self.client.get(self.url)
 
         assert response.status_code == 200
+
+    def test_user_is_not_staff(self):
+        self.client.force_login(UserFactory())
+        response = self.client.get(self.url)
+
+        assert response.status_code == 302
