@@ -443,3 +443,18 @@ class TestProductsReportView(TestCase):
         assert list(context_data["products"]) == list(products)
         assert list(context_data["order_data"]) == ['(skrz1: 4) ', '(skrz2: 1) ', '(skrz3: 2) ']
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestUserCoordinationView(TestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.client.force_login(self.user)
+        # self.producer = ProducerFactory()
+        # self.order = OrderFactory(user=self.user)
+        self.url = reverse("user-coordination")
+
+    def test_response(self):
+        response = self.client.get(self.url)
+
+        assert response.status_code == 200
