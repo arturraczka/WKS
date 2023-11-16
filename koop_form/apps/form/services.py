@@ -26,16 +26,6 @@ def get_object_prefetch_related(model_class, *args, **kwargs):
     return object_with_related
 
 
-def filter_objects_prefetch_related(model_class, *args, **kwargs):
-    objects_with_related = model_class.objects.filter(**kwargs).prefetch_related(*args)
-    return objects_with_related
-
-
-def filter_objects_select_related(model_class, *args, **kwargs):
-    objects_with_related = model_class.objects.filter(**kwargs).select_related(*args)
-    return objects_with_related
-
-
 # TODO to by się przydało przetestować, bo nie sądzę, żebym to testował w widokach hmmm
 def calculate_previous_friday():
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -52,11 +42,9 @@ def calculate_order_cost(orderitems):
     return order_cost
 
 
-def order_exists_test(request, order):
+def order_check(user):
     previous_friday = calculate_previous_friday()
-    return order.objects.filter(
-        user=request.user, date_created__gte=previous_friday
-    ).exists()
+    return user.orders.filter(date_created__gte=previous_friday).exists()
 
 
 def list_messages(response):
