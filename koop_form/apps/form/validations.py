@@ -4,7 +4,7 @@ from apps.form.models import Order, Product
 from apps.form.services import (
     get_object_prefetch_related,
     calculate_previous_friday,
-    order_exists_test,
+    order_check,
 )
 from django.utils import timezone
 
@@ -107,7 +107,7 @@ def perform_update_orderitem_validations(instance, request):
         return True
 
 
-def validate_order_exists(request, order):
-    if order_exists_test(request, order):
+def validate_order_exists(request):
+    if order_check(request.user):
         messages.warning(request, "Masz już zamówienie na ten tydzień.")
         return True
