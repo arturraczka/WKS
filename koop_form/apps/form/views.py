@@ -79,14 +79,20 @@ class ProductsView(LoginRequiredMixin, DetailView):
         return producer
 
 
+@method_decorator(login_required, name="dispatch")
+@method_decorator(user_passes_test(staff_check, login_url="/koop/zamowienie/nowe/"), name="dispatch")
+class ProducerListReportView(ProducersView):
+    template_name = "form/producer_list_report.html"
+
+
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerReportView(LoginRequiredMixin, ListView):
-    model = Product
-    context_object_name = "products"
+class ProducerReportView(LoginRequiredMixin, TemplateView):
     template_name = "form/producer_report.html"
 
-    def get_queryset(self):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         previous_friday = calculate_previous_friday()
+
         producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
         products = (
             Product.objects.prefetch_related("orderitems")
@@ -99,11 +105,7 @@ class ProducerReportView(LoginRequiredMixin, ListView):
             ordered_quantity=Sum("orderitems__quantity"),
             income=F("ordered_quantity") * F("price"),
         )
-
-        return products_with_ordered_quantity_and_income
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        context["products"] = products_with_ordered_quantity_and_income
         total_income = calculate_total_income(context["products"])
         context["total_income"] = total_income
         return context
