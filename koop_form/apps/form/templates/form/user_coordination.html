@@ -1,0 +1,26 @@
+{% extends "form/base_one.html" %}
+{% load custom_filters %}
+{% block content %}
+
+<div class="col-md-8">
+  <div class="content-section">
+    <h3>Koordynacja kooperantów:</h3>
+
+    {% for user in users %}
+        <article class="media content-section">
+            <div class="media-body">
+            <h5 class="article-title">{{ user.first_name }} {{ user.last_name }}</h5>
+            <div>
+              <span class="article-content">Telefon: {{ user.userprofile.phone_number }}</span>
+              <span class="article-content">Nr skrzynki: {{ user.order.0.order_number }}</span>
+              <span class="article-content">Dzień odbioru: {{ user.order.0.pick_up_day }}</span>
+
+            </div>
+            </div>
+        </article>
+    {% endfor %}
+
+  </div>
+</div>
+
+{% endblock content%}

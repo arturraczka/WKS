@@ -25,7 +25,7 @@ from apps.form.views import (
     OrderDeleteView,
     OrderProducersView,
     OrderUpdateFormView,
-    ProducerReportView, ProductsReportView,
+    ProducerReportView, ProductsReportView, UserCoordinationView,
 )
 
 
@@ -71,5 +71,10 @@ urlpatterns = [
         "raporty/produkty-skrzynki/",
         ProductsReportView.as_view(),
         name="products-report",
+    ),
+    path(
+        "raporty/koordynacja/",
+        UserCoordinationView.as_view(),
+        name="user-coordination",
     ),
 ]

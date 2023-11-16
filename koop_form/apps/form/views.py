@@ -1,7 +1,9 @@
+import logging
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Prefetch
 from django.shortcuts import get_object_or_404
 from django.views.generic import (
     ListView,
@@ -39,6 +41,8 @@ from django.forms import modelformset_factory
 from django.db.models import F
 from django.contrib.auth.mixins import LoginRequiredMixin
 
+
+logger = logging.getLogger("django.server")
 
 class ProducersView(LoginRequiredMixin, ListView):
     model = Producer
@@ -338,4 +342,22 @@ class ProductsReportView(LoginRequiredMixin, ListView):
         products = context["products"]
         order_data_list = create_order_data_list(products, Order, OrderItem)
         context["order_data"] = order_data_list
+        return context
+
+
+class UserCoordinationView(LoginRequiredMixin, TemplateView):
+    template_name = "form/user_coordination.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        previous_friday = calculate_previous_friday()
+
+        newest_order = Order.objects.filter(date_created__gte=previous_friday)
+        prefetch = Prefetch('orders', queryset=newest_order, to_attr='order')
+
+        users_qs = get_user_model().objects.filter(
+            Q(orders__date_created__gte=previous_friday)
+        ).select_related("userprofile").prefetch_related(prefetch)
+
+        context["users"] = users_qs
         return context
