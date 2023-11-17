@@ -23,6 +23,8 @@ tablib = "*"
 django-crispy-forms = "*"
 crispy-bootstrap5 = "*"
 django-axes = {version = "*", extras = ["ipware"]}
+mypy = "*"
+django-stubs = {version = "*", extras = ["compatible-mypy"]}
 
 [dev-packages]
 
