@@ -8,6 +8,15 @@ from django.shortcuts import get_object_or_404
 from django.contrib.messages import get_messages
 from django.db.models import Q
 from django.db.models import Case, When, F
+from django.db.models.query import QuerySet
+
+from typing import TYPE_CHECKING, Type
+if TYPE_CHECKING:
+    from apps.form.models import (
+        OrderItem,
+    )
+    from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser
 
 logger = logging.getLogger("django.server")
 
@@ -28,6 +37,7 @@ def get_object_prefetch_related(model_class, *args, **kwargs):
 
 # TODO to by się przydało przetestować, bo nie sądzę, żebym to testował w widokach hmmm
 def calculate_previous_friday():
+    """ Returns datetime object of last Friday. """
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     friday = 4
     days_until_previous_friday = (friday + today.weekday() - 1) % 7
@@ -35,19 +45,22 @@ def calculate_previous_friday():
     return previous_friday
 
 
-def calculate_order_cost(orderitems):
+def calculate_order_cost(orderitems: Type[QuerySet]) -> int:
+    """ Returns sum of order_item.quantity times product.price for given QS of OrderItem model. """
     order_cost = 0
     for item in orderitems:
         order_cost += item.quantity * item.product.price
     return order_cost
 
 
-def order_check(user):
+def order_check(user: AbstractUser) -> bool:
+    """ Returns True if the user has an order created this week (counted from last Friday). """
     previous_friday = calculate_previous_friday()
     return user.orders.filter(date_created__gte=previous_friday).exists()
 
 
-def staff_check(user):
+def staff_check(user: AbstractUser) -> bool:
+    """ Returns True if User is staff member. """
     return user.is_staff
 
 
@@ -141,7 +154,8 @@ def create_order_data_list(products, order_model, orderitem_model):
     return order_data_list
 
 
-def set_products_quantity_to_0(product_model, pk):
+def set_products_quantity_to_0(product_model, pk: int):
+    """ docstrings """
     product_qs = product_model.objects.filter(producer=pk)
     for product in product_qs:
         product.quantity_delivered_this_week = 0
