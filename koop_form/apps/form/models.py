@@ -185,21 +185,3 @@ class OrderItem(models.Model):
                 return None
         else:
             super(OrderItem, self).save(*args, **kwargs)
-
-
-# CELERY TASKS:
-# 2. product.order_deadline if not null, set +7 days delta (on Friday 02:00)
-# 3. product.quantity_in_stock is lowered by total orderitem.quantity
-# - przypominajki - otworzono formularz na ten tydzien
-# - przypominajki - dzisiaj o 20 zamykamy formularz
-
-# VIEWS:
-# 2. View for removing or setting quantity to 0 of order products, or for whole producers
-
-# MIDDLEWARE:
-# 1. POST method blocking for a specific time for orders
-# Żeby nie dało się utworzyć nowego zamówienia przed wyznaczonym czasem
-
-# KEYWORD SEARCH:
-# 1. zajebiste byłoby wpisać jaja i znaleźć wszystkie pozycje z jajami
-# albo wpisać marchew i znaleźć wszystkie produkty z kategorii marchew
