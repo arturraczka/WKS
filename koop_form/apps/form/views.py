@@ -80,7 +80,7 @@ class ProductsView(LoginRequiredMixin, DetailView):
 
 
 @method_decorator(login_required, name="dispatch")
-@method_decorator(user_passes_test(staff_check, login_url="/koop/zamowienie/nowe/"), name="dispatch")
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducerListReportView(ProducersView):
     template_name = "form/producer_list_report.html"
 
@@ -112,12 +112,12 @@ class ProducerReportView(LoginRequiredMixin, TemplateView):
 
 
 @method_decorator(login_required, name="dispatch")
-@method_decorator(user_passes_test(order_check, login_url="/koop/zamowienie/nowe/"), name="dispatch")
+@method_decorator(user_passes_test(order_check, login_url='/zamowienie/nowe/'), name="dispatch")
 class OrderProducersView(ProducersView):
     template_name = "form/order_producers.html"
 
 
-@method_decorator(user_passes_test(order_check, login_url="/koop/zamowienie/nowe/"), name="dispatch")
+@method_decorator(user_passes_test(order_check, login_url='/zamowienie/nowe/'), name="dispatch")
 class OrderProductsFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
     model = OrderItem
     template_name = "form/order_products_form.html"
@@ -228,7 +228,7 @@ class OrderCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
         return success_url
 
 
-@method_decorator(user_passes_test(order_check, login_url="/koop/zamowienie/nowe/"), name="dispatch")
+@method_decorator(user_passes_test(order_check, login_url='/zamowienie/nowe/'), name="dispatch")
 class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
     model = OrderItem
     success_message = "Zamówienie zostało zaktualizowane."
@@ -242,7 +242,8 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         self.producer = None
         self.products_with_related = None
         self.products = None
-        self.initial_data = None
+# TODO czy potrzebuję self.initial_data?
+#         self.initial_data = None
         self.orderitems = None
 
     def get_success_url(self):
@@ -256,7 +257,7 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
             orders=self.order
         ).prefetch_related("weight_schemes", "statuses")
         self.orderitems = OrderItem.objects.filter(order=self.order.id)
-        self.initial_data = [orderitem for orderitem in self.orderitems.values()]
+        # self.initial_data = [orderitem for orderitem in self.orderitems.values()]
 
     def get_form_class(self):
         self.get_producer_order_and_products()
