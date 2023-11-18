@@ -242,8 +242,6 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         self.producer = None
         self.products_with_related = None
         self.products = None
-# TODO czy potrzebuję self.initial_data?
-#         self.initial_data = None
         self.orderitems = None
 
     def get_success_url(self):
@@ -257,7 +255,6 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
             orders=self.order
         ).prefetch_related("weight_schemes", "statuses")
         self.orderitems = OrderItem.objects.filter(order=self.order.id)
-        # self.initial_data = [orderitem for orderitem in self.orderitems.values()]
 
     def get_form_class(self):
         self.get_producer_order_and_products()
