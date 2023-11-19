@@ -1,4 +1,6 @@
 import logging
+from decimal import Decimal
+
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -159,13 +161,24 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
+    #TODO choices muszą mieć wszystkie dostępne weight_schemes, całą wielką listę wszystkich potencjalnych wag
+    CHOICES = [
+        (Decimal('0.000'), '0'),
+        (Decimal('0.500'), '0.5'),
+        (Decimal('1.000'), '1'),
+        (Decimal('2.000'), '2'),
+        (Decimal('3.000'), '3'),
+        (Decimal('4.000'), '4'),
+        (Decimal('5.000'), '5')
+    ]
+
     order = models.ForeignKey(
         Order, on_delete=models.CASCADE, related_name="orderitems"
     )
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="orderitems"
     )
-    quantity = models.DecimalField(max_digits=6, decimal_places=3)
+    quantity = models.DecimalField(max_digits=6, decimal_places=3, choices=CHOICES)
     item_ordered_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:

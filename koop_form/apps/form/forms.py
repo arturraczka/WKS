@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.forms import ModelForm, HiddenInput, forms, Select
 from apps.form.models import OrderItem, Order
 from django.forms import BaseModelFormSet, ChoiceField
@@ -13,19 +15,30 @@ class CreateOrderForm(ModelForm):
 
 
 CHOICES = [
-    (0, 0),
-    (1, 1),
+    (Decimal('0.000'), '0.000'),
+    (Decimal('0.500'), '0.500'),
+    (Decimal('1.000'), '1.000'),
+    (Decimal('2.000'), '2.000'),
+    (Decimal('3.000'), '3.000'),
+    (Decimal('4.000'), '4.000'),
+    (Decimal('5.000'), '5.000')
 ]
 
 
+class CustomChoiceField(ChoiceField):
+    # def validate(self, value):
+    #     return True
+    pass
+
+
 class CreateOrderItemForm(ModelForm):
-    quantity = ChoiceField(
-        widget=Select(),
-    )
+    # quantity = CustomChoiceField(
+    #     widget=Select(choices=CHOICES),
+    # )
 
     class Meta:
         model = OrderItem
-        fields = ["product"]
+        fields = ["product", "quantity"]
         labels = {
             "quantity": "sztuk/waga(kg)",
         }

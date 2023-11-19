@@ -18,7 +18,7 @@ def validate_product_already_in_order(product, request):
         pk=product.id,
     ).exists():
         messages.warning(
-            request, "Dodałeś już ten produkt do zamówienia."
+            request, f"{product.name}: Dodałeś już ten produkt do zamówienia."
         )  # być może to nie będzie dość jasne
         return True
 
@@ -39,24 +39,15 @@ def validate_order_max_quantity(product, product_with_related, instance, request
         if order_max_quantity < ordered_quantity + instance.quantity:
             messages.warning(
                 request,
-                "Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle.",
+                f"{product.name}: Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle.",
             )
             return True
-
-
-def validate_quantity_equals_zero(instance, request):
-    if instance.quantity == 0:
-        messages.warning(
-            request,
-            "Ilość zamawianego produktu nie może być równa 0.",
-        )
-        return True
 
 
 def validate_order_deadline(product, request):
     if product.order_deadline and product.order_deadline < timezone.now():
         messages.warning(
-            request, "Termin minął, nie możesz już dodać tego produktu do zamówienia."
+            request, f"{product.name}: Termin minął, nie możesz już dodać tego produktu do zamówienia."
         )
         return True
 
@@ -79,8 +70,6 @@ def perform_create_orderitem_validations(instance, request):
     )
     if (
         validate_product_already_in_order(product_from_form, request)
-        or validate_weight_scheme(product_with_related, instance, request)
-        or validate_quantity_equals_zero(instance, request)
         or validate_order_deadline(product_from_form, request)
         or validate_order_max_quantity(
             product_from_form, product_with_related, instance, request

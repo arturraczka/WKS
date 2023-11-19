@@ -14,42 +14,52 @@
     <h3>{{ producer.name }}</h3>
     <p>{{ producer.description }}</p>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.management_form }}
+    <div class="row">
+        <div class="col-md-6">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.management_form }}
 
-        {% for form, product in products_with_forms %}
-            <article class="media ">
-              <div class="media-body">
+                {% for form, product in products_with_forms %}
+                    <article class="media ">
+                      <div class="media-body">
 
-                <div>
-                  <span class="article-title border-1">{{ product.name }}</span>
-                  <span class="mr-2">{{ product.description }}</span>
-                </div>
+                        <div>
+                          <span class="article-title border-1">{{ product.name }}</span>
+                          <span class="mr-2">{{ product.description }}</span>
+                        </div>
 
-                <div>
-                    <span class="mr-2"><strong>{{ product.price }}</strong> zł za szt/kg</span>
-                  <span class="text-muted">Dostępne wagi(kg)/liczba sztuk: </span>
-                  {% for weight_scheme in product.weight_schemes.all %}
-                    <span class="text-muted">{{ weight_scheme.quantity|format_decimal:3 }},</span>
-                  {% endfor %}
-                  <span class="text-muted"> | Status produktu: </span>
-                  {% for status in product.statuses.all %}
-                    <span class="text-muted"><strong>{{ status.status_type }},</strong></span>
-                  {% endfor %}
-                </div>
+                        <div>
+                            <span class="mr-2"><strong>{{ product.price }}</strong> zł za szt/kg</span>
+                          <span class="text-muted">Dostępne wagi(kg)/liczba sztuk: </span>
+                          {% for weight_scheme in product.weight_schemes.all %}
+                            <span class="text-muted">{{ weight_scheme.quantity|format_decimal:3 }},</span>
+                          {% endfor %}
+                          <span class="text-muted"> | Status produktu: </span>
+                          {% for status in product.statuses.all %}
+                            <span class="text-muted"><strong>{{ status.status_type }},</strong></span>
+                          {% endfor %}
+                        </div>
 
-                <div class="article-metadata">
-                  {{ form }}
-                  <input type="submit" name="submit" value="Dodaj">
-                  <span class="mr-2"> Maksymalnie możesz zamówić: {{ product.available_quantity|format_decimal:3 }} sztuk lub kg </span>
-                </div>
+                        <div class="article-metadata">
+                          {{ form }}
+                          <input type="submit" name="submit" value="Dodaj">
+                          <span class="mr-2"> Maksymalnie możesz zamówić: {{ product.available_quantity|format_decimal:3 }} sztuk lub kg </span>
+                        </div>
 
-              </div>
-            </article>
-        {% endfor %}
+                      </div>
+                    </article>
+                {% endfor %}
 
-    </form>
+            </form>
+        </div>
+
+        <div class="col-md-6">
+            <h2>jestem drugą kolumną</h2>
+        </div>
+
+
+    </div>
 </div>
 
 <div class="col-md-3">
@@ -112,7 +122,7 @@
                 setTimeout(() => {
                     message.remove();
                 }, 10); // Adjust the duration for fading out (0.5s in this example)
-            }, 12000); // Hide the message after 15 seconds (15000 milliseconds)
+            }, 20000); // Hide the message after 18 seconds (18000 milliseconds)
         });
     }
 

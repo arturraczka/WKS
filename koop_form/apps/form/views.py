@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
@@ -119,11 +119,10 @@ class OrderProducersView(ProducersView):
 
 
 @method_decorator(user_passes_test(order_check, login_url='/zamowienie/nowe/'), name="dispatch")
-class OrderProductsFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
+class OrderProductsFormView(LoginRequiredMixin, FormView):
     model = OrderItem
     template_name = "form/order_products_form.html"
     form_class = None
-    success_message = "Produkt został dodany do zamówienia."
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -150,7 +149,8 @@ class OrderProductsFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         )
         self.products = (
             Product.objects.filter(producer=self.producer)
-            .filter(is_active=True)  # .only("id")
+            .filter(is_active=True)
+            .only("id")
         )
         self.initial_data = [{"product": product.id} for product in self.products]
 
@@ -186,22 +186,13 @@ class OrderProductsFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         self.get_additional_context()
 
         products_weight_schemes = []
-        for product in self.products:
+        for product in self.products_with_related:
             weight_schemes_set = product.weight_schemes.all()
-            weight_schemes_quantity_list = [(Decimal(weight_scheme.quantity), Decimal(weight_scheme.quantity)) for weight_scheme in weight_schemes_set]
+            weight_schemes_quantity_list = [(Decimal(weight_scheme.quantity), f"{weight_scheme.quantity}".rstrip('0').rstrip('.')) for weight_scheme in weight_schemes_set]
             products_weight_schemes.append(weight_schemes_quantity_list)
-
-        CHOICES = [
-            ('AB', 'Abecadlo'),
-            ('BH', 'Behemot'),
-        ]
 
         for form, scheme in zip(context["form"], products_weight_schemes):
             form.fields['quantity'].choices = scheme
-            # form.fields['product'].choices = 'siemanko'
-            # logger.info(form.fields['product'])
-            # logger.info(form.fields['quantity'])
-            # logger.info(form.fields['quantity'].choices)
 
         context["order"] = self.order
         context["orderitems"] = self.orderitems
@@ -220,10 +211,19 @@ class OrderProductsFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
     def form_valid(self, form):
         formset = form.save(commit=False)
         for instance in formset:
-            if not perform_create_orderitem_validations(instance, self.request):
-                return self.form_invalid(form)
-            instance.order = self.order
-            instance.save()
+            logger.info(instance.quantity)
+
+            if instance.quantity == 0:
+                pass
+            else:
+                if not perform_create_orderitem_validations(instance, self.request):
+                    return self.form_invalid(form)
+                instance.order = self.order
+                instance.save()
+                messages.success(
+                    self.request,
+                    f"{instance.product}: Produkt został dodany do zamówienia.",
+                )
         return super().form_valid(form)
 
 
