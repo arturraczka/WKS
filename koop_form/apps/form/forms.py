@@ -1,6 +1,6 @@
-from django.forms import ModelForm, HiddenInput
+from django.forms import ModelForm, HiddenInput, forms, Select
 from apps.form.models import OrderItem, Order
-from django.forms import BaseModelFormSet
+from django.forms import BaseModelFormSet, ChoiceField
 
 
 class CreateOrderForm(ModelForm):
@@ -12,10 +12,20 @@ class CreateOrderForm(ModelForm):
         }
 
 
+CHOICES = [
+    (0, 0),
+    (1, 1),
+]
+
+
 class CreateOrderItemForm(ModelForm):
+    quantity = ChoiceField(
+        widget=Select(),
+    )
+
     class Meta:
         model = OrderItem
-        fields = ["product", "quantity"]
+        fields = ["product"]
         labels = {
             "quantity": "sztuk/waga(kg)",
         }
@@ -23,6 +33,7 @@ class CreateOrderItemForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["product"].widget = HiddenInput()
+        # self.fields["quantity"].widget = Select(choices=CHOICES)
 
 
 class CreateOrderItemFormSet(BaseModelFormSet):

@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -149,8 +150,7 @@ class OrderProductsFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         )
         self.products = (
             Product.objects.filter(producer=self.producer)
-            .filter(is_active=True)
-            .only("id")
+            .filter(is_active=True)  # .only("id")
         )
         self.initial_data = [{"product": product.id} for product in self.products]
 
@@ -176,7 +176,7 @@ class OrderProductsFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         self.order_cost = calculate_order_cost(self.orderitems)
         self.producers = Producer.objects.filter(is_active=True).values(
             "slug", "name", "order"
-        )  # pytanie: czy używanie values() ma tutaj sens?
+        )  # pytanie: czy używanie values() ma tutaj sens? - ma sens i nawet fajnie byłoby zrobić z tego listę
         self.products_with_available_quantity = calculate_available_quantity(
             self.products_with_related
         )
@@ -184,6 +184,24 @@ class OrderProductsFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         self.get_additional_context()
+
+        products_weight_schemes = []
+        for product in self.products:
+            weight_schemes_set = product.weight_schemes.all()
+            weight_schemes_quantity_list = [(Decimal(weight_scheme.quantity), Decimal(weight_scheme.quantity)) for weight_scheme in weight_schemes_set]
+            products_weight_schemes.append(weight_schemes_quantity_list)
+
+        CHOICES = [
+            ('AB', 'Abecadlo'),
+            ('BH', 'Behemot'),
+        ]
+
+        for form, scheme in zip(context["form"], products_weight_schemes):
+            form.fields['quantity'].choices = scheme
+            # form.fields['product'].choices = 'siemanko'
+            # logger.info(form.fields['product'])
+            # logger.info(form.fields['quantity'])
+            # logger.info(form.fields['quantity'].choices)
 
         context["order"] = self.order
         context["orderitems"] = self.orderitems
