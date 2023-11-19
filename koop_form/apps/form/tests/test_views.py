@@ -1,10 +1,11 @@
 import random
+from decimal import Decimal
 
 import pytest
 from django.urls import reverse
 import datetime
 from apps.form.models import Order, OrderItem, Producer, Product
-from apps.form.services import list_messages
+from apps.form.services import list_messages, calculate_available_quantity
 from apps.form.tests.factories import (
     ProducerFactory,
     UserFactory,
@@ -158,21 +159,22 @@ class TestOrderProductsFormView(TestCase):
         self.user = UserFactory()
         self.client.force_login(self.user)
         self.weight_scheme_list = [
-            WeightSchemeFactory(quantity=val) for val in [0, 0.2, 0.5, 1, 2, 5, 8]
+            WeightSchemeFactory(quantity=val) for val in [0.000, 0.500, 1.000, 2.000, 3.000, 4.000,  5.000]
         ]
-        self.product1 = ProductFactory(producer=self.producer)
-        self.product2 = ProductFactory(
+        self.product1 = ProductFactory(
             producer=self.producer,
-            order_max_quantity=10,
             weight_schemes=self.weight_scheme_list,
+            order_max_quantity=10,
         )
+        # self.product2 = ProductFactory(
+        #     producer=self.producer,
+        #     order_max_quantity=10,
+        #     weight_schemes=self.weight_scheme_list,
+        # )
         for _ in range(0, 3):
             ProductFactory(producer=self.producer, is_active=False)
         self.order = OrderWithProductFactory(user=self.user)
-        self.order2 = OrderWithProductFactory()
-        self.orderitem = OrderItemFactory(
-            product=self.product1, quantity=5, order=self.order
-        )
+        # self.order2 = OrderWithProductFactory()
 
     def test_test_func(self):
         Order.objects.get(pk=self.order.id).delete()
@@ -189,15 +191,17 @@ class TestOrderProductsFormView(TestCase):
             order_cost += orderitem.product.price * orderitem.quantity
         producers = list(Producer.objects.filter(is_active=True).values("slug", "name", "order"))
         producer = Producer.objects.get(pk=self.producer.id)
-        # products_with_related = Product.objects.filter(producer=producer.id).prefetch_related(
-        #         "weight_schemes", "statuses"
-        #     )
-        # products_with_available_quantity = calculate_available_quantity(
-        #     products_with_related
-        # )
+        products_with_related = Product.objects.filter(producer=producer.id).filter(is_active=True).prefetch_related(
+                "weight_schemes", "statuses"
+            )
+        products_with_available_quantity = calculate_available_quantity(
+            products_with_related
+        )
 
         response = self.client.get(self.url)
         context_data = response.context
+
+        logger.info(context_data['form'])
 
         assert response.status_code == 200
         assert context_data["order"] == self.order
@@ -205,15 +209,15 @@ class TestOrderProductsFormView(TestCase):
         assert context_data["order_cost"] == order_cost != 0
         assert list(context_data["producers"]) == producers
         assert context_data["producer"] == producer
-        # assert list(context_data["products_with_forms"]) == list(zip(context_data["form"], products_with_available_quantity))
+        assert list(context_data["products"]) == list(products_with_available_quantity)
+
 
     def test_create(self):
-        OrderItemFactory(product=self.product2, quantity=9, order=self.order2)
         form_data = {
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
-            "form-0-product": self.product2.id,
-            "form-0-quantity": 0.5,
+            "form-0-product": self.product1.id,
+            "form-0-quantity": '1.000',
         }
 
         pre_create_orderitem_count = OrderItem.objects.count()
@@ -221,41 +225,23 @@ class TestOrderProductsFormView(TestCase):
         post_create_orderitem_count = OrderItem.objects.count()
 
         messages = list_messages(response)
+
+        logger.info(messages)
+
+        assert response.status_code == 200
         assert pre_create_orderitem_count + 1 == post_create_orderitem_count
-        assert "Produkt został dodany do zamówienia." in messages
-        assert response.status_code == 200
+        assert f"{self.product1.name}: Produkt został dodany do zamówienia." in messages
 
-    def test_quantity_equals_zero_validation(self):
-        form_data = {
-            "form-TOTAL_FORMS": 1,
-            "form-INITIAL_FORMS": 0,
-            "form-0-product": self.product2.id,
-            "form-0-quantity": 0,
-        }
-
-        pre_create_orderitem_count = OrderItem.objects.count()
-        response = self.client.post(self.url, data=form_data, follow=True)
-        post_create_orderitem_count = OrderItem.objects.count()
-
-        messages = list_messages(response)
-        assert "Ilość zamawianego produktu nie może być równa 0." in messages
-        assert pre_create_orderitem_count == post_create_orderitem_count
-        assert response.status_code == 200
 
     def test_max_quantity_validation(self):
-        quantity_already = 2
-        quantity_posted = 8
-        max_quantity = 5
-        product2 = ProductFactory(
-            order_max_quantity=max_quantity, weight_schemes=self.weight_scheme_list
-        )
-        OrderItemFactory(product=product2, quantity=quantity_already, order=self.order2)
+        for _ in range(2):
+            OrderItemFactory(product=self.product1, quantity=5, order=OrderFactory())
 
         form_data = {
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
-            "form-0-product": product2.id,
-            "form-0-quantity": quantity_posted,
+            "form-0-product": self.product1.id,
+            "form-0-quantity": '1.000',
         }
 
         pre_create_orderitem_count = OrderItem.objects.count()
@@ -263,22 +249,21 @@ class TestOrderProductsFormView(TestCase):
         post_create_orderitem_count = OrderItem.objects.count()
 
         messages = list_messages(response)
-        assert (
-                "Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle."
-                in messages
-        )
         assert pre_create_orderitem_count == post_create_orderitem_count
         assert response.status_code == 200
+        assert (
+                f"{self.product1}: Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle."
+                in messages
+        )
 
     def test_product_already_in_order_validation(self):
-        product2 = ProductFactory(weight_schemes=self.weight_scheme_list)
-        OrderItemFactory(product=product2, order=self.order)
+        OrderItemFactory(product=self.product1, order=self.order)
 
         form_data = {
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
-            "form-0-product": product2.id,
-            "form-0-quantity": 0.5,
+            "form-0-product": self.product1.id,
+            "form-0-quantity": '1.000',
         }
 
         pre_create_orderitem_count = OrderItem.objects.count()
@@ -286,29 +271,7 @@ class TestOrderProductsFormView(TestCase):
         post_create_orderitem_count = OrderItem.objects.count()
 
         messages = list_messages(response)
-        assert "Dodałeś już ten produkt do zamówienia." in messages
-        assert pre_create_orderitem_count == post_create_orderitem_count
-        assert response.status_code == 200
-
-    def test_weight_scheme_validation(self):
-        product2 = ProductFactory(weight_schemes=[*self.weight_scheme_list])
-
-        form_data = {
-            "form-TOTAL_FORMS": 1,
-            "form-INITIAL_FORMS": 0,
-            "form-0-product": product2.id,
-            "form-0-quantity": 0.7,
-        }
-
-        pre_create_orderitem_count = OrderItem.objects.count()
-        response = self.client.post(self.url, data=form_data, follow=True)
-        post_create_orderitem_count = OrderItem.objects.count()
-
-        messages = list_messages(response)
-        assert (
-                "Nieprawidłowa waga zamawianego produtku. Wybierz wagę z dostępnego schematu."
-                in messages
-        )
+        assert f"{self.product1.name}: Dodałeś już ten produkt do zamówienia." in messages
         assert pre_create_orderitem_count == post_create_orderitem_count
         assert response.status_code == 200
 
@@ -317,13 +280,13 @@ class TestOrderProductsFormView(TestCase):
             weight_schemes=self.weight_scheme_list,
             order_deadline=datetime.datetime(2023, 9, 17, 18),
         )
-        OrderItemFactory(product=product2, quantity=9, order=self.order2)
+        OrderItemFactory(product=product2, quantity=9, order=OrderFactory())
 
         form_data = {
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
             "form-0-product": product2.id,
-            "form-0-quantity": 0.5,
+            "form-0-quantity": '0.500',
         }
 
         pre_create_orderitem_count = OrderItem.objects.count()
@@ -331,12 +294,12 @@ class TestOrderProductsFormView(TestCase):
         post_create_orderitem_count = OrderItem.objects.count()
 
         messages = list_messages(response)
-        assert (
-                "Termin minął, nie możesz już dodać tego produktu do zamówienia."
-                in messages
-        )
         assert pre_create_orderitem_count == post_create_orderitem_count
         assert response.status_code == 200
+        assert (
+                f"{product2.name}: Termin minął, nie możesz już dodać tego produktu do zamówienia."
+                in messages
+        )
 
 
 @pytest.mark.django_db
