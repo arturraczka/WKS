@@ -17,7 +17,9 @@ urlpatterns = [
         name="login",
     ),
     path(
-        "wylogowano/", LogoutView.as_view(template_name="user/logout.html"), name="logout"
+        "wylogowano/",
+        LogoutView.as_view(template_name="user/logout.html"),
+        name="logout",
     ),
     path(
         "zmiana-hasla/",
@@ -26,9 +28,7 @@ urlpatterns = [
     ),
     path(
         "zmiana-hasla/sukces/",
-        PasswordChangeDoneView.as_view(
-            template_name="user/password-change-done.html"
-        ),
+        PasswordChangeDoneView.as_view(template_name="user/password-change-done.html"),
         name="password_change_done",
     ),
     path(

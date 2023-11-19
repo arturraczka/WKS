@@ -8,7 +8,8 @@ from apps.form.tests.factories import (
     UserFactory,
     ProductFactory,
     OrderItemFactory,
-    OrderFactory, ProducerFactory,
+    OrderFactory,
+    ProducerFactory,
 )
 from django.test import TestCase
 import logging
@@ -71,7 +72,9 @@ class TestOrderModel(TestCase):
 
     def test_calculate_order_number(self):
         previous_friday = calculate_previous_friday()
-        orders_qs = Order.objects.filter(date_created__gte=previous_friday).order_by('date_created')
+        orders_qs = Order.objects.filter(date_created__gte=previous_friday).order_by(
+            "date_created"
+        )
 
         initial_number = 0
         for order in orders_qs:
@@ -106,7 +109,7 @@ class TestOrderItemModel(TestCase):
 @pytest.mark.django_db
 class TestProducerModel(TestCase):
     def setUp(self):
-        self.producer = ProducerFactory(name='Wielka! Korba p.13')
+        self.producer = ProducerFactory(name="Wielka! Korba p.13")
 
         for _ in range(0, 5):
             product = ProductFactory(producer=self.producer)
@@ -114,7 +117,7 @@ class TestProducerModel(TestCase):
                 OrderItemFactory(product=product)
 
     def test_slug_creation(self):
-        assert self.producer.slug == 'wielka-korba-p13'
+        assert self.producer.slug == "wielka-korba-p13"
 
     def test_set_products_quantity_to_0(self):
         count_pre_save = OrderItem.objects.count()

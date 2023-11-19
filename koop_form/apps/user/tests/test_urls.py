@@ -6,7 +6,7 @@ from apps.form.tests.factories import UserFactory
 
 class TestLoginView(TestCase):
     def setUp(self):
-        self.url = reverse('login')
+        self.url = reverse("login")
 
     def test_response(self):
         response = self.client.get(self.url)
@@ -15,7 +15,7 @@ class TestLoginView(TestCase):
 
 class TestLogoutView(TestCase):
     def setUp(self):
-        self.url = reverse('logout')
+        self.url = reverse("logout")
 
     def test_response(self):
         response = self.client.get(self.url)
@@ -26,7 +26,7 @@ class TestPasswordChangeView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.url = reverse('password_change_request')
+        self.url = reverse("password_change_request")
 
     def test_response(self):
         response = self.client.get(self.url)
@@ -37,7 +37,7 @@ class TestPasswordChangeDoneView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.url = reverse('password_change_done')
+        self.url = reverse("password_change_done")
 
     def test_response(self):
         response = self.client.get(self.url)
@@ -46,7 +46,7 @@ class TestPasswordChangeDoneView(TestCase):
 
 class TestPasswordResetView(TestCase):
     def setUp(self):
-        self.url = reverse('password_reset_request')
+        self.url = reverse("password_reset_request")
 
     def test_response(self):
         response = self.client.get(self.url)
@@ -55,7 +55,7 @@ class TestPasswordResetView(TestCase):
 
 class TestPasswordResetDoneView(TestCase):
     def setUp(self):
-        self.url = reverse('password_reset_done')
+        self.url = reverse("password_reset_done")
 
     def test_response(self):
         response = self.client.get(self.url)
@@ -64,7 +64,9 @@ class TestPasswordResetDoneView(TestCase):
 
 class TestPasswordResetConfirmView(TestCase):
     def setUp(self):
-        self.url = reverse('password_reset_confirm', kwargs={"uidb64": None, "token": None})
+        self.url = reverse(
+            "password_reset_confirm", kwargs={"uidb64": None, "token": None}
+        )
 
     def test_response(self):
         response = self.client.get(self.url)
@@ -73,7 +75,7 @@ class TestPasswordResetConfirmView(TestCase):
 
 class TestPasswordResetCompleteView(TestCase):
     def setUp(self):
-        self.url = reverse('password_reset_complete')
+        self.url = reverse("password_reset_complete")
 
     def test_response(self):
         response = self.client.get(self.url)

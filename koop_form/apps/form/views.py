@@ -113,12 +113,16 @@ class ProducerReportView(LoginRequiredMixin, TemplateView):
 
 
 @method_decorator(login_required, name="dispatch")
-@method_decorator(user_passes_test(order_check, login_url='/zamowienie/nowe/'), name="dispatch")
+@method_decorator(
+    user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
+)
 class OrderProducersView(ProducersView):
     template_name = "form/order_producers.html"
 
 
-@method_decorator(user_passes_test(order_check, login_url='/zamowienie/nowe/'), name="dispatch")
+@method_decorator(
+    user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
+)
 class OrderProductsFormView(LoginRequiredMixin, FormView):
     model = OrderItem
     template_name = "form/order_products_form.html"
@@ -188,11 +192,17 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
         products_weight_schemes = []
         for product in self.products_with_related:
             weight_schemes_set = product.weight_schemes.all()
-            weight_schemes_quantity_list = [(Decimal(weight_scheme.quantity), f"{weight_scheme.quantity}".rstrip('0').rstrip('.')) for weight_scheme in weight_schemes_set]
+            weight_schemes_quantity_list = [
+                (
+                    Decimal(weight_scheme.quantity),
+                    f"{weight_scheme.quantity}".rstrip("0").rstrip("."),
+                )
+                for weight_scheme in weight_schemes_set
+            ]
             products_weight_schemes.append(weight_schemes_quantity_list)
 
         for form, scheme in zip(context["form"], products_weight_schemes):
-            form.fields['quantity'].choices = scheme
+            form.fields["quantity"].choices = scheme
 
         context["order"] = self.order
         context["orderitems"] = self.orderitems
@@ -241,7 +251,9 @@ class OrderCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
         return success_url
 
 
-@method_decorator(user_passes_test(order_check, login_url='/zamowienie/nowe/'), name="dispatch")
+@method_decorator(
+    user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
+)
 class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
     model = OrderItem
     success_message = "Zamówienie zostało zaktualizowane."
@@ -319,7 +331,9 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         return super().form_valid(form)
 
 
-class OrderUpdateView(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
+class OrderUpdateView(
+    LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView
+):
     model = Order
     fields = ["pick_up_day"]
     template_name = "form/order_create.html"
@@ -331,7 +345,9 @@ class OrderUpdateView(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMix
         return self.request.user == order.user
 
 
-class OrderDeleteView(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, DeleteView):
+class OrderDeleteView(
+    LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, DeleteView
+):
     model = Order
     template_name = "form/order_delete.html"
     success_url = reverse_lazy("producers")
@@ -372,11 +388,14 @@ class UsersReportView(LoginRequiredMixin, TemplateView):
         previous_friday = calculate_previous_friday()
 
         newest_order = Order.objects.filter(date_created__gte=previous_friday)
-        prefetch = Prefetch('orders', queryset=newest_order, to_attr='order')
+        prefetch = Prefetch("orders", queryset=newest_order, to_attr="order")
 
-        users_qs = get_user_model().objects.filter(
-            Q(orders__date_created__gte=previous_friday)
-        ).select_related("userprofile").prefetch_related(prefetch)
+        users_qs = (
+            get_user_model()
+            .objects.filter(Q(orders__date_created__gte=previous_friday))
+            .select_related("userprofile")
+            .prefetch_related(prefetch)
+        )
 
         context["users"] = users_qs
         return context

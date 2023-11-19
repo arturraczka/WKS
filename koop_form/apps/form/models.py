@@ -6,8 +6,13 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.text import slugify
 
-from apps.form.services import calculate_order_number, reduce_order_quantity, recalculate_order_numbers, \
-    set_products_quantity_to_0, switch_products_isactive_bool_value
+from apps.form.services import (
+    calculate_order_number,
+    reduce_order_quantity,
+    recalculate_order_numbers,
+    set_products_quantity_to_0,
+    switch_products_isactive_bool_value,
+)
 
 ModelUser = get_user_model()
 logger = logging.getLogger("django.server")
@@ -34,11 +39,15 @@ class Producer(models.Model):
 
         if self.pk is not None:
             if self.not_arrived is True:
-                set_products_quantity_to_0(Product, self.pk)  # czy tego typu taski powinny być atomic_requestem?
+                set_products_quantity_to_0(
+                    Product, self.pk
+                )  # czy tego typu taski powinny być atomic_requestem?
                 self.not_arrived = False
 
             producer_db = Producer.objects.get(pk=self.pk)
-            if producer_db.is_active != self.is_active:  # czy tego typu taski powinny być atomic_requestem?
+            if (
+                producer_db.is_active != self.is_active
+            ):  # czy tego typu taski powinny być atomic_requestem?
                 switch_products_isactive_bool_value(Product, self.pk, self.is_active)
 
         super(Producer, self).save(*args, **kwargs)
@@ -150,7 +159,9 @@ class Order(models.Model):
         super(Order, self).save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
-        recalculate_order_numbers(Order, self.date_created, self.order_number)    # czy tego typu taski powinny być atomic_requestem?
+        recalculate_order_numbers(
+            Order, self.date_created, self.order_number
+        )  # czy tego typu taski powinny być atomic_requestem?
         super(Order, self).delete(using=using, keep_parents=keep_parents)
 
     def get_absolute_url(self):
@@ -161,15 +172,15 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    #TODO choices muszą mieć wszystkie dostępne weight_schemes, całą wielką listę wszystkich potencjalnych wag
+    # TODO choices muszą mieć wszystkie dostępne weight_schemes, całą wielką listę wszystkich potencjalnych wag
     CHOICES = [
-        (Decimal('0.000'), '0'),
-        (Decimal('0.500'), '0.5'),
-        (Decimal('1.000'), '1'),
-        (Decimal('2.000'), '2'),
-        (Decimal('3.000'), '3'),
-        (Decimal('4.000'), '4'),
-        (Decimal('5.000'), '5')
+        (Decimal("0.000"), "0"),
+        (Decimal("0.500"), "0.5"),
+        (Decimal("1.000"), "1"),
+        (Decimal("2.000"), "2"),
+        (Decimal("3.000"), "3"),
+        (Decimal("4.000"), "4"),
+        (Decimal("5.000"), "5"),
     ]
 
     order = models.ForeignKey(

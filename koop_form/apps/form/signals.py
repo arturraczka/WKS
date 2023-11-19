@@ -3,6 +3,7 @@ from django.dispatch import receiver
 
 from apps.form.models import WeightScheme, Product
 
+
 @receiver(post_save, sender=Product)
 def add_zero_as_weight_scheme(sender, instance, **kwargs):
     try:

@@ -17,11 +17,13 @@ class UserAdmin(BaseUserAdmin):
 
 
 class UserProfileResource(resources.ModelResource):
-
     class Meta:
         model = UserProfile
-        import_id_fields = ('phone_number',)
-        fields = ('fund', 'phone_number',)
+        import_id_fields = ("phone_number",)
+        fields = (
+            "fund",
+            "phone_number",
+        )
 
 
 class UserProfileAdmin(ImportExportModelAdmin):

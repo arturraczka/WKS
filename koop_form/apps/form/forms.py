@@ -1,8 +1,6 @@
-from decimal import Decimal
-
-from django.forms import ModelForm, HiddenInput, forms, Select
+from django.forms import ModelForm, HiddenInput
 from apps.form.models import OrderItem, Order
-from django.forms import BaseModelFormSet, ChoiceField
+from django.forms import BaseModelFormSet
 
 
 class CreateOrderForm(ModelForm):
@@ -10,32 +8,11 @@ class CreateOrderForm(ModelForm):
         model = Order
         fields = ["pick_up_day"]
         labels = {
-            'pick_up_day': 'Wybierz dzień odbioru:',
+            "pick_up_day": "Wybierz dzień odbioru:",
         }
 
 
-CHOICES = [
-    (Decimal('0.000'), '0.000'),
-    (Decimal('0.500'), '0.500'),
-    (Decimal('1.000'), '1.000'),
-    (Decimal('2.000'), '2.000'),
-    (Decimal('3.000'), '3.000'),
-    (Decimal('4.000'), '4.000'),
-    (Decimal('5.000'), '5.000')
-]
-
-
-class CustomChoiceField(ChoiceField):
-    # def validate(self, value):
-    #     return True
-    pass
-
-
 class CreateOrderItemForm(ModelForm):
-    # quantity = CustomChoiceField(
-    #     widget=Select(choices=CHOICES),
-    # )
-
     class Meta:
         model = OrderItem
         fields = ["product", "quantity"]
@@ -46,16 +23,12 @@ class CreateOrderItemForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["product"].widget = HiddenInput()
-        # self.fields["quantity"].widget = Select(choices=CHOICES)
 
 
 class CreateOrderItemFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.queryset = OrderItem.objects.none()
-
-    # def save_new(self, form, commit=True):
-    #     return form.save(commit=commit)
 
 
 class UpdateOrderItemForm(ModelForm):
@@ -75,14 +48,3 @@ class UpdateOrderItemForm(ModelForm):
 class UpdateOrderItemFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.queryset = OrderItem.objects.none()
-
-    # def save_new(self, form, commit=True):
-    #     return form.save(commit=commit)
-
-
-# OrderItemFormSet = modelformset_factory(
-#     OrderItem,
-#     form=CreateOrderItemForm,
-#     formset=CreateOrderItemFormSet,
-# )

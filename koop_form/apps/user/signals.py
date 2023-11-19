@@ -1,6 +1,5 @@
-from django.db.models.signals import post_init, post_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
-
 from apps.user.models import UserProfile
 from django.contrib.auth import get_user_model
 

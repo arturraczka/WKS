@@ -47,7 +47,8 @@ def validate_order_max_quantity(product, product_with_related, instance, request
 def validate_order_deadline(product, request):
     if product.order_deadline and product.order_deadline < timezone.now():
         messages.warning(
-            request, f"{product.name}: Termin minął, nie możesz już dodać tego produktu do zamówienia."
+            request,
+            f"{product.name}: Termin minął, nie możesz już dodać tego produktu do zamówienia.",
         )
         return True
 

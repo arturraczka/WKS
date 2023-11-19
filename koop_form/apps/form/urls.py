@@ -25,7 +25,10 @@ from apps.form.views import (
     OrderDeleteView,
     OrderProducersView,
     OrderUpdateFormView,
-    ProducerReportView, ProductsReportView, UsersReportView, ProducerListReportView,
+    ProducerReportView,
+    ProductsReportView,
+    UsersReportView,
+    ProducerListReportView,
 )
 
 

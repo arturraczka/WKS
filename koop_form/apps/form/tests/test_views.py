@@ -1,6 +1,4 @@
 import random
-from decimal import Decimal
-
 import pytest
 from django.urls import reverse
 import datetime
@@ -26,7 +24,10 @@ class TestProducersView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
-        for _ in range(0, 5,):
+        for _ in range(
+            0,
+            5,
+        ):
             ProducerFactory()
         self.url = reverse("producers")
 
@@ -39,7 +40,10 @@ class TestProducersView(TestCase):
         assert list(context_data["producers"]) == producers
 
     def test_get_queryset(self):
-        for _ in range(0, 5,):
+        for _ in range(
+            0,
+            5,
+        ):
             ProducerFactory(is_active=False)
         response = self.client.get(self.url)
         context_data = response.context
@@ -64,9 +68,9 @@ class TestProductsView(TestCase):
         context_data = response.context
 
         products_with_related = list(
-            Product.objects.filter(producer=self.producer.id).filter(is_active=True).prefetch_related(
-                "weight_schemes", "statuses"
-            )
+            Product.objects.filter(producer=self.producer.id)
+            .filter(is_active=True)
+            .prefetch_related("weight_schemes", "statuses")
         )
         producer = Producer.objects.get(pk=self.producer.id)
         producers = list(Producer.objects.filter(is_active=True))
@@ -85,7 +89,7 @@ def get_test_data(context_data, product):
         quantity += item.quantity
 
     income = quantity * product.price
-    product_context = context_data['products'].get(id=product.id)
+    product_context = context_data["products"].get(id=product.id)
     return quantity, income, product_context
 
 
@@ -110,8 +114,12 @@ class TestProducerReportView(TestCase):
         response = self.client.get(self.url)
         context_data = response.context
 
-        product1_ordered_quantity, product1_income, product1 = get_test_data(context_data, self.product1)
-        product2_ordered_quantity, product2_income, product2 = get_test_data(context_data, self.product2)
+        product1_ordered_quantity, product1_income, product1 = get_test_data(
+            context_data, self.product1
+        )
+        product2_ordered_quantity, product2_income, product2 = get_test_data(
+            context_data, self.product2
+        )
         total_income = product1_income + product2_income
 
         assert response.status_code == 200
@@ -119,16 +127,17 @@ class TestProducerReportView(TestCase):
         assert product1.income == product1_income
         assert product2.ordered_quantity == product2_ordered_quantity
         assert product2.income == product2_income
-        assert context_data['total_income'] == total_income
-        assert self.product1 in list(context_data['products'])
-        assert self.product2 in list(context_data['products'])
-        assert not self.product3 in list(context_data['products'])
+        assert context_data["total_income"] == total_income
+        assert self.product1 in list(context_data["products"])
+        assert self.product2 in list(context_data["products"])
+        assert self.product3 not in list(context_data["products"])
 
     def test_user_is_not_staff(self):
         self.client.force_login(UserFactory())
         response = self.client.get(self.url)
 
         assert response.status_code == 302
+
 
 @pytest.mark.django_db
 class TestOrderProducersView(TestCase):
@@ -159,22 +168,17 @@ class TestOrderProductsFormView(TestCase):
         self.user = UserFactory()
         self.client.force_login(self.user)
         self.weight_scheme_list = [
-            WeightSchemeFactory(quantity=val) for val in [0.000, 0.500, 1.000, 2.000, 3.000, 4.000,  5.000]
+            WeightSchemeFactory(quantity=val)
+            for val in [0.000, 0.500, 1.000, 2.000, 3.000, 4.000, 5.000]
         ]
         self.product1 = ProductFactory(
             producer=self.producer,
             weight_schemes=self.weight_scheme_list,
             order_max_quantity=10,
         )
-        # self.product2 = ProductFactory(
-        #     producer=self.producer,
-        #     order_max_quantity=10,
-        #     weight_schemes=self.weight_scheme_list,
-        # )
         for _ in range(0, 3):
             ProductFactory(producer=self.producer, is_active=False)
         self.order = OrderWithProductFactory(user=self.user)
-        # self.order2 = OrderWithProductFactory()
 
     def test_test_func(self):
         Order.objects.get(pk=self.order.id).delete()
@@ -189,11 +193,15 @@ class TestOrderProductsFormView(TestCase):
         order_cost = 0
         for orderitem in orderitem_with_products_qs:
             order_cost += orderitem.product.price * orderitem.quantity
-        producers = list(Producer.objects.filter(is_active=True).values("slug", "name", "order"))
+        producers = list(
+            Producer.objects.filter(is_active=True).values("slug", "name", "order")
+        )
         producer = Producer.objects.get(pk=self.producer.id)
-        products_with_related = Product.objects.filter(producer=producer.id).filter(is_active=True).prefetch_related(
-                "weight_schemes", "statuses"
-            )
+        products_with_related = (
+            Product.objects.filter(producer=producer.id)
+            .filter(is_active=True)
+            .prefetch_related("weight_schemes", "statuses")
+        )
         products_with_available_quantity = calculate_available_quantity(
             products_with_related
         )
@@ -201,7 +209,7 @@ class TestOrderProductsFormView(TestCase):
         response = self.client.get(self.url)
         context_data = response.context
 
-        logger.info(context_data['form'])
+        logger.info(context_data["form"])
 
         assert response.status_code == 200
         assert context_data["order"] == self.order
@@ -211,13 +219,12 @@ class TestOrderProductsFormView(TestCase):
         assert context_data["producer"] == producer
         assert list(context_data["products"]) == list(products_with_available_quantity)
 
-
     def test_create(self):
         form_data = {
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
             "form-0-product": self.product1.id,
-            "form-0-quantity": '1.000',
+            "form-0-quantity": "1.000",
         }
 
         pre_create_orderitem_count = OrderItem.objects.count()
@@ -232,7 +239,6 @@ class TestOrderProductsFormView(TestCase):
         assert pre_create_orderitem_count + 1 == post_create_orderitem_count
         assert f"{self.product1.name}: Produkt został dodany do zamówienia." in messages
 
-
     def test_max_quantity_validation(self):
         for _ in range(2):
             OrderItemFactory(product=self.product1, quantity=5, order=OrderFactory())
@@ -241,7 +247,7 @@ class TestOrderProductsFormView(TestCase):
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
             "form-0-product": self.product1.id,
-            "form-0-quantity": '1.000',
+            "form-0-quantity": "1.000",
         }
 
         pre_create_orderitem_count = OrderItem.objects.count()
@@ -252,8 +258,8 @@ class TestOrderProductsFormView(TestCase):
         assert pre_create_orderitem_count == post_create_orderitem_count
         assert response.status_code == 200
         assert (
-                f"{self.product1}: Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle."
-                in messages
+            f"{self.product1}: Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle."
+            in messages
         )
 
     def test_product_already_in_order_validation(self):
@@ -263,7 +269,7 @@ class TestOrderProductsFormView(TestCase):
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
             "form-0-product": self.product1.id,
-            "form-0-quantity": '1.000',
+            "form-0-quantity": "1.000",
         }
 
         pre_create_orderitem_count = OrderItem.objects.count()
@@ -271,7 +277,9 @@ class TestOrderProductsFormView(TestCase):
         post_create_orderitem_count = OrderItem.objects.count()
 
         messages = list_messages(response)
-        assert f"{self.product1.name}: Dodałeś już ten produkt do zamówienia." in messages
+        assert (
+            f"{self.product1.name}: Dodałeś już ten produkt do zamówienia." in messages
+        )
         assert pre_create_orderitem_count == post_create_orderitem_count
         assert response.status_code == 200
 
@@ -286,7 +294,7 @@ class TestOrderProductsFormView(TestCase):
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
             "form-0-product": product2.id,
-            "form-0-quantity": '0.500',
+            "form-0-quantity": "0.500",
         }
 
         pre_create_orderitem_count = OrderItem.objects.count()
@@ -297,8 +305,8 @@ class TestOrderProductsFormView(TestCase):
         assert pre_create_orderitem_count == post_create_orderitem_count
         assert response.status_code == 200
         assert (
-                f"{product2.name}: Termin minął, nie możesz już dodać tego produktu do zamówienia."
-                in messages
+            f"{product2.name}: Termin minął, nie możesz już dodać tego produktu do zamówienia."
+            in messages
         )
 
 
@@ -352,7 +360,7 @@ class TestGetOrderUpdateOrderDeleteViews(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.order = OrderFactory(user=self.user, pick_up_day='środa')
+        self.order = OrderFactory(user=self.user, pick_up_day="środa")
         for _ in range(0, 5):
             OrderItemFactory(order=self.order)
 
@@ -366,7 +374,7 @@ class TestGetOrderUpdateOrderDeleteViews(TestCase):
 
         messages = list_messages(response)
         assert "Dzień odbioru zamówienia został zmieniony." in messages
-        assert order_db.pick_up_day == 'czwartek'
+        assert order_db.pick_up_day == "czwartek"
         assert response.status_code == 200
 
     def test_delete_view(self):
@@ -395,12 +403,18 @@ class TestProductsReportView(TestCase):
     def setUp(self):
         self.user = UserFactory(is_staff=True)
         self.client.force_login(self.user)
-        self.url = reverse('products-report')
+        self.url = reverse("products-report")
         for _ in range(0, 5):
             ProductFactory()
-        self.orderitem1 = OrderItemFactory(product=ProductFactory(name='Alaska'), quantity=4)
-        self.orderitem2 = OrderItemFactory(product=ProductFactory(name='Barabasz'), quantity=1)
-        self.orderitem3 = OrderItemFactory(product=ProductFactory(name='Celuloza'), quantity=2)
+        self.orderitem1 = OrderItemFactory(
+            product=ProductFactory(name="Alaska"), quantity=4
+        )
+        self.orderitem2 = OrderItemFactory(
+            product=ProductFactory(name="Barabasz"), quantity=1
+        )
+        self.orderitem3 = OrderItemFactory(
+            product=ProductFactory(name="Celuloza"), quantity=2
+        )
 
     def test_response_and_context(self):
         response = self.client.get(self.url)
@@ -409,7 +423,11 @@ class TestProductsReportView(TestCase):
         products = Product.objects.filter(orderitems__isnull=False)
 
         assert list(context_data["products"]) == list(products)
-        assert list(context_data["order_data"]) == ['(skrz1: 4) ', '(skrz2: 1) ', '(skrz3: 2) ']
+        assert list(context_data["order_data"]) == [
+            "(skrz1: 4) ",
+            "(skrz2: 1) ",
+            "(skrz3: 2) ",
+        ]
         assert response.status_code == 200
 
     def test_user_is_not_staff(self):
@@ -424,8 +442,6 @@ class TestUsersReportView(TestCase):
     def setUp(self):
         self.user = UserFactory(is_staff=True)
         self.client.force_login(self.user)
-        # self.producer = ProducerFactory()
-        # self.order = OrderFactory(user=self.user)
         self.url = reverse("users-report")
 
     def test_response(self):

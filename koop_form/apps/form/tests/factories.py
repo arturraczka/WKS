@@ -51,7 +51,7 @@ class OrderFactory(DjangoModelFactory):
         model = Order
 
     user = SubFactory(UserFactory)
-    pick_up_day = ['środa', 'czwartek'][random.randint(0, 1)]
+    pick_up_day = ["środa", "czwartek"][random.randint(0, 1)]
     date_created = timezone.now()
     is_given = False
 
