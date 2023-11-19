@@ -15,13 +15,10 @@
     <p>{{ producer.description }}</p>
 
     <div class="row">
-        <div class="col-md-6">
-            <form method="post">
-                {% csrf_token %}
-                {{ form.management_form }}
+        <div class="col-md-8">
 
-                {% for form, product in products_with_forms %}
-                    <article class="media ">
+                {% for product in products %}
+                    <article class="media fixed-height-div">
                       <div class="media-body">
 
                         <div>
@@ -30,11 +27,8 @@
                         </div>
 
                         <div>
-                            <span class="mr-2"><strong>{{ product.price }}</strong> zł za szt/kg</span>
-                          <span class="text-muted">Dostępne wagi(kg)/liczba sztuk: </span>
-                          {% for weight_scheme in product.weight_schemes.all %}
-                            <span class="text-muted">{{ weight_scheme.quantity|format_decimal:3 }},</span>
-                          {% endfor %}
+                          <span class="mr-2"><strong>{{ product.price }}</strong> zł za szt/kg</span>
+
                           <span class="text-muted"> | Status produktu: </span>
                           {% for status in product.statuses.all %}
                             <span class="text-muted"><strong>{{ status.status_type }},</strong></span>
@@ -42,9 +36,27 @@
                         </div>
 
                         <div class="article-metadata">
-                          {{ form }}
+                          <span class="mr-2"> Maksymalnie możesz zamówić: {{ product.available_quantity|format_decimal:3 }} (sztuk lub kg) </span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+
+        </div>
+
+        <div class="col-md-4 position-fix">
+
+            <form method="post">
+                {% csrf_token %}
+                {{ form.management_form }}
+
+                {% for form_instance in form %}
+                    <article class="media fixed-height-div">
+                      <div class="media-body">
+                        <div class="article-metadata">
+                          {{ form_instance }}
                           <input type="submit" name="submit" value="Dodaj">
-                          <span class="mr-2"> Maksymalnie możesz zamówić: {{ product.available_quantity|format_decimal:3 }} sztuk lub kg </span>
                         </div>
 
                       </div>
@@ -52,10 +64,6 @@
                 {% endfor %}
 
             </form>
-        </div>
-
-        <div class="col-md-6">
-            <h2>jestem drugą kolumną</h2>
         </div>
 
 

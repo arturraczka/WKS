@@ -199,10 +199,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
         context["order_cost"] = self.order_cost
         context["producers"] = self.producers
         context["producer"] = self.producer
-        products_with_forms = zip(
-            context["form"], self.products_with_available_quantity
-        )
-        context["products_with_forms"] = products_with_forms
+        context["products"] = self.products_with_available_quantity
         return context
 
     def get_initial(self):
@@ -211,8 +208,6 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
     def form_valid(self, form):
         formset = form.save(commit=False)
         for instance in formset:
-            logger.info(instance.quantity)
-
             if instance.quantity == 0:
                 pass
             else:

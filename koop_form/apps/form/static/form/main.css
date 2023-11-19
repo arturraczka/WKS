@@ -150,3 +150,11 @@ a.article-title:hover {
 .asteriskField {
     display: none;
 }
+
+.fixed-height-div {
+    height: 100px;
+}
+
+.position-fix {
+    margin-top: 42px;
+}
