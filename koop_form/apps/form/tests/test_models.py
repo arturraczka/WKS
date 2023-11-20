@@ -4,7 +4,7 @@ import pytest
 from django.db.models import Q
 from apps.form.models import OrderItem, Product, Order, WeightScheme
 from apps.form.services import calculate_previous_friday
-from apps.form.tests.factories import (
+from factories.model_factories import (
     UserFactory,
     ProductFactory,
     OrderItemFactory,

@@ -1,7 +1,7 @@
 from django.urls import reverse
 from django.test import TestCase
 
-from apps.form.tests.factories import UserFactory
+from factories.model_factories import UserFactory
 
 
 class TestLoginView(TestCase):

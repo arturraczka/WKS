@@ -1,4 +1,4 @@
-from apps.form.tests.factories import (
+from factories.model_factories import (
     UserFactory,
 )
 from django.test import TestCase

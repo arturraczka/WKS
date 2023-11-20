@@ -1,5 +1,5 @@
 from pytest_factoryboy import register
-from .factories import (
+from factories.model_factories import (
     ProducerFactory,
     ProductFactory,
     WeightSchemeFactory,

@@ -4,7 +4,7 @@ from django.urls import reverse
 import datetime
 from apps.form.models import Order, OrderItem, Producer, Product
 from apps.form.services import list_messages, calculate_available_quantity
-from apps.form.tests.factories import (
+from factories.model_factories import (
     ProducerFactory,
     UserFactory,
     WeightSchemeFactory,
