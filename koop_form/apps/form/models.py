@@ -107,19 +107,6 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
-        if self.pk is not None:
-            product_db = Product.objects.get(pk=self.pk)
-            if (
-                product_db.quantity_delivered_this_week
-                != self.quantity_delivered_this_week
-            ):
-                reduce_order_quantity(
-                    OrderItem, self.pk, self.quantity_delivered_this_week
-                )  # czy tego typu taski powinny być atomic_requestem?
-                self.quantity_delivered_this_week = -1
-        super(Product, self).save(*args, **kwargs)
-
 
 class product_weight_schemes(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
