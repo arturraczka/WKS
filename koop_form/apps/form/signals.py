@@ -42,3 +42,10 @@ def check_before_reduce_order_quantity(sender, instance, **kwargs):
 def assign_order_number(sender, instance, **kwargs):
     if instance.order_number is None:
         instance.order_number = calculate_order_number(sender)
+
+
+@receiver(post_save, sender=OrderItem)
+def delete_instance_if_quantity_eq_0(sender, instance, **kwargs):
+    if instance.quantity == 0:
+        orderitem_db = sender.objects.get(id=instance.id)
+        orderitem_db.delete()
