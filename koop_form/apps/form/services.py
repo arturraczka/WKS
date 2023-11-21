@@ -24,7 +24,7 @@ logger = logging.getLogger("django.server")
 # TODO tutaj wszystko muszę sprawdzić, czy jest testowane czy nie
 
 
-# TODO: try/except w ogóle nie działa, nie przechwytuje MultipleObjectsReturned
+# TODO: to przydałoby się wyjebać całkiem
 def get_object_prefetch_related(model_class, *args, **kwargs):
     try:
         object_with_related = get_object_or_404(
@@ -105,11 +105,11 @@ def calculate_total_income(products):
             pass
     return total_income
 
-
-def add_0_as_weight_scheme(pk, product_model, weight_scheme_model):
-    product_instance = product_model.objects.get(pk=pk)
-    quantity_zero = weight_scheme_model.objects.get(quantity=1.000)
-    product_instance.weight_schemes.set([quantity_zero])
+#
+# def add_0_as_weight_scheme(pk, product_model, weight_scheme_model):
+#     product_instance = product_model.objects.get(pk=pk)
+#     quantity_zero = weight_scheme_model.objects.get(quantity=1.000)
+#     product_instance.weight_schemes.set([quantity_zero])
 
 
 def reduce_order_quantity(orderitem_model, product_pk, quantity):
@@ -162,14 +162,15 @@ def create_order_data_list(products, order_model, orderitem_model):
     return order_data_list
 
 
-def set_products_quantity_to_0(product_model, pk: int):
+def set_products_quantity_to_0(producer_instance):
     """docstrings"""
-    product_qs = product_model.objects.filter(producer=pk)
+    product_qs = producer_instance.products.all()
     for product in product_qs:
         product.quantity_delivered_this_week = 0
         product.save()
 
 
+# TODO refactoring na "producer_instance.products.all()" tak jak w set_products_quantity_to_0
 def switch_products_isactive_bool_value(product_model, pk, is_active):
     product_qs = product_model.objects.filter(producer=pk)
     operator = True if is_active else False

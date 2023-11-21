@@ -62,8 +62,6 @@ def delete_instance_if_quantity_eq_0(sender, instance, **kwargs):
 @receiver(post_save, sender=Producer)
 def check_before_set_products_quantity_to_0(sender, instance, **kwargs):
     if instance.not_arrived:
-        set_products_quantity_to_0(
-            Product, instance.pk
-        )
+        set_products_quantity_to_0(instance)
         instance.not_arrived = False
         instance.save()

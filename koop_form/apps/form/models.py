@@ -39,12 +39,6 @@ class Producer(models.Model):
         self.slug = slugify(self.name)
 
         if self.pk is not None:
-            # if self.not_arrived is True:
-            #     set_products_quantity_to_0(
-            #         Product, self.pk
-            #     )
-            #     self.not_arrived = False
-
             producer_db = Producer.objects.get(pk=self.pk)
             if (
                 producer_db.is_active != self.is_active
