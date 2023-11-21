@@ -11,7 +11,7 @@ from apps.form.services import (
     reduce_order_quantity,
     recalculate_order_numbers,
     set_products_quantity_to_0,
-    switch_products_isactive_bool_value,
+    switch_products_isactive_bool_value, get_quantity_choices,
 )
 
 ModelUser = get_user_model()
@@ -172,16 +172,7 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    # TODO choices muszą mieć wszystkie dostępne weight_schemes, całą wielką listę wszystkich potencjalnych wag
-    CHOICES = [
-        (Decimal("0.000"), "0"),
-        (Decimal("0.500"), "0.5"),
-        (Decimal("1.000"), "1"),
-        (Decimal("2.000"), "2"),
-        (Decimal("3.000"), "3"),
-        (Decimal("4.000"), "4"),
-        (Decimal("5.000"), "5"),
-    ]
+    QUANTITY_CHOICES = get_quantity_choices()
 
     order = models.ForeignKey(
         Order, on_delete=models.CASCADE, related_name="orderitems"
@@ -189,7 +180,7 @@ class OrderItem(models.Model):
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="orderitems"
     )
-    quantity = models.DecimalField(max_digits=6, decimal_places=3, choices=CHOICES)
+    quantity = models.DecimalField(max_digits=6, decimal_places=3, choices=QUANTITY_CHOICES)
     item_ordered_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:

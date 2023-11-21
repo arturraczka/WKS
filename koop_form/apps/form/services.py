@@ -173,3 +173,18 @@ def switch_products_isactive_bool_value(product_model, pk, is_active):
     for product in product_qs:
         product.is_active = operator
         product.save()
+
+
+def get_quantity_choices():
+    choices = [
+        (Decimal("0.000"), "0"),
+        (Decimal("10.000"), "10"),
+    ]
+
+    for x in range(1, 10):
+        choices.append((Decimal(f"0.0{x}0"), f"0.0{x}"))
+        choices.append((Decimal(f"0.{x}00"), f"0.{x}"))
+        choices.append((Decimal(f"{x}.000"), f"{x}"))
+        choices.append((Decimal(f"{x}.500"), f"{x}.5"))
+
+    return choices
