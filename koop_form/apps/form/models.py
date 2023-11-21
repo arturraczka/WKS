@@ -140,15 +140,15 @@ class Order(models.Model):
     def __str__(self):
         return f"{self.user}: " f"Order: {self.pk}"
 
-    def save(self, *args, **kwargs):
-        if self.pk is None:
-            self.order_number = calculate_order_number(Order)
-        super(Order, self).save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if self.pk is None:
+    #         self.order_number = calculate_order_number(Order)
+    #     super(Order, self).save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
         recalculate_order_numbers(
             Order, self.date_created, self.order_number
-        )  # czy tego typu taski powinny być atomic_requestem?
+        )
         super(Order, self).delete(using=using, keep_parents=keep_parents)
 
     def get_absolute_url(self):

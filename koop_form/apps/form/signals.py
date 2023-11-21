@@ -1,10 +1,10 @@
 from decimal import Decimal
 
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, post_init
 from django.dispatch import receiver
 
-from apps.form.models import WeightScheme, Product, OrderItem
-from apps.form.services import reduce_order_quantity
+from apps.form.models import WeightScheme, Product, OrderItem, Order
+from apps.form.services import reduce_order_quantity, calculate_order_number
 
 import logging
 
@@ -36,3 +36,9 @@ def check_before_reduce_order_quantity(sender, instance, **kwargs):
             )
             instance.quantity_delivered_this_week = -1
             instance.save()
+
+
+@receiver(pre_save, sender=Order)
+def assign_order_number(sender, instance, **kwargs):
+    if instance.order_number is None:
+        instance.order_number = calculate_order_number(sender)
