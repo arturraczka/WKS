@@ -3,8 +3,9 @@ from decimal import Decimal
 from django.db.models.signals import post_save, pre_save, post_init, pre_delete
 from django.dispatch import receiver
 
-from apps.form.models import WeightScheme, Product, OrderItem, Order
-from apps.form.services import reduce_order_quantity, calculate_order_number, recalculate_order_numbers
+from apps.form.models import WeightScheme, Product, OrderItem, Order, Producer
+from apps.form.services import reduce_order_quantity, calculate_order_number, recalculate_order_numbers, \
+    set_products_quantity_to_0
 
 import logging
 
@@ -56,3 +57,13 @@ def delete_instance_if_quantity_eq_0(sender, instance, **kwargs):
     recalculate_order_numbers(
         sender, instance.date_created, instance.order_number
     )
+
+
+@receiver(post_save, sender=Producer)
+def check_before_set_products_quantity_to_0(sender, instance, **kwargs):
+    if instance.not_arrived:
+        set_products_quantity_to_0(
+            Product, instance.pk
+        )
+        instance.not_arrived = False
+        instance.save()

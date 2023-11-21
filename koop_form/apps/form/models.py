@@ -39,16 +39,16 @@ class Producer(models.Model):
         self.slug = slugify(self.name)
 
         if self.pk is not None:
-            if self.not_arrived is True:
-                set_products_quantity_to_0(
-                    Product, self.pk
-                )  # czy tego typu taski powinny być atomic_requestem?
-                self.not_arrived = False
+            # if self.not_arrived is True:
+            #     set_products_quantity_to_0(
+            #         Product, self.pk
+            #     )
+            #     self.not_arrived = False
 
             producer_db = Producer.objects.get(pk=self.pk)
             if (
                 producer_db.is_active != self.is_active
-            ):  # czy tego typu taski powinny być atomic_requestem?
+            ):
                 switch_products_isactive_bool_value(Product, self.pk, self.is_active)
 
         super(Producer, self).save(*args, **kwargs)
@@ -140,13 +140,6 @@ class Order(models.Model):
 
     def __str__(self):
         return f"{self.user}: " f"Order: {self.pk}"
-
-    # # TODO move logic to Signal ??
-    # def delete(self, using=None, keep_parents=False):
-    #     recalculate_order_numbers(
-    #         Order, self.date_created, self.order_number
-    #     )
-    #     super(Order, self).delete(using=using, keep_parents=keep_parents)
 
     def get_absolute_url(self):
         absolute_url = reverse(
