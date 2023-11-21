@@ -141,12 +141,12 @@ class Order(models.Model):
     def __str__(self):
         return f"{self.user}: " f"Order: {self.pk}"
 
-    # TODO move logic to Signal ??
-    def delete(self, using=None, keep_parents=False):
-        recalculate_order_numbers(
-            Order, self.date_created, self.order_number
-        )
-        super(Order, self).delete(using=using, keep_parents=keep_parents)
+    # # TODO move logic to Signal ??
+    # def delete(self, using=None, keep_parents=False):
+    #     recalculate_order_numbers(
+    #         Order, self.date_created, self.order_number
+    #     )
+    #     super(Order, self).delete(using=using, keep_parents=keep_parents)
 
     def get_absolute_url(self):
         absolute_url = reverse(

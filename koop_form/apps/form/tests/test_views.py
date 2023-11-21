@@ -2,6 +2,9 @@ import random
 import pytest
 from django.urls import reverse
 import datetime
+
+from django.utils import timezone
+
 from apps.form.models import Order, OrderItem, Producer, Product
 from apps.form.services import list_messages, calculate_available_quantity
 from factories.model_factories import (
@@ -107,7 +110,7 @@ class TestProducerReportView(TestCase):
             OrderItemFactory(product=self.product1)
             OrderItemFactory(product=self.product2)
             number = random.randint(7, 20)
-            past_date = datetime.datetime.now() - datetime.timedelta(days=number)
+            past_date = timezone.now() - datetime.timedelta(days=number)
             OrderItemFactory(item_ordered_date=past_date)
 
     def test_response_and_context(self):
@@ -286,7 +289,7 @@ class TestOrderProductsFormView(TestCase):
     def test_order_deadline_validation(self):
         product2 = ProductFactory(
             weight_schemes=self.weight_scheme_list,
-            order_deadline=datetime.datetime(2023, 9, 17, 18),
+            order_deadline=datetime.datetime(2023, 9, 17, 18).astimezone(),
         )
         OrderItemFactory(product=product2, quantity=9, order=OrderFactory())
 
@@ -325,7 +328,7 @@ class TestOrderCreateView(TestCase):
     def test_order_exists_validation(self):
         order = OrderFactory(user=self.user)
         order = Order.objects.get(pk=order.id)
-        order.date_created = datetime.datetime.now()
+        order.date_created = timezone.now()
 
         form_data = {
             "pick_up_day": "środa",

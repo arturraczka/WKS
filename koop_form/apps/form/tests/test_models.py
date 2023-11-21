@@ -67,7 +67,7 @@ class TestOrderModel(TestCase):
     def setUp(self):
         for _ in range(1, 20):
             number = random.randint(1, 20)
-            past_date = datetime.datetime.now() - datetime.timedelta(days=number)
+            past_date = datetime.datetime.now().astimezone() - datetime.timedelta(days=number)
             OrderFactory(date_created=past_date)
 
     def test_calculate_order_number(self):

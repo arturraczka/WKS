@@ -39,7 +39,7 @@ def get_object_prefetch_related(model_class, *args, **kwargs):
 # TODO to by się przydało przetestować, bo nie sądzę, żebym to testował w widokach hmmm
 def calculate_previous_friday():
     """Returns datetime object of last Friday."""
-    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today = datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
     friday = 4
     days_until_previous_friday = (friday + today.weekday() - 1) % 7
     previous_friday = today - timedelta(days=days_until_previous_friday)
@@ -134,6 +134,9 @@ def reduce_order_quantity(orderitem_model, product_pk, quantity):
 
 
 def recalculate_order_numbers(order_model, date, number):
+    previous_friday = calculate_previous_friday()
+    if date < previous_friday:
+        return
     orders_qs = order_model.objects.filter(date_created__gt=date).order_by(
         "date_created"
     )

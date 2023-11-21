@@ -1,10 +1,10 @@
 from decimal import Decimal
 
-from django.db.models.signals import post_save, pre_save, post_init
+from django.db.models.signals import post_save, pre_save, post_init, pre_delete
 from django.dispatch import receiver
 
 from apps.form.models import WeightScheme, Product, OrderItem, Order
-from apps.form.services import reduce_order_quantity, calculate_order_number
+from apps.form.services import reduce_order_quantity, calculate_order_number, recalculate_order_numbers
 
 import logging
 
@@ -49,3 +49,10 @@ def delete_instance_if_quantity_eq_0(sender, instance, **kwargs):
     if instance.quantity == 0:
         orderitem_db = sender.objects.get(id=instance.id)
         orderitem_db.delete()
+
+
+@receiver(pre_delete, sender=Order)
+def delete_instance_if_quantity_eq_0(sender, instance, **kwargs):
+    recalculate_order_numbers(
+        sender, instance.date_created, instance.order_number
+    )
