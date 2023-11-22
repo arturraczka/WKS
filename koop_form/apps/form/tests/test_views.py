@@ -197,8 +197,10 @@ class TestOrderProductsFormView(TestCase):
         for orderitem in orderitem_with_products_qs:
             order_cost += orderitem.product.price * orderitem.quantity
         producers = list(
-            Producer.objects.filter(is_active=True).values("slug", "name", "order")
+            Producer.objects.filter(is_active=True).values("slug", "name")
         )
+        producers = [[producer['slug'], producer['name']] for producer in producers]
+
         producer = Producer.objects.get(pk=self.producer.id)
         products_with_related = (
             Product.objects.filter(producer=producer.id)

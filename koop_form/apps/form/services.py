@@ -172,3 +172,35 @@ def get_quantity_choices():
         choices.append((Decimal(f"{x}.500"), f"{x}.5"))
 
     return choices
+
+
+def get_producers_list(producer_model):
+    producers = producer_model.objects.filter(is_active=True).values(
+        "slug", "name"
+    )
+    return [[producer['slug'], producer['name']] for producer in producers]
+
+
+def get_products_weight_schemes_list(products_with_available_quantity):
+    products_weight_schemes_list = []
+    for product in products_with_available_quantity:
+        weight_schemes_set = product.weight_schemes.all()
+        weight_schemes_quantity_list = [
+            (
+                Decimal(weight_scheme.quantity),
+                f"{weight_scheme.quantity}".rstrip("0").rstrip("."),
+            )
+            for weight_scheme in weight_schemes_set
+        ]
+        products_weight_schemes_list.append(weight_schemes_quantity_list)
+    return products_weight_schemes_list
+
+
+def add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes):
+    for form, scheme in zip(forms, products_weight_schemes):
+        form.fields["quantity"].choices = scheme
+
+
+def add_choices_to_forms(forms, products):
+    products_weight_schemes_list = get_products_weight_schemes_list(products)
+    add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes_list)

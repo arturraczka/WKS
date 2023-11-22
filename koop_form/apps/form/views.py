@@ -33,7 +33,8 @@ from apps.form.services import (
     calculate_total_income,
     create_order_data_list,
     order_check,
-    staff_check,
+    staff_check, get_producers_list, get_products_weight_schemes_list, add_weight_schemes_as_choices_to_forms,
+    add_choices_to_forms,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -135,9 +136,11 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
         self.products = None
 
         self.products_with_available_quantity = None
-        self.producers = None
         self.order_cost = None
         self.orderitems = None
+
+    def get_success_url(self):
+        return self.request.path
 
     def get_order_object(self):
         previous_friday = calculate_previous_friday()
@@ -170,59 +173,43 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
         )
         return order_item_formset
 
-    def get_success_url(self):
-        return self.request.path
+    def get_initial(self):
+        return [{"product": product.id} for product in self.products]
 
-    def get_additional_context(self):
+    def get_products_with_available_quantity_query(self):
         products_with_related = (
             Product.objects.filter(producer=self.producer)
             .filter(is_active=True)
             .prefetch_related("weight_schemes", "statuses")
         )
+        self.products_with_available_quantity = calculate_available_quantity(
+            products_with_related
+        )
 
+    def get_orderitems_query(self):
         self.orderitems = (
             OrderItem.objects.filter(order=self.order.id)
             .select_related("product")
             .only("product_id", "quantity", "product__price", "product__name")
         )
+
+    def get_additional_context(self):
+        self.get_products_with_available_quantity_query()
+        self.get_orderitems_query()
         self.order_cost = calculate_order_cost(self.orderitems)
-        self.producers = Producer.objects.filter(is_active=True).values(
-            "slug", "name", "order"
-        )  # pytanie: czy używanie values() ma tutaj sens? - ma sens i nawet fajnie byłoby zrobić z tego listę
-        self.products_with_available_quantity = calculate_available_quantity(
-            products_with_related
-        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         self.get_additional_context()
-
-        products_weight_schemes = []
-
-        for product in self.products_with_available_quantity:
-            weight_schemes_set = product.weight_schemes.all()
-            weight_schemes_quantity_list = [
-                (
-                    Decimal(weight_scheme.quantity),
-                    f"{weight_scheme.quantity}".rstrip("0").rstrip("."),
-                )
-                for weight_scheme in weight_schemes_set
-            ]
-            products_weight_schemes.append(weight_schemes_quantity_list)
-
-        for form, scheme in zip(context["form"], products_weight_schemes):
-            form.fields["quantity"].choices = scheme
+        add_choices_to_forms(context["form"], self.products_with_available_quantity)
 
         context["order"] = self.order
         context["orderitems"] = self.orderitems
         context["order_cost"] = self.order_cost
-        context["producers"] = self.producers
+        context["producers"] = get_producers_list(Producer)
         context["producer"] = self.producer
         context["products"] = self.products_with_available_quantity
         return context
-
-    def get_initial(self):
-        return [{"product": product.id} for product in self.products]
 
     def form_valid(self, form):
         formset = form.save(commit=False)
