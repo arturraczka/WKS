@@ -170,10 +170,9 @@ def set_products_quantity_to_0(producer_instance):
         product.save()
 
 
-# TODO refactoring na "producer_instance.products.all()" tak jak w set_products_quantity_to_0
-def switch_products_isactive_bool_value(product_model, pk, is_active):
-    product_qs = product_model.objects.filter(producer=pk)
-    operator = True if is_active else False
+def switch_products_isactive_bool_value(producer_instance):
+    product_qs = producer_instance.products.all()
+    operator = True if producer_instance.is_active else False
     for product in product_qs:
         product.is_active = operator
         product.save()

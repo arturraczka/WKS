@@ -5,7 +5,7 @@ from django.dispatch import receiver
 
 from apps.form.models import WeightScheme, Product, OrderItem, Order, Producer
 from apps.form.services import reduce_order_quantity, calculate_order_number, recalculate_order_numbers, \
-    set_products_quantity_to_0
+    set_products_quantity_to_0, switch_products_isactive_bool_value
 
 import logging
 
@@ -53,7 +53,7 @@ def delete_instance_if_quantity_eq_0(sender, instance, **kwargs):
 
 
 @receiver(pre_delete, sender=Order)
-def delete_instance_if_quantity_eq_0(sender, instance, **kwargs):
+def on_order_delete_trigger_recalculate_order_numbers(sender, instance, **kwargs):
     recalculate_order_numbers(
         sender, instance.date_created, instance.order_number
     )
@@ -65,3 +65,16 @@ def check_before_set_products_quantity_to_0(sender, instance, **kwargs):
         set_products_quantity_to_0(instance)
         instance.not_arrived = False
         instance.save()
+
+
+@receiver(pre_save, sender=Producer)
+def check_before_switch_products_isactive_bool_value(sender, instance, **kwargs):
+    try:
+        producer_db = sender.objects.get(pk=instance.pk)
+    except sender.DoesNotExist:
+        pass
+    else:
+        if (
+                producer_db.is_active != instance.is_active
+        ):
+            switch_products_isactive_bool_value(instance)
