@@ -1,25 +1,29 @@
 from django.db.models import Sum
 from django.contrib import messages
-from apps.form.models import Order, Product
+from django.shortcuts import get_object_or_404
+
+from apps.form.models import Product
 from apps.form.services import (
-    get_object_prefetch_related,
     calculate_previous_friday,
     order_check,
 )
 from django.utils import timezone
 
 
-def validate_product_already_in_order(product, request):
+def validate_product_already_in_order(product, request, order_model):
     previous_friday = calculate_previous_friday()
-    order_with_products = get_object_prefetch_related(
-        Order, *["products"], user=request.user, date_created__gte=previous_friday
+    order_with_products = get_object_or_404(
+        order_model.objects.filter(
+            user=request.user, date_created__gte=previous_friday
+        ).prefetch_related("products")
     )
+
     if order_with_products.products.filter(
         pk=product.id,
     ).exists():
         messages.warning(
             request, f"{product.name}: Dodałeś już ten produkt do zamówienia."
-        )  # być może to nie będzie dość jasne
+        )
         return True
 
 
@@ -53,6 +57,7 @@ def validate_order_deadline(product, request):
         return True
 
 
+# TODO to nie będzie potrzebne, gdy zrobię porządek z widokiem podsumowania zamówienia
 def validate_weight_scheme(product_with_related, instance, request):
     if instance.quantity not in product_with_related.weight_schemes.all().values_list(
         "quantity", flat=True
@@ -64,13 +69,15 @@ def validate_weight_scheme(product_with_related, instance, request):
         return True
 
 
-def perform_create_orderitem_validations(instance, request):
+def perform_create_orderitem_validations(instance, request, order_model, product_model):
     product_from_form = instance.product
-    product_with_related = get_object_prefetch_related(
-        Product, *["weight_schemes", "orderitems"], pk=product_from_form.id
+    product_with_related = get_object_or_404(
+        product_model.objects.filter(pk=product_from_form.id).prefetch_related(
+            "weight_schemes", "orderitems"
+        )
     )
     if (
-        validate_product_already_in_order(product_from_form, request)
+        validate_product_already_in_order(product_from_form, request, order_model)
         or validate_order_deadline(product_from_form, request)
         or validate_order_max_quantity(
             product_from_form, product_with_related, instance, request
@@ -82,9 +89,13 @@ def perform_create_orderitem_validations(instance, request):
 
 def perform_update_orderitem_validations(instance, request):
     product_from_form = instance.product
-    product_with_related = get_object_prefetch_related(
-        Product, *["weight_schemes", "orderitems"], pk=product_from_form.id
+
+    product_with_related = get_object_or_404(
+        Product.objects.filter(pk=product_from_form.id).prefetch_related(
+            "weight_schemes", "orderitems"
+        )
     )
+
     if (
         validate_weight_scheme(product_with_related, instance, request)
         or validate_order_deadline(product_from_form, request)

@@ -221,7 +221,9 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
             if instance.quantity == 0:
                 pass
             else:
-                if not perform_create_orderitem_validations(instance, self.request):
+                if not perform_create_orderitem_validations(
+                    instance, self.request, Order, Product
+                ):
                     return self.form_invalid(form)
                 instance.order = self.order
                 instance.save()

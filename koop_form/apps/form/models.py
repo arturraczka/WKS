@@ -133,7 +133,9 @@ class OrderItem(models.Model):
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="orderitems"
     )
-    quantity = models.DecimalField(max_digits=6, decimal_places=3, choices=QUANTITY_CHOICES)
+    quantity = models.DecimalField(
+        max_digits=6, decimal_places=3, choices=QUANTITY_CHOICES
+    )
     item_ordered_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:

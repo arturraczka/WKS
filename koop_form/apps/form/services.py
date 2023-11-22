@@ -1,10 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
-
-from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Sum
-from django.shortcuts import get_object_or_404
 from django.contrib.messages import get_messages
 from django.db.models import Q
 from django.db.models import Case, When, F
@@ -24,22 +21,12 @@ logger = logging.getLogger("django.server")
 # TODO tutaj wszystko muszę sprawdzić, czy jest testowane czy nie
 
 
-# TODO: to przydałoby się wyjebać całkiem
-def get_object_prefetch_related(model_class, *args, **kwargs):
-    try:
-        object_with_related = get_object_or_404(
-            model_class.objects.filter(**kwargs).prefetch_related(*args)
-        )
-    except MultipleObjectsReturned:
-        logger.error("User has two active Orders for this week!")
-        return None
-    return object_with_related
-
-
 # TODO to by się przydało przetestować, bo nie sądzę, żebym to testował w widokach hmmm
 def calculate_previous_friday():
     """Returns datetime object of last Friday."""
-    today = datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
+    today = (
+        datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
+    )
     friday = 4
     days_until_previous_friday = (friday + today.weekday() - 1) % 7
     previous_friday = today - timedelta(days=days_until_previous_friday)
@@ -104,12 +91,6 @@ def calculate_total_income(products):
             logger.error("Error in counting total income for an order.")
             pass
     return total_income
-
-#
-# def add_0_as_weight_scheme(pk, product_model, weight_scheme_model):
-#     product_instance = product_model.objects.get(pk=pk)
-#     quantity_zero = weight_scheme_model.objects.get(quantity=1.000)
-#     product_instance.weight_schemes.set([quantity_zero])
 
 
 def reduce_order_quantity(orderitem_model, product_pk, quantity):
