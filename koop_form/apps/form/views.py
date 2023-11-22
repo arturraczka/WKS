@@ -130,41 +130,43 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.previous_friday = calculate_previous_friday()
         self.order = None
         self.producer = None
-        self.products_with_related = None
         self.products = None
-        self.initial_data = None
-        self.orderitems = None
-        self.order_cost = None
-        self.producers = None
-        self.products_with_available_quantity = None
 
-    def get_producer_order_and_products(self):
+        self.products_with_available_quantity = None
+        self.producers = None
+        self.order_cost = None
+        self.orderitems = None
+
+    def get_order_object(self):
+        previous_friday = calculate_previous_friday()
         self.order = Order.objects.get(
-            user=self.request.user, date_created__gte=self.previous_friday
+            user=self.request.user, date_created__gte=previous_friday
         )
+
+    def get_producer_object(self):
         self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
-        self.products_with_related = (
-            Product.objects.filter(producer=self.producer)
-            .filter(is_active=True)
-            .prefetch_related("weight_schemes", "statuses")
-        )
+
+    def get_products_query(self):
         self.products = (
             Product.objects.filter(producer=self.producer)
             .filter(is_active=True)
             .only("id")
         )
-        self.initial_data = [{"product": product.id} for product in self.products]
+
+    def get_order_producer_products(self):
+        self.get_order_object()
+        self.get_producer_object()
+        self.get_products_query()
 
     def get_form_class(self):
-        self.get_producer_order_and_products()
+        self.get_order_producer_products()
         order_item_formset = modelformset_factory(
             OrderItem,
             form=CreateOrderItemForm,
             formset=CreateOrderItemFormSet,
-            extra=len(self.initial_data),
+            extra=len(self.products),
         )
         return order_item_formset
 
@@ -172,6 +174,12 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
         return self.request.path
 
     def get_additional_context(self):
+        products_with_related = (
+            Product.objects.filter(producer=self.producer)
+            .filter(is_active=True)
+            .prefetch_related("weight_schemes", "statuses")
+        )
+
         self.orderitems = (
             OrderItem.objects.filter(order=self.order.id)
             .select_related("product")
@@ -182,7 +190,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
             "slug", "name", "order"
         )  # pytanie: czy używanie values() ma tutaj sens? - ma sens i nawet fajnie byłoby zrobić z tego listę
         self.products_with_available_quantity = calculate_available_quantity(
-            self.products_with_related
+            products_with_related
         )
 
     def get_context_data(self, **kwargs):
@@ -190,7 +198,8 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
         self.get_additional_context()
 
         products_weight_schemes = []
-        for product in self.products_with_related:
+
+        for product in self.products_with_available_quantity:
             weight_schemes_set = product.weight_schemes.all()
             weight_schemes_quantity_list = [
                 (
@@ -213,7 +222,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
         return context
 
     def get_initial(self):
-        return self.initial_data
+        return [{"product": product.id} for product in self.products]
 
     def form_valid(self, form):
         formset = form.save(commit=False)
@@ -225,12 +234,13 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
                     instance, self.request, Order, Product
                 ):
                     return self.form_invalid(form)
-                instance.order = self.order
-                instance.save()
-                messages.success(
-                    self.request,
-                    f"{instance.product}: Produkt został dodany do zamówienia.",
-                )
+                else:
+                    instance.order = self.order
+                    instance.save()
+                    messages.success(
+                        self.request,
+                        f"{instance.product}: Produkt został dodany do zamówienia.",
+                    )
         return super().form_valid(form)
 
 
