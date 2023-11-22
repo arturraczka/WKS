@@ -37,22 +37,28 @@ class TestProducersView(TestCase):
     def test_response_and_context(self):
         response = self.client.get(self.url)
         context_data = response.context
-        producers = list(Producer.objects.all())
+        producers_query = Producer.objects.filter(is_active=True).values("slug", "name")
+        producers = [
+            [producer["slug"], producer["name"]] for producer in producers_query
+        ]
 
         assert response.status_code == 200
         assert list(context_data["producers"]) == producers
 
     def test_get_queryset(self):
+        pre_create_producer_count = Producer.objects.count()
         for _ in range(
             0,
             5,
         ):
             ProducerFactory(is_active=False)
-        response = self.client.get(self.url)
-        context_data = response.context
 
-        for producer in context_data["producers"]:
-            assert producer.is_active is True
+        response = self.client.get(self.url)
+
+        context_data = response.context
+        context_producer_count = len(context_data["producers"])
+
+        assert pre_create_producer_count == context_producer_count
 
 
 @pytest.mark.django_db
@@ -76,7 +82,10 @@ class TestProductsView(TestCase):
             .prefetch_related("weight_schemes", "statuses")
         )
         producer = Producer.objects.get(pk=self.producer.id)
-        producers = list(Producer.objects.filter(is_active=True))
+        producers_query = Producer.objects.filter(is_active=True).values("slug", "name")
+        producers = [
+            [producer["slug"], producer["name"]] for producer in producers_query
+        ]
 
         assert response.status_code == 200
         assert context_data["producer"] == producer
@@ -196,10 +205,10 @@ class TestOrderProductsFormView(TestCase):
         order_cost = 0
         for orderitem in orderitem_with_products_qs:
             order_cost += orderitem.product.price * orderitem.quantity
-        producers = list(
-            Producer.objects.filter(is_active=True).values("slug", "name")
-        )
-        producers = [[producer['slug'], producer['name']] for producer in producers]
+        producers_query = Producer.objects.filter(is_active=True).values("slug", "name")
+        producers = [
+            [producer["slug"], producer["name"]] for producer in producers_query
+        ]
 
         producer = Producer.objects.get(pk=self.producer.id)
         products_with_related = (

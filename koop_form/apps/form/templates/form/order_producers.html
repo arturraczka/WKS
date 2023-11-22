@@ -5,7 +5,7 @@
         {% for producer in producers %}
             <article class="media content-section">
               <div class="media-body">
-                <h4><a class="article-title" href="{% url 'order-products-form' slug=producer.slug %}">{{ producer.name }}</a></h4>
+                <h4><a class="article-title" href="{% url 'order-products-form' slug=producer.0 %}">{{ producer.1 }}</a></h4>
               </div>
             </article>
         {% endfor %}

@@ -1,5 +1,4 @@
 import logging
-from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -33,7 +32,8 @@ from apps.form.services import (
     calculate_total_income,
     create_order_data_list,
     order_check,
-    staff_check, get_producers_list, get_products_weight_schemes_list, add_weight_schemes_as_choices_to_forms,
+    staff_check,
+    get_producers_list,
     add_choices_to_forms,
 )
 from apps.form.validations import (
@@ -57,7 +57,7 @@ class ProducersView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = Producer.objects.filter(is_active=True)
-        return queryset
+        return get_producers_list(Producer)
 
 
 class ProductsView(LoginRequiredMixin, DetailView):
@@ -73,7 +73,7 @@ class ProductsView(LoginRequiredMixin, DetailView):
             .filter(is_active=True)
             .prefetch_related("weight_schemes", "statuses")
         )
-        context["producers"] = Producer.objects.filter(is_active=True)
+        context["producers"] = get_producers_list(Producer)
         return context
 
     def get_object(self, queryset=None):
