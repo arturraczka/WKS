@@ -1,11 +1,11 @@
 {% extends "form/base_one.html" %}
 {% block content %}
     <div class="col-md-8">
-        <h3>Wybierz producenta, żeby wyświetlić cotygodniowy raport sprzedaży:</h3>
+        <h3>Wybierz producenta, żeby wyświetlić cotygodniowy raport skrzynek/produktów:</h3>
         {% for producer in producers %}
             <article class="media content-section">
               <div class="media-body">
-                <h4><a class="article-title" href="{% url 'producer-products-report' slug=producer.0 %}">{{ producer.1 }}</a></h4>
+                <h4><a class="article-title" href="{% url 'producer-box-report' slug=producer.0 %}">{{ producer.1 }}</a></h4>
               </div>
             </article>
         {% endfor %}

@@ -28,7 +28,7 @@ from apps.form.views import (
     ProducerProductsReportView,
     ProducerBoxReportView,
     UsersReportView,
-    ProducerProductsListView,
+    ProducerProductsListView, ProducerBoxListView,
 )
 
 
@@ -77,6 +77,11 @@ urlpatterns = [
     ),
     path(
         "raporty/producenci-skrzynki/",
+        ProducerBoxListView.as_view(),
+        name="producer-box-list",
+    ),
+    path(
+        "raporty/producenci-skrzynki/<str:slug>/",
         ProducerBoxReportView.as_view(),
         name="producer-box-report",
     ),

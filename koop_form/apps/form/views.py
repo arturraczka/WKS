@@ -49,7 +49,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 logger = logging.getLogger("django.server")
 
 
-class ProducersView(LoginRequiredMixin, ListView):
+@method_decorator(login_required, name="dispatch")
+class ProducersView(ListView):
     model = Producer
     context_object_name = "producers"
     template_name = "form/producer_list.html"
@@ -80,7 +81,6 @@ class ProductsView(LoginRequiredMixin, DetailView):
         return producer
 
 
-@method_decorator(login_required, name="dispatch")
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducerProductsListView(ProducersView):
     template_name = "form/producer_products_list.html"
@@ -113,7 +113,6 @@ class ProducerProductsReportView(LoginRequiredMixin, TemplateView):
         return context
 
 
-@method_decorator(login_required, name="dispatch")
 @method_decorator(
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
 )
@@ -398,3 +397,7 @@ class UsersReportView(LoginRequiredMixin, TemplateView):
 
         context["users"] = users_qs
         return context
+
+
+class ProducerBoxListView(ProducerProductsListView):
+    template_name = "form/producer_box_list.html"
