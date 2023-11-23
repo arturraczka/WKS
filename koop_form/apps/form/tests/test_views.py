@@ -14,7 +14,7 @@ from factories.model_factories import (
     ProductFactory,
     OrderWithProductFactory,
     OrderItemFactory,
-    OrderFactory,
+    OrderFactory, ProfileFactory,
 )
 from django.test import TestCase
 import logging
@@ -370,9 +370,10 @@ class TestOrderCreateView(TestCase):
 
 
 @pytest.mark.django_db
-class TestGetOrderUpdateOrderDeleteViews(TestCase):
+class TestOrderUpdateView(TestCase):
     def setUp(self):
-        self.user = UserFactory()
+        self.profile = ProfileFactory()
+        self.user = self.profile.user
         self.client.force_login(self.user)
         self.order = OrderFactory(user=self.user, pick_up_day="środa")
         for _ in range(0, 5):
@@ -390,6 +391,16 @@ class TestGetOrderUpdateOrderDeleteViews(TestCase):
         assert "Dzień odbioru zamówienia został zmieniony." in messages
         assert order_db.pick_up_day == "czwartek"
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestOrderDeleteView(TestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.client.force_login(self.user)
+        self.order = OrderFactory(user=self.user, pick_up_day="środa")
+        for _ in range(0, 5):
+            OrderItemFactory(order=self.order)
 
     def test_delete_view(self):
         order_count = Order.objects.count()

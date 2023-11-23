@@ -7,6 +7,8 @@ import pytz
 from apps.form.models import Producer, Product, Status, WeightScheme, Order, OrderItem
 from django.utils import timezone
 
+from apps.user.models import UserProfile
+
 ModelUser = get_user_model()
 
 
@@ -44,6 +46,14 @@ class UserFactory(DjangoModelFactory):
     last_name = Faker("last_name")
     email = Faker("email")
     password = Faker("password")
+
+
+class ProfileFactory(DjangoModelFactory):
+    class Meta:
+        model = UserProfile
+
+    user = SubFactory(UserFactory)
+    koop_id = Faker("random_int", min=1, max=1000)
 
 
 class OrderFactory(DjangoModelFactory):
