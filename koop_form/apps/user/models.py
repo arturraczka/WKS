@@ -19,6 +19,7 @@ class UserProfile(models.Model):
         default=Decimal("1.3"),
     )
     phone_number = models.PositiveIntegerField(blank=True, null=True)
+    koop_id = models.PositiveIntegerField(null=False, unique=True)
 
     def __str__(self):
         return f"profile: {self.user.username}"
