@@ -20,9 +20,17 @@ class ProductAdmin(admin.ModelAdmin):
     inlines = (ProductWeightSchemeInLine,)
 
 
+class OrderAdmin(admin.ModelAdmin):
+    list_filter = ['user__last_name']
+
+
+class OrderItemAdmin(admin.ModelAdmin):
+    list_filter = ['order__user__last_name', 'order__date_created']
+
+
 admin.site.register(Producer)
 admin.site.register(WeightScheme)
 admin.site.register(Status)
 admin.site.register(Product, ProductAdmin)
-admin.site.register(Order)
-admin.site.register(OrderItem)
+admin.site.register(Order, OrderAdmin)
+admin.site.register(OrderItem, OrderItemAdmin)

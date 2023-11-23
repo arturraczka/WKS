@@ -115,7 +115,7 @@ class Order(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user}: " f"Order: {self.pk}"
+        return f"{self.user.last_name}: " f"Order: {str(self.date_created)[:19]}"
 
     def get_absolute_url(self):
         absolute_url = reverse(
