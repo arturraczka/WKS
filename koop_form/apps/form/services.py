@@ -123,20 +123,19 @@ def recalculate_order_numbers(order_model, date, number):
     )
     initial = number
     for order in orders_qs:
-        # logger.info(initial)
         order.order_number = initial
         order.save()
         initial += 1
-
-###########
 
 
 def create_order_data_list(products, order_model, orderitem_model):
     previous_friday = calculate_previous_friday()
     order_data_list = []
     for product in products:
-        orders_qs = order_model.objects.filter(products=product).filter(date_created__gte=previous_friday).order_by(
-            "order_number"
+        orders_qs = (
+            order_model.objects.filter(products=product)
+            .filter(date_created__gte=previous_friday)
+            .order_by("order_number")
         )
         order_data = ""
         for order in orders_qs:
@@ -145,7 +144,6 @@ def create_order_data_list(products, order_model, orderitem_model):
         order_data_list.append(order_data)
     return order_data_list
 
-###########
 
 def set_products_quantity_to_0(producer_instance):
     """docstrings"""
