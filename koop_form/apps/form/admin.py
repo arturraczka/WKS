@@ -16,6 +16,7 @@ class ProductWeightSchemeInLine(admin.TabularInline):
 
 
 class ProductAdmin(admin.ModelAdmin):
+    list_filter = ['producer__name']
     inlines = (ProductWeightSchemeInLine,)
 
 
