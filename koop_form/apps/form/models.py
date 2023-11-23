@@ -55,7 +55,7 @@ class Product(models.Model):
     producer = models.ForeignKey(
         Producer, on_delete=models.CASCADE, related_name="products"
     )
-    name = models.CharField(unique=True)
+    name = models.CharField()
     description = models.TextField(max_length=1000)
 
     order_max_quantity = models.DecimalField(

@@ -56,7 +56,6 @@ class ProducersView(LoginRequiredMixin, ListView):
     paginate_by = 25
 
     def get_queryset(self):
-        queryset = Producer.objects.filter(is_active=True)
         return get_producers_list(Producer)
 
 
@@ -87,6 +86,7 @@ class ProducerListReportView(ProducersView):
     template_name = "form/producer_list_report.html"
 
 
+# TODO do refactoringu get_context_data
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducerReportView(LoginRequiredMixin, TemplateView):
     template_name = "form/producer_report.html"
