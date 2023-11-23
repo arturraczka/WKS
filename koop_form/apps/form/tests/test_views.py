@@ -468,14 +468,56 @@ class TestUsersReportView(TestCase):
         self.user = UserFactory(is_staff=True)
         self.client.force_login(self.user)
         self.url = reverse("users-report")
+        self.user_list = []
+        for i in range(5):
+            profile = ProfileFactory()
+            OrderFactory(user=profile.user)
+            self.user_list.append(profile.user)
 
-    def test_response(self):
+    def test_response_and_context(self):
         response = self.client.get(self.url)
+        context_data = response.context
 
+        assert len(self.user_list) == len(context_data['users'])
         assert response.status_code == 200
+        for user in context_data['users']:
+            assert user in self.user_list
+
 
     def test_user_is_not_staff(self):
         self.client.force_login(UserFactory())
         response = self.client.get(self.url)
 
         assert response.status_code == 302
+
+
+@pytest.mark.django_db
+class TestProducerListReportView(TestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.client.force_login(self.user)
+        for _ in range(
+            0,
+            5,
+        ):
+            ProducerFactory()
+        self.url = reverse("producer-list-report")
+
+    def test_user_is_not_staff(self):
+        response = self.client.get(self.url)
+
+        assert response.status_code == 302
+
+
+    def test_response_and_context(self):
+        user = UserFactory(is_staff=True)
+        self.client.force_login(user)
+        response = self.client.get(self.url)
+        context_data = response.context
+        producers_query = Producer.objects.filter(is_active=True).values("slug", "name")
+        producers = [
+            [producer["slug"], producer["name"]] for producer in producers_query
+        ]
+
+        assert response.status_code == 200
+        assert list(context_data["producers"]) == producers

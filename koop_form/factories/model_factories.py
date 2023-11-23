@@ -54,6 +54,7 @@ class ProfileFactory(DjangoModelFactory):
 
     user = SubFactory(UserFactory)
     koop_id = Faker("random_int", min=1, max=1000)
+    phone_number = Faker("random_int", min=500000000, max=899999999)
 
 
 class OrderFactory(DjangoModelFactory):
