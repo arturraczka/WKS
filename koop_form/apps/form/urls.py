@@ -25,10 +25,10 @@ from apps.form.views import (
     OrderDeleteView,
     OrderProducersView,
     OrderUpdateFormView,
-    ProducerReportView,
-    ProductsReportView,
+    ProducerProductsReportView,
+    ProducerBoxReportView,
     UsersReportView,
-    ProducerListReportView,
+    ProducerProductsListView,
 )
 
 
@@ -40,14 +40,14 @@ urlpatterns = [
         name="products",
     ),
     path(
-        "raporty/producenci/",
-        ProducerListReportView.as_view(),
-        name="producer-list-report",
+        "raporty/producenci-produkty/",
+        ProducerProductsListView.as_view(),
+        name="producer-products-list",
     ),
     path(
-        "raporty/producenci/<str:slug>/",
-        ProducerReportView.as_view(),
-        name="producer-report",
+        "raporty/producenci-produkty/<str:slug>/",
+        ProducerProductsReportView.as_view(),
+        name="producer-products-report",
     ),
     path(
         "zamowienie/producenci/",
@@ -76,9 +76,9 @@ urlpatterns = [
         name="order-delete",
     ),
     path(
-        "raporty/produkty-skrzynki/",
-        ProductsReportView.as_view(),
-        name="products-report",
+        "raporty/producenci-skrzynki/",
+        ProducerBoxReportView.as_view(),
+        name="producer-box-report",
     ),
     path(
         "raporty/koordynacja/",

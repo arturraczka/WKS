@@ -82,14 +82,14 @@ class ProductsView(LoginRequiredMixin, DetailView):
 
 @method_decorator(login_required, name="dispatch")
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerListReportView(ProducersView):
-    template_name = "form/producer_list_report.html"
+class ProducerProductsListView(ProducersView):
+    template_name = "form/producer_products_list.html"
 
 
 # TODO do refactoringu get_context_data
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerReportView(LoginRequiredMixin, TemplateView):
-    template_name = "form/producer_report.html"
+class ProducerProductsReportView(LoginRequiredMixin, TemplateView):
+    template_name = "form/producer_products_report.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -358,10 +358,10 @@ class OrderDeleteView(
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProductsReportView(LoginRequiredMixin, ListView):
+class ProducerBoxReportView(LoginRequiredMixin, ListView):
     model = Product
     context_object_name = "products"
-    template_name = "form/products_report.html"
+    template_name = "form/producer_box_report.html"
 
     def get_queryset(self):
         previous_friday = calculate_previous_friday()

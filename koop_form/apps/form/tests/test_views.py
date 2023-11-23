@@ -106,12 +106,12 @@ def get_test_data(context_data, product):
 
 
 @pytest.mark.django_db
-class TestProducerReportView(TestCase):
+class TestProducerProductsReportView(TestCase):
     def setUp(self):
         self.user = UserFactory(is_staff=True)
         self.client.force_login(self.user)
         self.producer = ProducerFactory()
-        self.url = reverse("producer-report", kwargs={"slug": self.producer.slug})
+        self.url = reverse("producer-products-report", kwargs={"slug": self.producer.slug})
         self.product1 = ProductFactory(producer=self.producer)
         self.product2 = ProductFactory(producer=self.producer)
         self.product3 = ProductFactory()
@@ -424,11 +424,11 @@ class TestOrderDeleteView(TestCase):
 
 
 @pytest.mark.django_db
-class TestProductsReportView(TestCase):
+class TestProducerBoxReportView(TestCase):
     def setUp(self):
         self.user = UserFactory(is_staff=True)
         self.client.force_login(self.user)
-        self.url = reverse("products-report")
+        self.url = reverse("producer-box-report")
         for _ in range(0, 5):
             ProductFactory()
         self.orderitem1 = OrderItemFactory(
@@ -470,7 +470,7 @@ class TestUsersReportView(TestCase):
         self.url = reverse("users-report")
         self.user_list = []
         for i in range(5):
-            profile = ProfileFactory()
+            profile = ProfileFactory(koop_id=i)
             OrderFactory(user=profile.user)
             self.user_list.append(profile.user)
 
@@ -492,7 +492,7 @@ class TestUsersReportView(TestCase):
 
 
 @pytest.mark.django_db
-class TestProducerListReportView(TestCase):
+class TestProducerProductsListView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
@@ -501,7 +501,7 @@ class TestProducerListReportView(TestCase):
             5,
         ):
             ProducerFactory()
-        self.url = reverse("producer-list-report")
+        self.url = reverse("producer-products-list")
 
     def test_user_is_not_staff(self):
         response = self.client.get(self.url)
