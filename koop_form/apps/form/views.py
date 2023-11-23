@@ -364,15 +364,22 @@ class ProducerBoxReportView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         previous_friday = calculate_previous_friday()
+
+        self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+
         products_qs = Product.objects.filter(
             Q(orders__date_created__gte=previous_friday)
-        ).distinct()
+        ).filter(producer=self.producer).prefetch_related("orderitems").distinct()
         return products_qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        products = context["products"]
-        order_data_list = create_order_data_list(products, Order, OrderItem)
+        context["producer"] = self.producer
+        context["producers"] = get_producers_list(Producer)
+        context["products"] = context["products"].annotate(
+            ordered_quantity=Sum("orderitems__quantity")
+        )
+        order_data_list = create_order_data_list(context["products"], Order, OrderItem)
         context["order_data"] = order_data_list
         return context
 
