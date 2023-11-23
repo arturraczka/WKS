@@ -21,7 +21,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_filter = ['user__last_name']
+    list_filter = ['user__last_name', 'date_created']
 
 
 class OrderItemAdmin(admin.ModelAdmin):
