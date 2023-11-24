@@ -428,17 +428,19 @@ class TestProducerBoxReportView(TestCase):
     def setUp(self):
         self.user = UserFactory(is_staff=True)
         self.client.force_login(self.user)
-        self.url = reverse("producer-box-report")
-        for _ in range(0, 5):
+        self.producer = ProducerFactory()
+        self.url = reverse("producer-box-report", kwargs={"slug": self.producer.slug})
+        for _ in range(5):
             ProductFactory()
+            ProducerFactory()
         self.orderitem1 = OrderItemFactory(
-            product=ProductFactory(name="Alaska"), quantity=4
+            product=ProductFactory(name="Alaska", producer=self.producer), quantity=4
         )
         self.orderitem2 = OrderItemFactory(
-            product=ProductFactory(name="Barabasz"), quantity=1
+            product=ProductFactory(name="Barabasz", producer=self.producer), quantity=1
         )
         self.orderitem3 = OrderItemFactory(
-            product=ProductFactory(name="Celuloza"), quantity=2
+            product=ProductFactory(name="Celuloza", producer=self.producer), quantity=2
         )
 
     def test_response_and_context(self):
@@ -446,7 +448,11 @@ class TestProducerBoxReportView(TestCase):
         context_data = response.context
 
         products = Product.objects.filter(orderitems__isnull=False)
+        producers = Producer.objects.filter(is_active=True).values("slug", "name")
+        producers = [[producer["slug"], producer["name"]] for producer in producers]
 
+        assert context_data["producer"] == self.producer
+        assert list(context_data["producers"]) == list(producers)
         assert list(context_data["products"]) == list(products)
         assert list(context_data["order_data"]) == [
             "(skrz1: 4) ",
@@ -521,3 +527,16 @@ class TestProducerProductsListView(TestCase):
 
         assert response.status_code == 200
         assert list(context_data["producers"]) == producers
+
+
+class TestProducerBoxListView(TestCase):
+    def setUp(self):
+        self.user = UserFactory(is_staff=True)
+        self.client.force_login(self.user)
+        self.client.force_login(self.user)
+        self.url = reverse("producer-box-list")
+
+    def test_response(self):
+        response = self.client.get(self.url)
+
+        assert response.status_code == 200
