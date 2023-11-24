@@ -1,0 +1,30 @@
+{% extends "form/base_one.html" %}
+{% load custom_filters %}
+{% block content %}
+
+    <div class="col-md-8">
+      <div class="content-section">
+        <h3>Producenci finanse:</h3>
+
+        {% for producer in producers_income %}
+            <article class="media content-section">
+                <div class="media-body">
+                <h5 class="article-title">{{ producer.0 }}: {{ producer.1|floatformat:"2" }} zł</h5>
+                </div>
+            </article>
+        {% endfor %}
+
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="content-section sticky-element">
+        <h3>Wybierz raport:</h3>
+        <ul class="list-group">
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-products-list' %}">Produkty</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-box-list' %}">Skrzynki</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'users-report' %}">Kooperanci</a></li>
+        </ul>
+      </div>
+    </div>
+
+{% endblock content%}

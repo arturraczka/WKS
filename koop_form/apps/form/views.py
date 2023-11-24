@@ -42,7 +42,6 @@ from apps.form.validations import (
     perform_update_orderitem_validations,
 )
 from django.forms import modelformset_factory
-from django.db.models import F
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 logger = logging.getLogger("django.server")
@@ -398,5 +397,21 @@ class ProducerBoxListView(ProducerProductsListView):
     template_name = "form/producer_box_list.html"
 
 
-class ProducersFinanceReport():
-    pass
+# TODO bardzo nieoptymalne query, 6 powtórzeń
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class ProducersFinanceReportView(LoginRequiredMixin, TemplateView):
+    template_name = "form/producers_finance.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        producers = Producer.objects.filter(is_active=True)
+
+        producers_income = []
+        for producer in producers:
+            products = filter_products_with_ordered_quantity_and_income(Product, producer)
+            total_income = calculate_total_income(products)
+            producers_income.append([producer.name, total_income])
+        logger.info(producers_income)
+        context['producers_income'] = producers_income
+
+        return context
