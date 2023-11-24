@@ -225,7 +225,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
                     instance.save()
                     messages.success(
                         self.request,
-                        f"{instance.product}: Produkt został dodany do zamówienia.",
+                        f"{instance.product.name}: Produkt został dodany do zamówienia.",
                     )
         return super().form_valid(form)
 

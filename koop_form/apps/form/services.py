@@ -164,7 +164,6 @@ def switch_products_isactive_bool_value(producer_instance):
 def get_quantity_choices():
     choices = [
         (Decimal("0.000"), "0"),
-        (Decimal("10.000"), "10"),
     ]
 
     for x in range(1, 10):
@@ -172,8 +171,9 @@ def get_quantity_choices():
         choices.append((Decimal(f"0.{x}00"), f"0.{x}"))
         choices.append((Decimal(f"{x}.000"), f"{x}"))
         choices.append((Decimal(f"{x}.500"), f"{x}.5"))
+        choices.append((Decimal(f"{x}0.000"), f"{x}0"))
 
-    return choices
+    return sorted(choices)
 
 
 def get_producers_list(producer_model):

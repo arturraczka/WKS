@@ -11,6 +11,7 @@ logger = logging.getLogger("django.server")
 
 class Producer(models.Model):
     name = models.CharField(unique=True)
+    short = models.CharField(default='test')
     slug = models.CharField(unique=True, blank=True)
     description = models.TextField(max_length=1000)
     order = models.IntegerField(
@@ -76,13 +77,13 @@ class Product(models.Model):
     statuses = models.ManyToManyField(Status, related_name="products", blank=True)
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["producer__short", "name"]
         indexes = [
             models.Index(fields=["name"]),
         ]
 
     def __str__(self):
-        return self.name
+        return f"{self.producer.short}: {self.name}"
 
 
 class product_weight_schemes(models.Model):
@@ -115,7 +116,7 @@ class Order(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user.last_name}: " f"Order: {str(self.date_created)[:19]}"
+        return f"{self.user.last_name}: {str(self.date_created)[:19]}"
 
     def get_absolute_url(self):
         absolute_url = reverse(

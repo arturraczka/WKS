@@ -272,7 +272,7 @@ class TestOrderProductsFormView(TestCase):
         assert pre_create_orderitem_count == post_create_orderitem_count
         assert response.status_code == 200
         assert (
-            f"{self.product1}: Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle."
+            f"{self.product1.name}: Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle."
             in messages
         )
 
