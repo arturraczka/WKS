@@ -2,25 +2,35 @@
 {% load custom_filters %}
 {% block content %}
 
-<div class="col-md-8">
-  <div class="content-section">
-    <h3>Koordynacja kooperantów:</h3>
+    <div class="col-md-8">
+      <div class="content-section">
+        <h3>Koordynacja kooperantów:</h3>
 
-    {% for user in users %}
-        <article class="media content-section">
-            <div class="media-body">
-            <h5 class="article-title">{{ user.first_name }} {{ user.last_name }}</h5>
-            <div>
-              <span class="article-content">Telefon: {{ user.userprofile.phone_number }}</span>
-              <span class="article-content">Nr skrzynki: {{ user.order.0.order_number }}</span>
-              <span class="article-content">Dzień odbioru: {{ user.order.0.pick_up_day }}</span>
+        {% for user in users %}
+            <article class="media content-section">
+                <div class="media-body">
+                <h5 class="article-title">{{ user.first_name }} {{ user.last_name }}</h5>
+                <div>
+                  <span class="article-content">Telefon: {{ user.userprofile.phone_number }}</span>
+                  <span class="article-content">Nr skrzynki: {{ user.order.0.order_number }}</span>
+                  <span class="article-content">Dzień odbioru: {{ user.order.0.pick_up_day }}</span>
 
-            </div>
-            </div>
-        </article>
-    {% endfor %}
+                </div>
+                </div>
+            </article>
+        {% endfor %}
 
-  </div>
-</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="content-section sticky-element">
+        <h3>Wybierz raport:</h3>
+        <ul class="list-group">
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-products-list' %}">Produkty</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-box-list' %}">Skrzynki</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'users-report' %}">Kooperanci</a></li>
+        </ul>
+      </div>
+    </div>
 
 {% endblock content%}

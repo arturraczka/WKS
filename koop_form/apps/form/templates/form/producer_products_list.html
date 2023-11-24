@@ -10,4 +10,14 @@
             </article>
         {% endfor %}
     </div>
+    <div class="col-md-3">
+      <div class="content-section sticky-element">
+        <h3>Wybierz raport:</h3>
+        <ul class="list-group">
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-products-list' %}">Produkty</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-box-list' %}">Skrzynki</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'users-report' %}">Kooperanci</a></li>
+        </ul>
+      </div>
+    </div>
 {% endblock content%}

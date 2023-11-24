@@ -86,7 +86,7 @@ urlpatterns = [
         name="producer-box-report",
     ),
     path(
-        "raporty/koordynacja/",
+        "raporty/kooperanci/",
         UsersReportView.as_view(),
         name="users-report",
     ),

@@ -1,47 +1,58 @@
 {% extends "form/base_one.html" %}
 {% load custom_filters %}
 {% block content %}
-<div class="col-md-12">
-    <label for="producers">Zmień producenta:</label>
-    <select name="producers" id="producers">
-      {% for producer in producers %}
-          <option value="{% url 'producer-box-report' slug=producer.0 %}">{{ producer.1 }}</option>
-      {% endfor %}
-    </select>
+    <div class="col-md-10">
+        <label for="producers">Zmień producenta:</label>
+        <select name="producers" id="producers">
+          {% for producer in producers %}
+              <option value="{% url 'producer-box-report' slug=producer.0 %}">{{ producer.1 }}</option>
+          {% endfor %}
+        </select>
 
-    <button onclick="goToSelectedLink()">Idź</button>
+        <button onclick="goToSelectedLink()">Idź</button>
 
-    <h3>{{ producer.name }}</h3>
+        <h3>{{ producer.name }}</h3>
 
-    <div class="row">
-        <div class="col-md-3">
-            {% for product in products %}
-                <article class="media ">
-                  <div class="media-body">
+        <div class="row">
+            <div class="col-md-3">
+                {% for product in products %}
+                    <article class="media ">
+                      <div class="media-body">
 
-                    <div>
-                      <span class="mr-2">{{ product.name }}, łącznie: {{ product.ordered_quantity|format_decimal:3 }}</span>
-                    </div>
+                        <div>
+                          <span class="mr-2">{{ product.name }}, łącznie: {{ product.ordered_quantity|format_decimal:3 }}</span>
+                        </div>
 
-                  </div>
-                </article>
-            {% endfor %}
-        </div>
-        <div class="col-md-9">
-            {% for data in order_data %}
-                <article class="media ">
-                  <div class="media-body">
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+            <div class="col-md-9">
+                {% for data in order_data %}
+                    <article class="media ">
+                      <div class="media-body">
 
-                    <div>
-                      <span class="mr-2">{{ data }}</span>
-                    </div>
+                        <div>
+                          <span class="mr-2">{{ data }}</span>
+                        </div>
 
-                  </div>
-                </article>
-            {% endfor %}
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
         </div>
     </div>
-</div>
+
+    <div class="col-md-2">
+      <div class="content-section sticky-element">
+        <h3>Wybierz raport:</h3>
+        <ul class="list-group">
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-products-list' %}">Produkty</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-box-list' %}">Skrzynki</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'users-report' %}">Kooperanci</a></li>
+        </ul>
+      </div>
+    </div>
 
     <script>
         function goToSelectedLink() {
