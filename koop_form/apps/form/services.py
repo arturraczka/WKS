@@ -204,3 +204,18 @@ def add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes):
 def add_choices_to_forms(forms, products):
     products_weight_schemes_list = get_products_weight_schemes_list(products)
     add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes_list)
+
+
+def filter_products_with_ordered_quantity_and_income(product_model, producer_instance):
+    previous_friday = calculate_previous_friday()
+
+    products = (
+        product_model.objects.prefetch_related("orderitems")
+        .only("name", "orderitems__quantity")
+        .filter(producer=producer_instance)
+        .filter(Q(orderitems__item_ordered_date__gte=previous_friday))
+        .annotate(
+            ordered_quantity=Sum("orderitems__quantity"),
+            income=F("ordered_quantity") * F("price"),
+        ))
+    return products

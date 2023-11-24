@@ -34,7 +34,7 @@ from apps.form.services import (
     order_check,
     staff_check,
     get_producers_list,
-    add_choices_to_forms,
+    add_choices_to_forms, filter_products_with_ordered_quantity_and_income,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -44,7 +44,6 @@ from apps.form.validations import (
 from django.forms import modelformset_factory
 from django.db.models import F
 from django.contrib.auth.mixins import LoginRequiredMixin
-
 
 logger = logging.getLogger("django.server")
 
@@ -86,32 +85,18 @@ class ProducerProductsListView(ProducersView):
     template_name = "form/producer_products_list.html"
 
 
-# TODO do refactoringu get_context_data
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducerProductsReportView(LoginRequiredMixin, TemplateView):
     template_name = "form/producer_products_report.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        previous_friday = calculate_previous_friday()
 
         producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
-
         context["producer"] = producer
         context["producers"] = get_producers_list(Producer)
-
-        products = (
-            Product.objects.prefetch_related("orderitems")
-            .filter(producer=producer)
-            .filter(Q(orderitems__item_ordered_date__gte=previous_friday))
-            .only("name", "orderitems__quantity")
-        )
-
-        products_with_ordered_quantity_and_income = products.annotate(
-            ordered_quantity=Sum("orderitems__quantity"),
-            income=F("ordered_quantity") * F("price"),
-        )
-        context["products"] = products_with_ordered_quantity_and_income
+        products = filter_products_with_ordered_quantity_and_income(Product, producer)
+        context["products"] = products
         total_income = calculate_total_income(context["products"])
         context["total_income"] = total_income
         return context
@@ -221,7 +206,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
                 pass
             else:
                 if not perform_create_orderitem_validations(
-                    instance, self.request, Order, Product
+                        instance, self.request, Order, Product
                 ):
                     return self.form_invalid(form)
                 else:
