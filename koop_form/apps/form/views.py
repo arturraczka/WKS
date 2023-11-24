@@ -346,28 +346,27 @@ class OrderDeleteView(
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerBoxReportView(LoginRequiredMixin, ListView):
-    model = Product
-    context_object_name = "products"
+class ProducerBoxReportView(LoginRequiredMixin, TemplateView):
     template_name = "form/producer_box_report.html"
-
-    def get_queryset(self):
-        previous_friday = calculate_previous_friday()
-
-        self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
-
-        products_qs = Product.objects.filter(
-            Q(orders__date_created__gte=previous_friday)
-        ).filter(producer=self.producer).prefetch_related("orderitems").distinct()
-        return products_qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["producer"] = self.producer
-        context["producers"] = get_producers_list(Producer)
-        context["products"] = context["products"].annotate(
-            ordered_quantity=Sum("orderitems__quantity")
+        previous_friday = calculate_previous_friday()
+
+        producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+        context["producer"] = producer
+
+        products_qs = (
+            Product.objects
+            .prefetch_related("orderitems")
+            .filter(Q(orders__date_created__gte=previous_friday))
+            .filter(producer=producer)
+            .annotate(ordered_quantity=Sum("orderitems__quantity"))
+            .distinct()
         )
+
+        context["producers"] = get_producers_list(Producer)
+        context["products"] = products_qs
         order_data_list = create_order_data_list(context["products"], Order, OrderItem)
         context["order_data"] = order_data_list
         return context

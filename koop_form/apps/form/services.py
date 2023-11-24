@@ -210,7 +210,8 @@ def filter_products_with_ordered_quantity_and_income(product_model, producer_ins
     previous_friday = calculate_previous_friday()
 
     products = (
-        product_model.objects.prefetch_related("orderitems")
+        product_model.objects
+        .prefetch_related("orderitems")
         .only("name", "orderitems__quantity")
         .filter(producer=producer_instance)
         .filter(Q(orderitems__item_ordered_date__gte=previous_friday))
