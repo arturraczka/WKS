@@ -96,6 +96,10 @@ class ProducerProductsReportView(LoginRequiredMixin, TemplateView):
         previous_friday = calculate_previous_friday()
 
         producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+
+        context["producer"] = producer
+        context["producers"] = get_producers_list(Producer)
+
         products = (
             Product.objects.prefetch_related("orderitems")
             .filter(producer=producer)
@@ -408,3 +412,7 @@ class UsersReportView(LoginRequiredMixin, TemplateView):
 
 class ProducerBoxListView(ProducerProductsListView):
     template_name = "form/producer_box_list.html"
+
+
+class ProducersFinanceReport():
+    pass

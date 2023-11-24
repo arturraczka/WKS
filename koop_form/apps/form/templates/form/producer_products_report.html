@@ -3,7 +3,17 @@
 {% block content %}
 
     <div class="col-md-8">
+      <label for="producers">Zmień producenta:</label>
+      <select name="producers" id="producers">
+        {% for producer in producers %}
+            <option value="{% url 'producer-products-report' slug=producer.0 %}">{{ producer.1 }}</option>
+        {% endfor %}
+      </select>
+
+    <button onclick="goToSelectedLink()">Idź</button>
+
       <div class="content-section">
+        <h3>{{ producer.name }}</h3>
         <h3>Produkty zamówione w tym tygodniu:</h3>
         <p class='text-muted'>Przychód z zamówienia: {{ total_income|floatformat:"2" }} zł.</p>
 
@@ -31,5 +41,15 @@
         </ul>
       </div>
     </div>
+
+    <script>
+        function goToSelectedLink() {
+            var select = document.getElementById("producers");
+            var selectedOption = select.options[select.selectedIndex].value;
+            if (selectedOption) {
+                window.location.href = selectedOption;
+            }
+        }
+    </script>
 
 {% endblock content%}
