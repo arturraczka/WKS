@@ -424,6 +424,7 @@ class ProducersFinanceReportView(LoginRequiredMixin, TemplateView):
 
 
 @login_required()
+@user_passes_test(order_check, login_url="/zamowienie/nowe/")
 def product_search_view(request):
     queryset = Product.objects.none()
     form = SearchForm(request.GET)
