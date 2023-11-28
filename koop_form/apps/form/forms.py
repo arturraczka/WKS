@@ -62,7 +62,8 @@ class UpdateOrderItemFormSet(BaseModelFormSet):
 
 class SearchForm(Form):
     search_query = CharField(
-        label="Wyszukaj po nazwie produktu. Wielkość liter nie ma znaczenia.",
+        label="Wyszukaj po nazwie produktu. Minimum 3 litery, wielkość liter nie ma znaczenia.",
         max_length=25,
+        min_length=3,
         required=False,
     )
