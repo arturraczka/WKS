@@ -1,29 +1,111 @@
 {% extends "form/base_one.html" %}
-{% load crispy_forms_tags %}
+{% load custom_filters %}
 {% block content %}
-    <div class="col-md-8">
-        <form method="post">
-            {% csrf_token %}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Dodaj produkt do zamówienia</legend>
-                {{ form|crispy }}
-            </fieldset>
-            <div class="form-group">
-                <button class="btn btn-outline-secondary" type="submit">Dodaj button</button>
-            </div>
-        </form>
-        <form method="post">
-            {% csrf_token %}
+
+<div class="col-md-9">
+    <div class="row">
+        <div class="col-md-8">
+
             <article class="media fixed-height-div">
               <div class="media-body">
+
+                <div>
+                  <span class="article-title border-1">{{ product.name }}</span>
+                  <span class="mr-2">{{ product.description }}</span>
+                </div>
+
+                <div>
+                  <span class="mr-2"><strong>{{ product.price }}</strong> zł za szt/kg</span>
+
+                  <span class="text-muted"> | Status produktu: </span>
+                  {% for status in product.statuses.all %}
+                    <span class="text-muted"><strong>{{ status.status_type }},</strong></span>
+                  {% endfor %}
+                </div>
+
                 <div class="article-metadata">
-                  {{ form|crispy }}
-                  <input type="submit" name="submit" value="Dodaj input">
+                  <span class="mr-2"> Maksymalnie możesz zamówić: {{ product.available_quantity }} (sztuk lub kg) </span>
                 </div>
 
               </div>
             </article>
-        </form>
+
+        </div>
+
+        <div class="col-md-4 position-fix">
+            <form method="post">
+                {% csrf_token %}
+                <article class="media fixed-height-div">
+                  <div class="media-body">
+                    <div class="article-metadata">
+                      {{ form }}
+                      <input type="submit" name="submit" value="Dodaj">
+                    </div>
+
+                  </div>
+                </article>
+            </form>
+        </div>
     </div>
+</div>
+<div class="col-md-3">
+  <div class="content-section sticky-element">
+    <a href="{% url 'order-update-form' %}"><h3>Twoje zamówienie:</h3></a>
+    <p class='text-muted'>Wartość zamówienia: {{ order_cost|floatformat:"2" }} zł.</p>
+    <p class='text-muted'>Numer zamówienia/skrzynki: {{ order.order_number }}.</p>
+    <ul class="list-group">
+    {% for orderitem in orderitems %}
+      <li class="list-group-item list-group-item-light">{{ orderitem.product.name }}: {{ orderitem.quantity|format_decimal:3 }}</li>
+    {% endfor %}
+    </ul>
+  </div>
+</div>
+
+
+<script>
+    window.addEventListener('scroll', () => {
+        const stickyElement = document.querySelector('.sticky-element');
+        const content = document.querySelector('.content');
+        const container = document.querySelector('.container');
+
+        const containerRect = container.getBoundingClientRect();
+        const contentRect = content.getBoundingClientRect();
+
+        const isSticky = containerRect.top <= 0 && contentRect.bottom >= window.innerHeight;
+
+        if (isSticky) {
+            stickyElement.style.width = `${containerRect.width}px`;
+            stickyElement.style.left = `${containerRect.left}px`;
+        } else {
+            stickyElement.style.width = 'auto';
+            stickyElement.style.left = 'auto';
+        }
+    });
+</script>
+
+<script>
+        // messages.js
+    function showMessages() {
+        const messages = document.querySelectorAll('.alert');
+        messages.forEach((message) => {
+            message.style.opacity = 1;
+            message.style.visibility = 'visible';
+
+            setTimeout(() => {
+                message.style.opacity = 0;
+                message.style.visibility = 'hidden';
+
+                // Remove the message from the DOM after fading out
+                setTimeout(() => {
+                    message.remove();
+                }, 10); // Adjust the duration for fading out (0.5s in this example)
+            }, 18000); // Hide the message after 18 seconds (18000 milliseconds)
+        });
+    }
+
+    // Call the showMessages function when the page loads
+    document.addEventListener('DOMContentLoaded', showMessages);
+</script>
+
 {% endblock content%}
 
