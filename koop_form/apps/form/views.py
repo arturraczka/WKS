@@ -40,7 +40,7 @@ from apps.form.services import (
     staff_check,
     get_producers_list,
     add_choices_to_forms,
-    filter_products_with_ordered_quantity_and_income,
+    filter_products_with_ordered_quantity_and_income, add_choices_to_form,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -215,7 +215,6 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
                 ):
                     return self.form_invalid(form)
                 else:
-                    # instance.order = self.order
                     instance.save()
                     messages.success(
                         self.request,
@@ -424,6 +423,7 @@ class ProducersFinanceReportView(LoginRequiredMixin, TemplateView):
         return context
 
 
+@login_required()
 def product_search_view(request):
     queryset = Product.objects.none()
     form = SearchForm(request.GET)
@@ -433,15 +433,32 @@ def product_search_view(request):
         if search_query:
             queryset = Product.objects.filter(name__icontains=search_query)
 
+    previous_friday = calculate_previous_friday()
+    order = Order.objects.get(
+        user=request.user, date_created__gte=previous_friday
+    )
+    orderitems = (
+        OrderItem.objects.filter(order=order.id)
+        .select_related("product")
+        .only("product_id", "quantity", "product__price", "product__name")
+    )
+    order_cost = calculate_order_cost(orderitems)
+
     context = {
         "form": form,
         "products": queryset,
+        "order_cost": order_cost,
+        "order": order,
+        "orderitems": orderitems,
     }
 
     return render(request, "form/product_search.html", context)
 
 
-class OrderItemFormView(FormView):
+@method_decorator(
+    user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
+)
+class OrderItemFormView(LoginRequiredMixin, FormView):
     model = OrderItem
     template_name = "form/order_item_form.html"
     form_class = CreateOrderItemForm
@@ -456,6 +473,30 @@ class OrderItemFormView(FormView):
     def get_initial(self):
         self.get_order_object()
         return {"product": self.kwargs["pk"], "order": self.order}
+
+    def get_orderitems_query(self):
+        self.orderitems = (
+            OrderItem.objects.filter(order=self.order.id)
+            .select_related("product")
+            .only("product_id", "quantity", "product__price", "product__name")
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        self.get_orderitems_query()
+        self.order_cost = calculate_order_cost(self.orderitems)
+        self.product = Product.objects.filter(id=self.kwargs["pk"])
+        self.product_with_available_quantity = calculate_available_quantity(self.product)
+
+        add_choices_to_form(context["form"], self.product_with_available_quantity)
+
+        context["product"] = get_object_or_404(self.product_with_available_quantity)
+        logger.info(self.product_with_available_quantity)
+        context["order"] = self.order
+        context["orderitems"] = self.orderitems
+        context["order_cost"] = self.order_cost
+
+        return context
 
     def form_valid(self, form):
         if form.cleaned_data["quantity"] == 0:

@@ -195,6 +195,13 @@ def add_choices_to_forms(forms, products):
     add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes_list)
 
 
+def add_choices_to_form(form, product):
+    """To OrderItem form instance adds choices for quantity field, based on targeted product's available weight_schemes.
+    """
+    product_weight_schemes_list = get_products_weight_schemes_list(product)
+    form.fields["quantity"].choices = product_weight_schemes_list[0]
+
+
 def filter_products_with_ordered_quantity_and_income(product_model, producer_instance):
     previous_friday = calculate_previous_friday()
 
