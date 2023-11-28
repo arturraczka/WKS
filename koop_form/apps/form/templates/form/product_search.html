@@ -1,0 +1,28 @@
+{% extends "form/base_one.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+    <div class="col-md-8">
+        <form method="get">
+            {% csrf_token %}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Wyszukiwarka produktów</legend>
+                {{ form|crispy }}
+            </fieldset>
+            <div class="form-group">
+                <button class="btn btn-outline-secondary" type="submit">Szukaj</button>
+            </div>
+        </form>
+
+        {% if products %}
+            {% for product in products %}
+                <article class="media">
+                  <div class="media-body">
+                    <div class="article-metadata">
+                      <a href="{% url 'order-item-form' pk=product.id %}">{{ product.producer.short }}: {{ product.name }}, {{ product.description }}</a>
+                    </div>
+                  </div>
+                </article>
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endblock content%}

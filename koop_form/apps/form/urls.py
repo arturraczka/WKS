@@ -15,6 +15,8 @@ from apps.form.views import (
     ProducerProductsListView,
     ProducerBoxListView,
     ProducersFinanceReportView,
+    product_search_view,
+    OrderItemFormView,
 )
 
 
@@ -80,5 +82,11 @@ urlpatterns = [
         "raporty/producenci-finanse/",
         ProducersFinanceReportView.as_view(),
         name="producers-finance",
+    ),
+    path("wyszukiwarka/", product_search_view, name="product-search"),
+    path(
+        "wyszukiwarka/produkt/<int:pk>",
+        OrderItemFormView.as_view(),
+        name="order-item-form",
     ),
 ]

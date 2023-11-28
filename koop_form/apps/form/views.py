@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Sum, Q, Prefetch
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
 from django.urls import reverse, reverse_lazy
@@ -28,6 +28,7 @@ from apps.form.forms import (
     CreateOrderItemFormSet,
     UpdateOrderItemForm,
     UpdateOrderItemFormSet,
+    SearchForm,
 )
 from apps.form.services import (
     calculate_previous_friday,
@@ -164,7 +165,9 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
         return order_item_formset
 
     def get_initial(self):
-        return [{"product": product.id} for product in self.products]
+        return [
+            {"product": product.id, "order": self.order} for product in self.products
+        ]
 
     def get_products_with_available_quantity_query(self):
         products_with_related = (
@@ -212,7 +215,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
                 ):
                     return self.form_invalid(form)
                 else:
-                    instance.order = self.order
+                    # instance.order = self.order
                     instance.save()
                     messages.success(
                         self.request,
@@ -419,3 +422,54 @@ class ProducersFinanceReportView(LoginRequiredMixin, TemplateView):
         context["producers_income"] = producers_income
 
         return context
+
+
+def product_search_view(request):
+    queryset = Product.objects.none()
+    form = SearchForm(request.GET)
+
+    if form.is_valid():
+        search_query = form.cleaned_data.get("search_query")
+        if search_query:
+            queryset = Product.objects.filter(name__icontains=search_query)
+
+    context = {
+        "form": form,
+        "products": queryset,
+    }
+
+    return render(request, "form/product_search.html", context)
+
+
+class OrderItemFormView(FormView):
+    model = OrderItem
+    template_name = "form/order_item_form.html"
+    form_class = CreateOrderItemForm
+    success_url = "/wyszukiwarka/"
+
+    def get_order_object(self):
+        previous_friday = calculate_previous_friday()
+        self.order = Order.objects.get(
+            user=self.request.user, date_created__gte=previous_friday
+        )
+
+    def get_initial(self):
+        self.get_order_object()
+        return {"product": self.kwargs["pk"], "order": self.order}
+
+    def form_valid(self, form):
+        if form.cleaned_data["quantity"] == 0:
+            pass
+        else:
+            self.get_order_object()
+            if not perform_create_orderitem_validations(
+                form, self.request, Order, Product
+            ):
+                return self.form_invalid(form)
+            else:
+                form.save()
+                messages.success(
+                    self.request,
+                    f"{form.cleaned_data['product'].name}: Produkt został dodany do zamówienia.",
+                )
+        return super().form_valid(form)

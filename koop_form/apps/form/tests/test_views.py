@@ -241,6 +241,7 @@ class TestOrderProductsFormView(TestCase):
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
             "form-0-product": self.product1.id,
+            "form-0-order": self.order.id,
             "form-0-quantity": "1.000",
         }
 

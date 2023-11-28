@@ -1,5 +1,11 @@
-from django.forms import ModelForm, HiddenInput
-from django.forms import BaseModelFormSet
+from django.forms import (
+    ModelForm,
+    HiddenInput,
+    Form,
+    CharField,
+    BaseModelFormSet,
+    ModelChoiceField,
+)
 
 from apps.form.models import OrderItem, Order
 
@@ -14,15 +20,18 @@ class CreateOrderForm(ModelForm):
 
 
 class CreateOrderItemForm(ModelForm):
+    order = ModelChoiceField(required=False, queryset=Order.objects.all())
+
     class Meta:
         model = OrderItem
-        fields = ["product", "quantity"]
+        fields = ["product", "quantity", "order"]
         labels = {
             "quantity": "sztuk/waga(kg)",
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["order"].widget = HiddenInput()
         self.fields["product"].widget = HiddenInput()
 
 
@@ -49,3 +58,11 @@ class UpdateOrderItemForm(ModelForm):
 class UpdateOrderItemFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+class SearchForm(Form):
+    search_query = CharField(
+        label="Wyszukaj po nazwie produktu. Wielkość liter nie ma znaczenia.",
+        max_length=25,
+        required=False,
+    )

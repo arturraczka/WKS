@@ -1,0 +1,29 @@
+{% extends "form/base_one.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+    <div class="col-md-8">
+        <form method="post">
+            {% csrf_token %}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Dodaj produkt do zamówienia</legend>
+                {{ form|crispy }}
+            </fieldset>
+            <div class="form-group">
+                <button class="btn btn-outline-secondary" type="submit">Dodaj button</button>
+            </div>
+        </form>
+        <form method="post">
+            {% csrf_token %}
+            <article class="media fixed-height-div">
+              <div class="media-body">
+                <div class="article-metadata">
+                  {{ form|crispy }}
+                  <input type="submit" name="submit" value="Dodaj input">
+                </div>
+
+              </div>
+            </article>
+        </form>
+    </div>
+{% endblock content%}
+
