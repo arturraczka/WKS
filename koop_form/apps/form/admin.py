@@ -24,13 +24,17 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ["producer__name"]
     inlines = (ProductWeightSchemeInLine,)
     list_display = ["name", "producer", "is_active"]
-    search_fields = ["name",]
+    search_fields = [
+        "name",
+    ]
 
 
 class OrderAdmin(admin.ModelAdmin):
     list_filter = ["user__last_name", "date_created"]
     list_display = ["user_last_name", "order_number", "date_created"]
-    search_fields = ["user__last_name", ]
+    search_fields = [
+        "user__last_name",
+    ]
 
     @admin.display(description="User last name")
     def user_last_name(self, obj):
@@ -39,8 +43,16 @@ class OrderAdmin(admin.ModelAdmin):
 
 class OrderItemAdmin(admin.ModelAdmin):
     list_filter = ["order__user__last_name", "order__date_created"]
-    list_display = ["product", "order_user", "order_number", "quantity", "item_ordered_date"]
-    search_fields = ["product__name", ]
+    list_display = [
+        "product",
+        "order_user",
+        "order_number",
+        "quantity",
+        "item_ordered_date",
+    ]
+    search_fields = [
+        "product__name",
+    ]
 
     @admin.display(description="Order number")
     def order_number(self, obj):
