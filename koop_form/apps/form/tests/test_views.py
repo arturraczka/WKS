@@ -1,8 +1,10 @@
 import random
 import pytest
-from django.urls import reverse
 import datetime
+import logging
 
+from django.urls import reverse
+from django.test import TestCase
 from django.utils import timezone
 
 from apps.form.models import Order, OrderItem, Producer, Product
@@ -14,10 +16,9 @@ from factories.model_factories import (
     ProductFactory,
     OrderWithProductFactory,
     OrderItemFactory,
-    OrderFactory, ProfileFactory,
+    OrderFactory,
+    ProfileFactory,
 )
-from django.test import TestCase
-import logging
 
 logger = logging.getLogger("django.server")
 
@@ -111,7 +112,9 @@ class TestProducerProductsReportView(TestCase):
         self.user = UserFactory(is_staff=True)
         self.client.force_login(self.user)
         self.producer = ProducerFactory()
-        self.url = reverse("producer-products-report", kwargs={"slug": self.producer.slug})
+        self.url = reverse(
+            "producer-products-report", kwargs={"slug": self.producer.slug}
+        )
         self.product1 = ProductFactory(producer=self.producer)
         self.product2 = ProductFactory(producer=self.producer)
         self.product3 = ProductFactory()
@@ -484,11 +487,10 @@ class TestUsersReportView(TestCase):
         response = self.client.get(self.url)
         context_data = response.context
 
-        assert len(self.user_list) == len(context_data['users'])
+        assert len(self.user_list) == len(context_data["users"])
         assert response.status_code == 200
-        for user in context_data['users']:
+        for user in context_data["users"]:
             assert user in self.user_list
-
 
     def test_user_is_not_staff(self):
         self.client.force_login(UserFactory())
@@ -513,7 +515,6 @@ class TestProducerProductsListView(TestCase):
         response = self.client.get(self.url)
 
         assert response.status_code == 302
-
 
     def test_response_and_context(self):
         user = UserFactory(is_staff=True)

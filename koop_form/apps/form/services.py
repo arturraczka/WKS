@@ -1,27 +1,16 @@
 import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
+
 from django.db.models import Sum
 from django.contrib.messages import get_messages
 from django.db.models import Q
 from django.db.models import Case, When, F
 
-# from django.db.models.query import QuerySet
-# from typing import TYPE_CHECKING, Type
-#
-# if TYPE_CHECKING:
-#     from apps.form.models import (
-#         OrderItem,
-#     )
-#     from django.contrib.auth.models import AbstractUser
-# from django.contrib.auth.models import AbstractUser
 
 logger = logging.getLogger("django.server")
 
-# TODO tutaj wszystko muszę sprawdzić, czy jest testowane czy nie
 
-
-# TODO to by się przydało przetestować, bo nie sądzę, żebym to testował w widokach hmmm
 def calculate_previous_friday():
     """Returns datetime object of last Friday."""
     today = (
@@ -210,13 +199,13 @@ def filter_products_with_ordered_quantity_and_income(product_model, producer_ins
     previous_friday = calculate_previous_friday()
 
     products = (
-        product_model.objects
-        .prefetch_related("orderitems")
+        product_model.objects.prefetch_related("orderitems")
         .only("name", "orderitems__quantity")
         .filter(producer=producer_instance)
         .filter(Q(orderitems__item_ordered_date__gte=previous_friday))
         .annotate(
             ordered_quantity=Sum("orderitems__quantity"),
             income=F("ordered_quantity") * F("price"),
-        ))
+        )
+    )
     return products

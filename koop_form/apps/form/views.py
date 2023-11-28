@@ -1,10 +1,16 @@
 import logging
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Sum, Q, Prefetch
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils.decorators import method_decorator
+from django.urls import reverse, reverse_lazy
+from django.forms import modelformset_factory
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import (
     ListView,
     CreateView,
@@ -14,8 +20,8 @@ from django.views.generic import (
     FormView,
     TemplateView,
 )
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.utils.decorators import method_decorator
+
+from apps.form.models import Producer, Order, OrderItem, Product
 from apps.form.forms import (
     CreateOrderForm,
     CreateOrderItemForm,
@@ -23,8 +29,6 @@ from apps.form.forms import (
     UpdateOrderItemForm,
     UpdateOrderItemFormSet,
 )
-from apps.form.models import Producer, Order, OrderItem, Product
-from django.urls import reverse, reverse_lazy
 from apps.form.services import (
     calculate_previous_friday,
     calculate_order_cost,
@@ -34,15 +38,14 @@ from apps.form.services import (
     order_check,
     staff_check,
     get_producers_list,
-    add_choices_to_forms, filter_products_with_ordered_quantity_and_income,
+    add_choices_to_forms,
+    filter_products_with_ordered_quantity_and_income,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
     validate_order_exists,
     perform_update_orderitem_validations,
 )
-from django.forms import modelformset_factory
-from django.contrib.auth.mixins import LoginRequiredMixin
 
 logger = logging.getLogger("django.server")
 
@@ -205,7 +208,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
                 pass
             else:
                 if not perform_create_orderitem_validations(
-                        instance, self.request, Order, Product
+                    instance, self.request, Order, Product
                 ):
                     return self.form_invalid(form)
                 else:
@@ -356,8 +359,7 @@ class ProducerBoxReportView(LoginRequiredMixin, TemplateView):
         context["producer"] = producer
 
         products_qs = (
-            Product.objects
-            .prefetch_related("orderitems")
+            Product.objects.prefetch_related("orderitems")
             .filter(Q(orders__date_created__gte=previous_friday))
             .filter(producer=producer)
             .annotate(ordered_quantity=Sum("orderitems__quantity"))
@@ -408,10 +410,12 @@ class ProducersFinanceReportView(LoginRequiredMixin, TemplateView):
 
         producers_income = []
         for producer in producers:
-            products = filter_products_with_ordered_quantity_and_income(Product, producer)
+            products = filter_products_with_ordered_quantity_and_income(
+                Product, producer
+            )
             total_income = calculate_total_income(products)
             producers_income.append([producer.name, total_income])
         logger.info(producers_income)
-        context['producers_income'] = producers_income
+        context["producers_income"] = producers_income
 
         return context

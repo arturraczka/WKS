@@ -1,9 +1,12 @@
 import logging
+
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.text import slugify
+
 from apps.form.services import get_quantity_choices
+
 
 ModelUser = get_user_model()
 logger = logging.getLogger("django.server")
@@ -11,7 +14,7 @@ logger = logging.getLogger("django.server")
 
 class Producer(models.Model):
     name = models.CharField(unique=True)
-    short = models.CharField(default='test')
+    short = models.CharField(default="test")
     slug = models.CharField(unique=True, blank=True)
     description = models.TextField(max_length=1000)
     order = models.IntegerField(

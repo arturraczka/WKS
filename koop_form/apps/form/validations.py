@@ -1,13 +1,13 @@
 from django.db.models import Sum
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from apps.form.models import Product
 from apps.form.services import (
     calculate_previous_friday,
     order_check,
 )
-from django.utils import timezone
 
 
 def validate_product_already_in_order(product, request, order_model):

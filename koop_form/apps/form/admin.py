@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from apps.form.models import (
     Producer,
     WeightScheme,
@@ -16,16 +17,16 @@ class ProductWeightSchemeInLine(admin.TabularInline):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_filter = ['producer__name']
+    list_filter = ["producer__name"]
     inlines = (ProductWeightSchemeInLine,)
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_filter = ['user__last_name', 'date_created']
+    list_filter = ["user__last_name", "date_created"]
 
 
 class OrderItemAdmin(admin.ModelAdmin):
-    list_filter = ['order__user__last_name', 'order__date_created']
+    list_filter = ["order__user__last_name", "order__date_created"]
 
 
 admin.site.register(Producer)

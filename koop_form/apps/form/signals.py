@@ -1,3 +1,5 @@
+import logging
+
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
 
@@ -10,7 +12,6 @@ from apps.form.services import (
     switch_products_isactive_bool_value,
 )
 
-import logging
 
 logger = logging.getLogger("django.server")
 

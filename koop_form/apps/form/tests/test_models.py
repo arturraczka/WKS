@@ -1,6 +1,11 @@
 import datetime
 import pytest
+import random
+import logging
+
 from django.db.models import Q
+from django.test import TestCase
+
 from apps.form.models import OrderItem, Product, Order, WeightScheme
 from apps.form.services import calculate_previous_friday
 from factories.model_factories import (
@@ -10,9 +15,6 @@ from factories.model_factories import (
     OrderFactory,
     ProducerFactory,
 )
-from django.test import TestCase
-import logging
-import random
 
 logger = logging.getLogger("django.server")
 
