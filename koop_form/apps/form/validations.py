@@ -31,42 +31,21 @@ def validate_order_max_quantity(product, product_instance, form_instance, reques
     previous_friday = calculate_previous_friday()
     order_max_quantity = product.order_max_quantity
     if order_max_quantity is not None:
-        ordered_quantity = product_instance.orderitems.filter(
-            order__date_created__gte=previous_friday
-        ).aggregate(ordered_quantity=Sum("quantity"))["ordered_quantity"]
+        ordered_quantity = (
+            product_instance.orderitems.filter(
+                order__date_created__gte=previous_friday
+            )
+            .exclude(pk=form_instance.id)
+            .aggregate(ordered_quantity=Sum("quantity"))["ordered_quantity"]
+        )
         if ordered_quantity is None:
             ordered_quantity = 0
-        try:
-            form_quantity = form_instance.quantity
-        except AttributeError:
-            form_quantity = form_instance.cleaned_data["quantity"]
-        if order_max_quantity < ordered_quantity + form_quantity:
+        if order_max_quantity < ordered_quantity + form_instance.quantity:
             messages.warning(
                 request,
                 f"{product.name}: Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle.",
             )
             return True
-
-
-# def validate_order_max_quantity(product, product_instance, form_instance, request):
-#     previous_friday = calculate_previous_friday()
-#     order_max_quantity = product.order_max_quantity
-#     if order_max_quantity is not None:
-#         ordered_quantity = (
-#             product_instance.orderitems.filter(
-#                 order__date_created__gte=previous_friday
-#             )
-#             .exclude(pk=form_instance.id)
-#             .aggregate(ordered_quantity=Sum("quantity"))["ordered_quantity"]
-#         )
-#         if ordered_quantity is None:
-#             ordered_quantity = 0
-#         if order_max_quantity < ordered_quantity + form_instance.quantity:
-#             messages.warning(
-#                 request,
-#                 f"{product.name}: Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle.",
-#             )
-#             return True
 
 
 def validate_order_deadline(product, request):
@@ -93,11 +72,7 @@ def validate_weight_scheme(product_with_related, instance, request):
 def perform_create_orderitem_validations(
     form_instance, request, order_model, product_model
 ):
-    try:
-        product_from_form = form_instance.product
-    except AttributeError:
-        product_from_form = form_instance.cleaned_data["product"]
-
+    product_from_form = form_instance.product
     product_instance = get_object_or_404(
         product_model.objects.filter(pk=product_from_form.id).prefetch_related(
             "weight_schemes", "orderitems"

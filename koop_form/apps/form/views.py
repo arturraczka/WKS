@@ -126,7 +126,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
         self.producer = None
         self.products = None
 
-        self.products_with_available_quantity = None
+        self.products_with_quantity = None
         self.orderitems = None
 
     def get_success_url(self):
@@ -168,7 +168,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
             .filter(is_active=True)
             .prefetch_related("weight_schemes", "statuses")
         )
-        self.products_with_available_quantity = calculate_available_quantity(
+        self.products_with_quantity = calculate_available_quantity(
             products_with_related
         )
 
@@ -179,14 +179,14 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         self.get_additional_context()
-        add_choices_to_forms(context["form"], self.products_with_available_quantity)
 
+        add_choices_to_forms(context["form"], self.products_with_quantity)
         context["order"] = self.order
         context["orderitems"] = self.orderitems
         context["order_cost"] = calculate_order_cost(self.orderitems)
         context["producers"] = get_producers_list(Producer)
         context["producer"] = self.producer
-        context["products"] = self.products_with_available_quantity
+        context["products"] = self.products_with_quantity
         return context
 
     def form_valid(self, form):
@@ -463,7 +463,8 @@ class OrderItemFormView(LoginRequiredMixin, FormView):
         return context
 
     def form_valid(self, form):
-        if form.cleaned_data["quantity"] == 0:
+        form = form.save(commit=False)
+        if form.quantity == 0:
             pass
         else:
             if not perform_create_orderitem_validations(
@@ -474,6 +475,6 @@ class OrderItemFormView(LoginRequiredMixin, FormView):
                 form.save()
                 messages.success(
                     self.request,
-                    f"{form.cleaned_data['product'].name}: Produkt został dodany do zamówienia.",
+                    f"{form.product.name}: Produkt został dodany do zamówienia.",
                 )
         return super().form_valid(form)
