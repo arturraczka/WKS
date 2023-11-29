@@ -292,10 +292,6 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
 
         context["products"] = products_with_quantity
 
-        orderitems_with_forms = zip(
-            self.products_with_related, context["orderitems"], context["form"]
-        )
-        context["orderitems_with_forms"] = orderitems_with_forms
         return context
 
     def form_valid(self, form):
@@ -303,7 +299,7 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         for instance in formset:
             if not perform_update_orderitem_validations(instance, self.request):
                 return self.form_invalid(form)
-            instance.order = self.order  # to powinno być w initial, czy to jest potrzebne?
+            instance.order = self.order  # to powinno być w initial, ale czy to w ogóle jest potrzebne?
             instance.save()
         return super().form_valid(form)
 

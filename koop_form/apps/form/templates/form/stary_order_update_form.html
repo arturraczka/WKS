@@ -1,0 +1,79 @@
+{% extends "form/base_one.html" %}
+{% load custom_filters %}
+{% block content %}
+
+<div class="col-md-8">
+  <div class="content-section">
+    <h3>Twoje zamówienie:</h3>
+    <p class='text-muted'>Wartość zamówienia: {{ order_cost|floatformat:"2" }} zł</p>
+    <p class='text-muted'>Twój fundusz: {{ fund }}</p>
+    <p class='text-muted'>Wartość zamówienia z funduszem: <strong>{{ order_cost_with_fund|floatformat:"2" }} zł</strong></p>
+    <p class='text-muted'>Numer zamówienia/skrzynki: <strong>{{ order.order_number }}</strong></p>
+    <p class='text-muted'>Dzień odbioru: {{ order.pick_up_day }}</p>
+    <a href="{% url 'order-update' pk=order.id %}" class="button">Zmień dzień odbioru</a>
+    <a href="{% url 'order-delete' pk=order.id %}" class="button">Usuń to zamówienie</a>
+      
+    <form method="post">
+    {% csrf_token %}
+    {{ form.management_form }}
+
+    {% for product, orderitem, form in orderitems_with_forms %}
+        <article class="media content-section">
+            <div class="media-body">
+            <h5 class="article-title">{{ product.name }}</h5>
+            <div>
+                <p class="mr-2"><strong>Cena (za szt/kg): {{ product.price }} zł</strong></p>
+              <p class="article-content">Opis: {{ product.description }}</p>
+            </div>
+            <div class="article-metadata">
+                <p class="text-muted">Dostępne wagi(kg)/liczba sztuk:
+                {% for weight_scheme in product.weight_schemes.all %}
+                    {{ weight_scheme.quantity|format_decimal }},
+                {% endfor %}
+                </p>
+            </div>
+            <div class="article-metadata">
+                <p class="text-muted">Status produktu:
+                {% for status in product.statuses.all %}
+                    {{ status.status_type }},
+                {% endfor %}
+                </p>
+            </div>
+          <div class="media-body">
+            <h5 class="article-title">{{ orderitem.product.name }}</h5>
+                {{ form }}
+                <input type="submit" name="submit" value="Aktualizuj">
+          </div>
+            </div>
+        </article>
+    {% endfor %}
+    </form>  
+  </div>
+</div>
+
+
+<script>
+        // messages.js
+    function showMessages() {
+        const messages = document.querySelectorAll('.alert');
+        messages.forEach((message) => {
+            message.style.opacity = 1;
+            message.style.visibility = 'visible';
+
+            setTimeout(() => {
+                message.style.opacity = 0;
+                message.style.visibility = 'hidden';
+
+                // Remove the message from the DOM after fading out
+                setTimeout(() => {
+                    message.remove();
+                }, 10); // Adjust the duration for fading out (0.5s in this example)
+            }, 12000); // Hide the message after 15 seconds (15000 milliseconds)
+        });
+    }
+
+    // Call the showMessages function when the page loads
+    document.addEventListener('DOMContentLoaded', showMessages);
+</script>
+
+{% endblock content%}

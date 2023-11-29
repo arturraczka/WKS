@@ -230,4 +230,5 @@ def get_orderitems_query(orderitem_model, order_id):
         orderitem_model.objects.filter(order=order_id)
         .select_related("product")
         .only("product_id", "quantity", "product__price", "product__name")
+        .order_by("product__name")
     )
