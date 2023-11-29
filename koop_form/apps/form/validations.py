@@ -57,18 +57,6 @@ def validate_order_deadline(product, request):
         return True
 
 
-# TODO to nie będzie potrzebne, gdy zrobię porządek z widokiem podsumowania zamówienia
-def validate_weight_scheme(product_with_related, instance, request):
-    if instance.quantity not in product_with_related.weight_schemes.all().values_list(
-        "quantity", flat=True
-    ):
-        messages.warning(
-            request,
-            "Nieprawidłowa waga zamawianego produtku. Wybierz wagę z dostępnego schematu.",
-        )
-        return True
-
-
 def perform_create_orderitem_validations(
     form_instance, request, order_model, product_model
 ):
@@ -99,8 +87,7 @@ def perform_update_orderitem_validations(instance, request):
     )
 
     if (
-        validate_weight_scheme(product_with_related, instance, request)
-        or validate_order_deadline(product_from_form, request)
+        validate_order_deadline(product_from_form, request)
         or validate_order_max_quantity(
             product_from_form, product_with_related, instance, request
         )

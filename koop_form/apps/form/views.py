@@ -230,9 +230,8 @@ class OrderCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 @method_decorator(
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
 )
-class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
+class OrderUpdateFormView(LoginRequiredMixin, FormView):
     model = OrderItem
-    success_message = "Zamówienie zostało zaktualizowane."
     form_class = None
     template_name = "form/order_update_form.html"
 
@@ -261,6 +260,7 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
             form=UpdateOrderItemForm,
             formset=UpdateOrderItemFormSet,
             edit_only=True,
+            extra=0,
         )
         return order_item_formset
 
@@ -278,20 +278,15 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["fund"] = self.get_user_fund()
-
         context["order"] = self.order
         context["orderitems"] = self.orderitems
         context["order_cost"] = calculate_order_cost(self.orderitems)
-
-        context["form"] = context["form"][:-1]
-
         context["order_cost_with_fund"] = context["order_cost"] * context["fund"]
 
         products_with_quantity = calculate_available_quantity(self.products_with_related)
         add_choices_to_forms(context["form"], products_with_quantity)
 
         context["products"] = products_with_quantity
-
         return context
 
     def form_valid(self, form):
@@ -299,8 +294,11 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         for instance in formset:
             if not perform_update_orderitem_validations(instance, self.request):
                 return self.form_invalid(form)
-            instance.order = self.order  # to powinno być w initial, ale czy to w ogóle jest potrzebne?
             instance.save()
+            messages.success(
+                self.request,
+                f"{instance.product.name}: Zamówienie zostało zaktualizowane.",
+            )
         return super().form_valid(form)
 
 
