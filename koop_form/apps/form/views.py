@@ -40,7 +40,7 @@ from apps.form.services import (
     staff_check,
     get_producers_list,
     add_choices_to_forms,
-    filter_products_with_ordered_quantity_and_income, add_choices_to_form,
+    filter_products_with_ordered_quantity_and_income, add_choices_to_form, get_users_last_order, get_orderitems_query,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -127,17 +127,10 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
         self.products = None
 
         self.products_with_available_quantity = None
-        self.order_cost = None
         self.orderitems = None
 
     def get_success_url(self):
         return self.request.path
-
-    def get_order_object(self):
-        previous_friday = calculate_previous_friday()
-        self.order = Order.objects.get(
-            user=self.request.user, date_created__gte=previous_friday
-        )
 
     def get_producer_object(self):
         self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
@@ -150,7 +143,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
         )
 
     def get_order_producer_products(self):
-        self.get_order_object()
+        self.order = get_users_last_order(Order, self.request.user)
         self.get_producer_object()
         self.get_products_query()
 
@@ -179,17 +172,9 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
             products_with_related
         )
 
-    def get_orderitems_query(self):
-        self.orderitems = (
-            OrderItem.objects.filter(order=self.order.id)
-            .select_related("product")
-            .only("product_id", "quantity", "product__price", "product__name")
-        )
-
     def get_additional_context(self):
         self.get_products_with_available_quantity_query()
-        self.get_orderitems_query()
-        self.order_cost = calculate_order_cost(self.orderitems)
+        self.orderitems = get_orderitems_query(OrderItem, self.order.id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -198,7 +183,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
 
         context["order"] = self.order
         context["orderitems"] = self.orderitems
-        context["order_cost"] = self.order_cost
+        context["order_cost"] = calculate_order_cost(self.orderitems)
         context["producers"] = get_producers_list(Producer)
         context["producer"] = self.producer
         context["products"] = self.products_with_available_quantity
@@ -264,13 +249,11 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         return self.request.path
 
     def get_producer_order_and_products(self):
-        self.order = Order.objects.get(
-            user=self.request.user, date_created__gte=self.previous_friday
-        )
+        self.order = get_users_last_order(Order, self.request.user)
         self.products_with_related = Product.objects.filter(
             orders=self.order
         ).prefetch_related("weight_schemes", "statuses")
-        self.orderitems = OrderItem.objects.filter(order=self.order.id)
+        self.orderitems = get_orderitems_query(OrderItem, self.order.id)
 
     def get_form_class(self):
         self.get_producer_order_and_products()
@@ -291,19 +274,14 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        orderitems = (
-            OrderItem.objects.filter(order=self.order.id)
-            .select_related("product")
-            .only("product_id", "quantity", "product__price", "product__name")
-        )
         context["order"] = self.order
-        context["orderitems"] = orderitems
+        context["orderitems"] = self.orderitems
 
         user_fund = self.request.user.userprofile.fund
         if user_fund is None:
             user_fund = 1.3
         context["fund"] = user_fund
-        context["order_cost"] = calculate_order_cost(orderitems)
+        context["order_cost"] = calculate_order_cost(self.orderitems)
         context["order_cost_with_fund"] = context["order_cost"] * user_fund
 
         orderitems_with_forms = zip(
@@ -317,7 +295,7 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         for instance in formset:
             if not perform_update_orderitem_validations(instance, self.request):
                 return self.form_invalid(form)
-            instance.order = self.order
+            instance.order = self.order  # to powinno być w initial
             instance.save()
         return super().form_valid(form)
 
@@ -434,15 +412,8 @@ def product_search_view(request):
         if search_query:
             queryset = Product.objects.filter(name__icontains=search_query)
 
-    previous_friday = calculate_previous_friday()
-    order = Order.objects.get(
-        user=request.user, date_created__gte=previous_friday
-    )
-    orderitems = (
-        OrderItem.objects.filter(order=order.id)
-        .select_related("product")
-        .only("product_id", "quantity", "product__price", "product__name")
-    )
+    order = get_users_last_order(Order, request.user)
+    orderitems = get_orderitems_query(OrderItem, order.id)
     order_cost = calculate_order_cost(orderitems)
 
     context = {
@@ -465,45 +436,36 @@ class OrderItemFormView(LoginRequiredMixin, FormView):
     form_class = CreateOrderItemForm
     success_url = "/wyszukiwarka/"
 
-    def get_order_object(self):
-        previous_friday = calculate_previous_friday()
-        self.order = Order.objects.get(
-            user=self.request.user, date_created__gte=previous_friday
-        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.order = None
+        self.orderitems = None
+        self.product_with_quantity = None
 
     def get_initial(self):
-        self.get_order_object()
+        self.order = get_users_last_order(Order, self.request.user)
         return {"product": self.kwargs["pk"], "order": self.order}
 
-    def get_orderitems_query(self):
-        self.orderitems = (
-            OrderItem.objects.filter(order=self.order.id)
-            .select_related("product")
-            .only("product_id", "quantity", "product__price", "product__name")
-        )
+    def get_additional_context(self):
+        product = Product.objects.filter(id=self.kwargs["pk"])
+        self.product_with_quantity = calculate_available_quantity(product)
+        self.orderitems = get_orderitems_query(OrderItem, self.order.id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        self.get_orderitems_query()
-        self.order_cost = calculate_order_cost(self.orderitems)
-        self.product = Product.objects.filter(id=self.kwargs["pk"])
-        self.product_with_available_quantity = calculate_available_quantity(self.product)
+        self.get_additional_context()
 
-        add_choices_to_form(context["form"], self.product_with_available_quantity)
-
-        context["product"] = get_object_or_404(self.product_with_available_quantity)
-        logger.info(self.product_with_available_quantity)
+        add_choices_to_form(context["form"], self.product_with_quantity)
+        context["product"] = get_object_or_404(self.product_with_quantity)
         context["order"] = self.order
         context["orderitems"] = self.orderitems
-        context["order_cost"] = self.order_cost
-
+        context["order_cost"] = calculate_order_cost(self.orderitems)
         return context
 
     def form_valid(self, form):
         if form.cleaned_data["quantity"] == 0:
             pass
         else:
-            self.get_order_object()
             if not perform_create_orderitem_validations(
                 form, self.request, Order, Product
             ):

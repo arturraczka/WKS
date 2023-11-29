@@ -24,7 +24,7 @@
                 </div>
 
                 <div class="article-metadata">
-                  <span class="mr-2"> Maksymalnie możesz zamówić: {{ product.available_quantity }} (sztuk lub kg) </span>
+                  <span class="mr-2"> Maksymalnie możesz zamówić: {{ product.available_quantity|format_decimal:3 }} (sztuk lub kg) </span>
                 </div>
 
               </div>

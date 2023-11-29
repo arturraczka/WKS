@@ -216,3 +216,18 @@ def filter_products_with_ordered_quantity_and_income(product_model, producer_ins
         )
     )
     return products
+
+
+def get_users_last_order(order_model, request_user):
+    previous_friday = calculate_previous_friday()
+    return order_model.objects.get(
+            user=request_user, date_created__gte=previous_friday
+        )
+
+
+def get_orderitems_query(orderitem_model, order_id):
+    return (
+        orderitem_model.objects.filter(order=order_id)
+        .select_related("product")
+        .only("product_id", "quantity", "product__price", "product__name")
+    )
