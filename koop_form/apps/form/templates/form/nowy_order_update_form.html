@@ -2,17 +2,9 @@
 {% load custom_filters %}
 {% block content %}
 <div class="col-md-9">
-    <label for="producers">Zmień producenta:</label>
-    <select name="producers" id="producers">
-      {% for producer in producers %}
-          <option value="{% url 'order-products-form' slug=producer.0 %}">{{ producer.1 }}</option>
-      {% endfor %}
-    </select>
 
-    <button onclick="goToSelectedLink()">Idź</button>
-
-    <h3>{{ producer.name }}</h3>
-    <p>{{ producer.description }}</p>
+    <h3>Twoje zamówienie</h3>
+    <h5>Edytuj produkty w swoim zamówieniu:</h5>
 
     <div class="row">
         <div class="col-md-8">
@@ -72,26 +64,16 @@
 
 <div class="col-md-3">
   <div class="content-section sticky-element">
-    <a href="{% url 'order-update-form' %}"><h3>Twoje zamówienie:</h3></a>
+    <h3>Szczegóły zamówienia:</h3>
     <p class='text-muted'>Wartość zamówienia: {{ order_cost|floatformat:"2" }} zł.</p>
+    <p class='text-muted'>Twój fundusz: {{ fund }}.</p>
+    <p class='text-muted'>Wartość zamówienia z funduszem: <strong>{{ order_cost_with_fund|floatformat:"2" }} zł.</strong></p>
     <p class='text-muted'>Numer zamówienia/skrzynki: {{ order.order_number }}.</p>
-    <ul class="list-group">
-    {% for orderitem in orderitems %}
-      <li class="list-group-item list-group-item-light">{{ orderitem.product.name }}: {{ orderitem.quantity|format_decimal:3 }}</li>
-    {% endfor %}
-    </ul>
+    <p class='text-muted'>Dzień odbioru: {{ order.pick_up_day }}.</p>
+    <a href="{% url 'order-update' pk=order.id %}" class="button">Zmień dzień odbioru</a>
+    <a href="{% url 'order-delete' pk=order.id %}" class="button">Usuń to zamówienie</a>
   </div>
 </div>
-
-<script>
-    function goToSelectedLink() {
-        var select = document.getElementById("producers");
-        var selectedOption = select.options[select.selectedIndex].value;
-        if (selectedOption) {
-            window.location.href = selectedOption;
-        }
-    }
-</script>
 
 <script>
     window.addEventListener('scroll', () => {

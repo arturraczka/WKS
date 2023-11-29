@@ -72,17 +72,17 @@ def validate_weight_scheme(product_with_related, instance, request):
 def perform_create_orderitem_validations(
     form_instance, request, order_model, product_model
 ):
-    product_from_form = form_instance.product
+    related_product = form_instance.product
     product_instance = get_object_or_404(
-        product_model.objects.filter(pk=product_from_form.id).prefetch_related(
+        product_model.objects.filter(pk=related_product.id).prefetch_related(
             "weight_schemes", "orderitems"
         )
     )
     if (
-        validate_product_already_in_order(product_from_form, request, order_model)
-        or validate_order_deadline(product_from_form, request)
+        validate_product_already_in_order(related_product, request, order_model)
+        or validate_order_deadline(related_product, request)
         or validate_order_max_quantity(
-            product_from_form, product_instance, form_instance, request
+            related_product, product_instance, form_instance, request
         )
     ):
         return False

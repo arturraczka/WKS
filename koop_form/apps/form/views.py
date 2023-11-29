@@ -125,7 +125,6 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
         self.order = None
         self.producer = None
         self.products = None
-
         self.products_with_quantity = None
         self.orderitems = None
 
@@ -184,6 +183,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormView):
         context["order"] = self.order
         context["orderitems"] = self.orderitems
         context["order_cost"] = calculate_order_cost(self.orderitems)
+
         context["producers"] = get_producers_list(Producer)
         context["producer"] = self.producer
         context["products"] = self.products_with_quantity
@@ -238,7 +238,6 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.previous_friday = calculate_previous_friday()
         self.order = None
         self.producer = None
         self.products_with_related = None
@@ -270,19 +269,28 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         kwargs["queryset"] = self.orderitems
         return kwargs
 
-    # TODO to raczej do refactoringu tak jak w OrderProductFormView
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        context["order"] = self.order
-        context["orderitems"] = self.orderitems
-
+    def get_user_fund(self):
         user_fund = self.request.user.userprofile.fund
         if user_fund is None:
             user_fund = 1.3
-        context["fund"] = user_fund
+        return user_fund
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["fund"] = self.get_user_fund()
+
+        context["order"] = self.order
+        context["orderitems"] = self.orderitems
         context["order_cost"] = calculate_order_cost(self.orderitems)
-        context["order_cost_with_fund"] = context["order_cost"] * user_fund
+
+        context["form"] = context["form"][:-1]
+
+        context["order_cost_with_fund"] = context["order_cost"] * context["fund"]
+
+        products_with_quantity = calculate_available_quantity(self.products_with_related)
+        add_choices_to_forms(context["form"], products_with_quantity)
+
+        context["products"] = products_with_quantity
 
         orderitems_with_forms = zip(
             self.products_with_related, context["orderitems"], context["form"]
@@ -295,7 +303,7 @@ class OrderUpdateFormView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         for instance in formset:
             if not perform_update_orderitem_validations(instance, self.request):
                 return self.form_invalid(form)
-            instance.order = self.order  # to powinno być w initial
+            instance.order = self.order  # to powinno być w initial, czy to jest potrzebne?
             instance.save()
         return super().form_valid(form)
 
