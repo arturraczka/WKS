@@ -1,4 +1,6 @@
+import copy
 import logging
+from datetime import datetime, timedelta
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -21,6 +23,7 @@ from django.views.generic import (
     TemplateView,
 )
 
+from apps.form.custom_mixins import FormOpenMixin
 from apps.form.models import Producer, Order, OrderItem, Product
 from apps.form.forms import (
     CreateOrderForm,
@@ -31,7 +34,7 @@ from apps.form.forms import (
     SearchForm,
 )
 from apps.form.services import (
-    calculate_previous_friday,
+    calculate_previous_day,
     calculate_order_cost,
     calculate_available_quantity,
     calculate_total_income,
@@ -40,7 +43,11 @@ from apps.form.services import (
     staff_check,
     get_producers_list,
     add_choices_to_forms,
-    filter_products_with_ordered_quantity_and_income, add_choices_to_form, get_users_last_order, get_orderitems_query,
+    filter_products_with_ordered_quantity_and_income,
+    add_choices_to_form,
+    get_users_last_order,
+    get_orderitems_query, check_if_form_is_open,
+
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -115,7 +122,7 @@ class OrderProducersView(ProducersView):
 @method_decorator(
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
 )
-class OrderProductsFormView(LoginRequiredMixin, FormView):
+class OrderProductsFormView(LoginRequiredMixin, FormOpenMixin, FormView):
     model = OrderItem
     template_name = "form/order_products_form.html"
     form_class = None
@@ -230,7 +237,7 @@ class OrderCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 @method_decorator(
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
 )
-class OrderUpdateFormView(LoginRequiredMixin, FormView):
+class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
     model = OrderItem
     form_class = None
     template_name = "form/order_update_form.html"
@@ -335,7 +342,7 @@ class ProducerBoxReportView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        previous_friday = calculate_previous_friday()
+        previous_friday = calculate_previous_day(4, 10)
 
         producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
         context["producer"] = producer
@@ -361,7 +368,7 @@ class UsersReportView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        previous_friday = calculate_previous_friday()
+        previous_friday = calculate_previous_day(4, 10)
 
         newest_order = Order.objects.filter(date_created__gte=previous_friday)
         prefetch = Prefetch("orders", queryset=newest_order, to_attr="order")
@@ -432,7 +439,7 @@ def product_search_view(request):
 @method_decorator(
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
 )
-class OrderItemFormView(LoginRequiredMixin, FormView):
+class OrderItemFormView(LoginRequiredMixin, FormOpenMixin, FormView):
     model = OrderItem
     template_name = "form/order_item_form.html"
     form_class = CreateOrderItemForm
@@ -443,6 +450,18 @@ class OrderItemFormView(LoginRequiredMixin, FormView):
         self.order = None
         self.orderitems = None
         self.product_with_quantity = None
+
+    # def post(self, request, *args, **kwargs):
+    #     is_form_open = check_if_form_is_open()
+    #     if is_form_open:
+    #         return super().post(request, *args, **kwargs)
+    #     else:
+    #         messages.warning(
+    #             self.request,
+    #             "Nie możesz już składać zamówień. Formularz zamyka się w poniedziałki o 20:00.",
+    #         )
+    #         form = self.get_form()
+    #         return self.form_invalid(form)
 
     def get_initial(self):
         self.order = get_users_last_order(Order, self.request.user)
@@ -465,18 +484,18 @@ class OrderItemFormView(LoginRequiredMixin, FormView):
         return context
 
     def form_valid(self, form):
-        form = form.save(commit=False)
-        if form.quantity == 0:
+        saved_form = copy.deepcopy(form).save(commit=False)
+        if saved_form.quantity == 0:
             pass
         else:
             if not perform_create_orderitem_validations(
-                form, self.request, Order, Product
+                saved_form, self.request, Order, Product
             ):
                 return self.form_invalid(form)
             else:
-                form.save()
+                saved_form.save()
                 messages.success(
                     self.request,
-                    f"{form.product.name}: Produkt został dodany do zamówienia.",
+                    f"{saved_form.product.name}: Produkt został dodany do zamówienia.",
                 )
-        return super().form_valid(form)
+        return super().form_valid(saved_form)

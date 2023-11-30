@@ -7,19 +7,21 @@ from django.contrib.messages import get_messages
 from django.db.models import Q
 from django.db.models import Case, When, F
 
+from config.settings import DEBUG
 
 logger = logging.getLogger("django.server")
 
 
-def calculate_previous_friday():
-    """Returns datetime object of last Friday."""
+def calculate_previous_day(day, hour):
+    """Returns datetime object of a chosen day of a week within last 7 days. Monday: 1, Tuesday: 7, Wednesday: 6,
+    Thursday: 5, Friday: 4, Saturday: 3, Sunday: 2"""
     today = (
-        datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
+        datetime.now().astimezone().replace(hour=hour, minute=0, second=0, microsecond=0)
     )
-    friday = 4
-    days_until_previous_friday = (friday + today.weekday() - 1) % 7
-    previous_friday = today - timedelta(days=days_until_previous_friday)
-    return previous_friday
+    weekday = day
+    days_until_previous_day = (weekday + today.weekday() - 1) % 7
+    previous_day = today - timedelta(days=days_until_previous_day)
+    return previous_day
 
 
 def calculate_order_cost(orderitems):
@@ -32,7 +34,7 @@ def calculate_order_cost(orderitems):
 
 def order_check(user):
     """Returns True if the user has an order created this week (counted from last Friday)."""
-    previous_friday = calculate_previous_friday()
+    previous_friday = calculate_previous_day(4, 10)
     return user.orders.filter(date_created__gte=previous_friday).exists()
 
 
@@ -47,7 +49,7 @@ def list_messages(response):
 
 
 def calculate_available_quantity(products):
-    previous_friday = calculate_previous_friday()
+    previous_friday = calculate_previous_day(4, 10)
 
     products_with_available_quantity = products.annotate(
         ordered_quantity=Sum(
@@ -65,7 +67,7 @@ def calculate_available_quantity(products):
 
 def calculate_order_number(order):
     order_number = 1
-    previous_friday = calculate_previous_friday()
+    previous_friday = calculate_previous_day(4, 10)
     order_count = order.objects.filter(date_created__gte=previous_friday).count()
     order_number += order_count
     return order_number
@@ -83,7 +85,7 @@ def calculate_total_income(products):
 
 
 def reduce_order_quantity(orderitem_model, product_pk, quantity):
-    previous_friday = calculate_previous_friday()
+    previous_friday = calculate_previous_day(4, 10)
 
     delivered_quantity_lower_than_ordered_quantity = True
     while delivered_quantity_lower_than_ordered_quantity:
@@ -104,7 +106,7 @@ def reduce_order_quantity(orderitem_model, product_pk, quantity):
 
 
 def recalculate_order_numbers(order_model, date, number):
-    previous_friday = calculate_previous_friday()
+    previous_friday = calculate_previous_day(4, 10)
     if date < previous_friday:
         return
     orders_qs = order_model.objects.filter(date_created__gt=date).order_by(
@@ -118,7 +120,7 @@ def recalculate_order_numbers(order_model, date, number):
 
 
 def create_order_data_list(products, order_model, orderitem_model):
-    previous_friday = calculate_previous_friday()
+    previous_friday = calculate_previous_day(4, 10)
     order_data_list = []
     for product in products:
         orders_qs = (
@@ -203,7 +205,7 @@ def add_choices_to_form(form, product):
 
 
 def filter_products_with_ordered_quantity_and_income(product_model, producer_instance):
-    previous_friday = calculate_previous_friday()
+    previous_friday = calculate_previous_day(4, 10)
 
     products = (
         product_model.objects.prefetch_related("orderitems")
@@ -219,7 +221,7 @@ def filter_products_with_ordered_quantity_and_income(product_model, producer_ins
 
 
 def get_users_last_order(order_model, request_user):
-    previous_friday = calculate_previous_friday()
+    previous_friday = calculate_previous_day(4, 10)
     return order_model.objects.get(
             user=request_user, date_created__gte=previous_friday
         )
@@ -232,3 +234,19 @@ def get_orderitems_query(orderitem_model, order_id):
         .only("product_id", "quantity", "product__price", "product__name")
         .order_by("product__name")
     )
+
+
+def check_if_form_is_open():
+    if DEBUG:
+        return True
+    else:
+        form_open = calculate_previous_day(3, 12)
+        form_closed = form_open + timedelta(hours=56)
+        today = (
+            datetime.now().astimezone()
+        )
+        if form_open < today < form_closed:
+            is_open = True
+        else:
+            is_open = False
+        return is_open
