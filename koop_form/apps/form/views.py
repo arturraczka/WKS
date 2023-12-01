@@ -34,7 +34,7 @@ from apps.form.forms import (
     SearchForm,
 )
 from apps.form.services import (
-    calculate_previous_day,
+    calculate_previous_weekday,
     calculate_order_cost,
     calculate_available_quantity,
     calculate_total_income,
@@ -342,7 +342,7 @@ class ProducerBoxReportView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        previous_friday = calculate_previous_day(4, 10)
+        previous_friday = calculate_previous_weekday()
 
         producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
         context["producer"] = producer
@@ -368,7 +368,7 @@ class UsersReportView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        previous_friday = calculate_previous_day(4, 10)
+        previous_friday = calculate_previous_weekday()
 
         newest_order = Order.objects.filter(date_created__gte=previous_friday)
         prefetch = Prefetch("orders", queryset=newest_order, to_attr="order")
@@ -450,18 +450,6 @@ class OrderItemFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         self.order = None
         self.orderitems = None
         self.product_with_quantity = None
-
-    # def post(self, request, *args, **kwargs):
-    #     is_form_open = check_if_form_is_open()
-    #     if is_form_open:
-    #         return super().post(request, *args, **kwargs)
-    #     else:
-    #         messages.warning(
-    #             self.request,
-    #             "Nie możesz już składać zamówień. Formularz zamyka się w poniedziałki o 20:00.",
-    #         )
-    #         form = self.get_form()
-    #         return self.form_invalid(form)
 
     def get_initial(self):
         self.order = get_users_last_order(Order, self.request.user)

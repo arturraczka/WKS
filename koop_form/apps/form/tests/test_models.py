@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.test import TestCase
 
 from apps.form.models import OrderItem, Product, Order, WeightScheme
-from apps.form.services import calculate_previous_day
+from apps.form.services import calculate_previous_weekday
 from factories.model_factories import (
     UserFactory,
     ProductFactory,
@@ -40,7 +40,7 @@ class TestProductModel(TestCase):
         return ordered_quantity
 
     def test_reduce_order_quantity(self):
-        previous_friday = calculate_previous_day(4, 10)
+        previous_friday = calculate_previous_weekday()
         OrderItemFactory(product=self.product, quantity=5)
         for _ in range(1, 8):
             OrderItemFactory(product=self.product)
@@ -74,7 +74,7 @@ class TestOrderModel(TestCase):
             OrderFactory(date_created=past_date)
 
     def test_calculate_order_number(self):
-        previous_friday = calculate_previous_day(4, 10)
+        previous_friday = calculate_previous_weekday()
         orders_qs = Order.objects.filter(date_created__gte=previous_friday).order_by(
             "date_created"
         )
@@ -85,7 +85,7 @@ class TestOrderModel(TestCase):
             assert order.order_number == initial_number
 
     def test_recalculate_order_numbers(self):
-        previous_friday = calculate_previous_day(4, 10)
+        previous_friday = calculate_previous_weekday()
         qs_count = Order.objects.filter(date_created__gte=previous_friday).count()
         rand_int = random.randint(0, qs_count - 1)
         list(Order.objects.filter(date_created__gte=previous_friday))[rand_int].delete()

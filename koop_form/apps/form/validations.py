@@ -5,13 +5,13 @@ from django.utils import timezone
 
 from apps.form.models import Product
 from apps.form.services import (
-    calculate_previous_day,
+    calculate_previous_weekday,
     order_check,
 )
 
 
 def validate_product_already_in_order(product, request, order_model):
-    previous_friday = calculate_previous_day(4, 10)
+    previous_friday = calculate_previous_weekday()
     order_with_products = get_object_or_404(
         order_model.objects.filter(
             user=request.user, date_created__gte=previous_friday
@@ -28,7 +28,7 @@ def validate_product_already_in_order(product, request, order_model):
 
 
 def validate_order_max_quantity(product, product_instance, form_instance, request):
-    previous_friday = calculate_previous_day(4, 10)
+    previous_friday = calculate_previous_weekday()
     order_max_quantity = product.order_max_quantity
     if order_max_quantity is not None:
         ordered_quantity = (
