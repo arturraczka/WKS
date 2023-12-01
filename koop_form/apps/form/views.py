@@ -363,6 +363,7 @@ class ProducerBoxReportView(LoginRequiredMixin, TemplateView):
         return context
 
 
+# TODO refactoring
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class UsersReportView(LoginRequiredMixin, TemplateView):
     template_name = "form/users_report.html"
@@ -381,7 +382,22 @@ class UsersReportView(LoginRequiredMixin, TemplateView):
             .prefetch_related(prefetch)
         )
 
-        context["users"] = users_qs
+        user_name_list = []
+        user_order_number_list = []
+        user_pickup_day_list = []
+        user_phone_number_list = []
+
+        for user in users_qs:
+            user_name_list.append(user.first_name + ' ' + user.last_name)
+            user_order_number_list.append(user.order[0].order_number)
+            user_pickup_day_list.append(user.order[0].pick_up_day)
+            user_phone_number_list.append(user.userprofile.phone_number)
+
+        context["user_name_list"] = user_name_list
+        context["user_order_number_list"] = user_order_number_list
+        context["user_pickup_day_list"] = user_pickup_day_list
+        context["user_phone_number_list"] = user_phone_number_list
+
         return context
 
 

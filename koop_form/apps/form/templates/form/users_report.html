@@ -2,26 +2,83 @@
 {% load custom_filters %}
 {% block content %}
 
-    <div class="col-md-8">
-      <div class="content-section">
-        <h3>Koordynacja kooperantów:</h3>
+    <div class="col-md-9">
 
-        {% for user in users %}
-            <article class="media content-section">
-                <div class="media-body">
-                <h5 class="article-title">{{ user.first_name }} {{ user.last_name }}</h5>
-                <div>
-                  <span class="article-content">Telefon: {{ user.userprofile.phone_number }}</span>
-                  <span class="article-content">Nr skrzynki: {{ user.order.0.order_number }}</span>
-                  <span class="article-content">Dzień odbioru: {{ user.order.0.pick_up_day }}</span>
+      <div class="form-group">
+        <a class="btn btn-outline-secondary my-2" href="">Pobierz raport</a>
+      </div>
 
-                </div>
-                </div>
-            </article>
-        {% endfor %}
+      <h3>Koordynacja kooperantów:</h3>
+
+      <div class="row">
+
+            <div class="col-md-3">
+                <span class="mr-2">Imię i nazwisko: </span>
+                {% for username in user_name_list %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ username }}</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="col-md-2">
+                <span class="mr-2">Numer skrzynki: </span>
+                {% for ordernumber in user_order_number_list %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ ordernumber }}</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="col-md-2">
+                <span class="mr-2">Dzień odbioru: </span>
+                {% for day in user_pickup_day_list %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ day }}</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="col-md-2">
+                <span class="mr-2">Numer telefonu: </span>
+                {% for phone in user_phone_number_list %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ phone }}</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+
+
+
 
       </div>
     </div>
+
     <div class="col-md-3">
       <div class="content-section sticky-element">
         <h3>Wybierz raport:</h3>
