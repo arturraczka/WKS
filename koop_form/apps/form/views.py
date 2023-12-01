@@ -501,34 +501,8 @@ class ProducerBoxReportDownloadView(ProducerBoxReportView):
             headers=self.headers,
         )
         writer = csv.writer(response)
-        writer.writerow(["First row", "Foo", "Bar", "Baz"])
-        writer.writerow(["Second row", "A", "B", "C", '"Testing"', "Here's a quote"])
+        writer.writerow(["Produkt", "Skrzynki",])
+        for product, box in zip(context["products"], context["order_data"]):
+            writer.writerow([product, box])
 
         return response
-
-
-    # request = self.request,
-    # context = context,
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
