@@ -10,7 +10,9 @@
         </select>
 
         <button onclick="goToSelectedLink()">Idź</button>
-
+        <div class="form-group">
+            <a class="btn btn-outline-secondary my-2" href="{% url 'producer-box-report-download' slug=producer.slug %}">Pobierz raport</a>
+        </div>
         <h3>{{ producer.name }}</h3>
 
         <div class="row">

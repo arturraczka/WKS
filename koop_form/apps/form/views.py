@@ -493,12 +493,14 @@ class OrderItemFormView(LoginRequiredMixin, FormOpenMixin, FormView):
 class ProducerBoxReportDownloadView(ProducerBoxReportView):
     response_class = HttpResponse
     content_type = "text/csv"
-    headers = {"Content-Disposition": 'attachment; filename="raport-skrzynki.csv"'}
+
 
     def render_to_response(self, context, **response_kwargs):
+        headers = {"Content-Disposition": f'attachment; filename="raport-skrzynki: {context["producer"].short}.csv"'}
+
         response = self.response_class(
             content_type=self.content_type,
-            headers=self.headers,
+            headers=headers,
         )
         writer = csv.writer(response)
         writer.writerow(["Produkt", "Skrzynki",])
