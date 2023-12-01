@@ -1,7 +1,8 @@
 import copy
 import logging
-from datetime import datetime, timedelta
+import csv
 
+from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -487,3 +488,47 @@ class OrderItemFormView(LoginRequiredMixin, FormOpenMixin, FormView):
                     f"{saved_form.product.name}: Produkt został dodany do zamówienia.",
                 )
         return super().form_valid(saved_form)
+
+
+class ProducerBoxReportDownloadView(ProducerBoxReportView):
+    response_class = HttpResponse
+    content_type = "text/csv"
+    headers = {"Content-Disposition": 'attachment; filename="raport-skrzynki.csv"'}
+
+    def render_to_response(self, context, **response_kwargs):
+        response = self.response_class(
+            content_type=self.content_type,
+            headers=self.headers,
+        )
+        writer = csv.writer(response)
+        writer.writerow(["First row", "Foo", "Bar", "Baz"])
+        writer.writerow(["Second row", "A", "B", "C", '"Testing"', "Here's a quote"])
+
+        return response
+
+
+    # request = self.request,
+    # context = context,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
