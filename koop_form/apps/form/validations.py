@@ -32,9 +32,7 @@ def validate_order_max_quantity(product, product_instance, form_instance, reques
     order_max_quantity = product.order_max_quantity
     if order_max_quantity is not None:
         ordered_quantity = (
-            product_instance.orderitems.filter(
-                order__date_created__gte=previous_friday
-            )
+            product_instance.orderitems.filter(order__date_created__gte=previous_friday)
             .exclude(pk=form_instance.id)
             .aggregate(ordered_quantity=Sum("quantity"))["ordered_quantity"]
         )
@@ -86,11 +84,10 @@ def perform_update_orderitem_validations(instance, request):
         )
     )
 
-    if (
-        validate_order_deadline(product_from_form, request)
-        or validate_order_max_quantity(
-            product_from_form, product_with_related, instance, request
-        )
+    if validate_order_deadline(
+        product_from_form, request
+    ) or validate_order_max_quantity(
+        product_from_form, product_with_related, instance, request
     ):
         return False
     else:

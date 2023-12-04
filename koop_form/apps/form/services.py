@@ -16,7 +16,9 @@ def calculate_previous_weekday(day=4, hour=0):
     """Returns datetime object of a chosen day of a week within last 7 days. Monday: 1, Tuesday: 7, Wednesday: 6,
     Thursday: 5, Friday: 4, Saturday: 3, Sunday: 2"""
     today = (
-        datetime.now().astimezone().replace(hour=hour, minute=0, second=0, microsecond=0)
+        datetime.now()
+        .astimezone()
+        .replace(hour=hour, minute=0, second=0, microsecond=0)
     )
     weekday = day
     days_until_previous_day = (weekday + today.weekday() - 1) % 7
@@ -124,7 +126,11 @@ def create_order_data_list(products):
     order_data_list = []
 
     for product in products:
-        orderitems_qs = product.orderitems.filter(item_ordered_date__gte=previous_friday).order_by("order__order_number").select_related("order")
+        orderitems_qs = (
+            product.orderitems.filter(item_ordered_date__gte=previous_friday)
+            .order_by("order__order_number")
+            .select_related("order")
+        )
         order_data = ""
         for orderitem in orderitems_qs:
             order_data += f"(skrz{orderitem.order.order_number}: {Decimal(orderitem.quantity).normalize()}) "
@@ -194,8 +200,7 @@ def add_choices_to_forms(forms, products):
 
 
 def add_choices_to_form(form, product):
-    """To OrderItem form instance adds choices for quantity field, based on targeted product's available weight_schemes.
-    """
+    """To OrderItem form instance adds choices for quantity field, based on targeted product's available weight_schemes."""
     product_weight_schemes_list = get_products_weight_schemes_list(product)
     form.fields["quantity"].choices = product_weight_schemes_list[0]
 
@@ -218,9 +223,7 @@ def filter_products_with_ordered_quantity_and_income(product_model, producer_ins
 
 def get_users_last_order(order_model, request_user):
     previous_friday = calculate_previous_weekday()
-    return order_model.objects.get(
-            user=request_user, date_created__gte=previous_friday
-        )
+    return order_model.objects.get(user=request_user, date_created__gte=previous_friday)
 
 
 def get_orderitems_query(orderitem_model, order_id):
@@ -238,9 +241,7 @@ def check_if_form_is_open():
     else:
         form_open = calculate_previous_weekday(3, 12)
         form_closed = form_open + timedelta(hours=56)
-        today = (
-            datetime.now().astimezone()
-        )
+        today = datetime.now().astimezone()
         if form_open < today < form_closed:
             is_open = True
         else:

@@ -47,8 +47,7 @@ from apps.form.services import (
     filter_products_with_ordered_quantity_and_income,
     add_choices_to_form,
     get_users_last_order,
-    get_orderitems_query, check_if_form_is_open,
-
+    get_orderitems_query,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -291,7 +290,9 @@ class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         context["order_cost"] = calculate_order_cost(self.orderitems)
         context["order_cost_with_fund"] = context["order_cost"] * context["fund"]
 
-        products_with_quantity = calculate_available_quantity(self.products_with_related)
+        products_with_quantity = calculate_available_quantity(
+            self.products_with_related
+        )
         add_choices_to_forms(context["form"], products_with_quantity)
 
         context["products"] = products_with_quantity
@@ -388,7 +389,7 @@ class UsersReportView(LoginRequiredMixin, TemplateView):
         user_phone_number_list = []
 
         for user in users_qs:
-            user_name_list.append(user.first_name + ' ' + user.last_name)
+            user_name_list.append(user.first_name + " " + user.last_name)
             user_order_number_list.append(user.order[0].order_number)
             user_pickup_day_list.append(user.order[0].pick_up_day)
             user_phone_number_list.append(user.userprofile.phone_number)
@@ -510,17 +511,51 @@ class ProducerBoxReportDownloadView(ProducerBoxReportView):
     response_class = HttpResponse
     content_type = "text/csv"
 
-
     def render_to_response(self, context, **response_kwargs):
-        headers = {"Content-Disposition": f'attachment; filename="raport-skrzynki: {context["producer"].short}.csv"'}
+        headers = {
+            "Content-Disposition": f'attachment; filename="raport-skrzynki: {context["producer"].short}.csv"'
+        }
 
         response = self.response_class(
             content_type=self.content_type,
             headers=headers,
         )
         writer = csv.writer(response)
-        writer.writerow(["Produkt", "Skrzynki",])
+        writer.writerow(
+            [
+                "Produkt",
+                "Skrzynki",
+            ]
+        )
         for product, box in zip(context["products"], context["order_data"]):
             writer.writerow([product, box])
+
+        return response
+
+
+class UsersReportDownloadView(UsersReportView):
+    response_class = HttpResponse
+    content_type = "text/csv"
+
+    def render_to_response(self, context, **response_kwargs):
+        headers = {
+            "Content-Disposition": 'attachment; filename="raport-koordynacja-kooperantów.csv"'
+        }
+
+        response = self.response_class(
+            content_type=self.content_type,
+            headers=headers,
+        )
+        writer = csv.writer(response)
+        writer.writerow(
+            ["Imię i nazwisko", "Numer skrzynki", "Dzień odbioru", "Numer telefonu"]
+        )
+        for name, number, day, phone in zip(
+            context["user_name_list"],
+            context["user_order_number_list"],
+            context["user_pickup_day_list"],
+            context["user_phone_number_list"],
+        ):
+            writer.writerow([name, number, day, phone])
 
         return response

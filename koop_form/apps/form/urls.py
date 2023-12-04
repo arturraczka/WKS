@@ -16,7 +16,9 @@ from apps.form.views import (
     ProducerBoxListView,
     ProducersFinanceReportView,
     product_search_view,
-    OrderItemFormView, ProducerBoxReportDownloadView,
+    OrderItemFormView,
+    ProducerBoxReportDownloadView,
+    UsersReportDownloadView,
 )
 
 
@@ -93,5 +95,10 @@ urlpatterns = [
         "pobierz/raporty/producenci-skrzynki/<str:slug>/",
         ProducerBoxReportDownloadView.as_view(),
         name="producer-box-report-download",
+    ),
+    path(
+        "pobierz/raporty/kooperanci/",
+        UsersReportDownloadView.as_view(),
+        name="users-report-download",
     ),
 ]
