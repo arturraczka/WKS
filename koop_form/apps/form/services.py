@@ -119,19 +119,15 @@ def recalculate_order_numbers(order_model, date, number):
         initial += 1
 
 
-def create_order_data_list(products, order_model, orderitem_model):
+def create_order_data_list(products):
     previous_friday = calculate_previous_weekday()
     order_data_list = []
+
     for product in products:
-        orders_qs = (
-            order_model.objects.filter(products=product)
-            .filter(date_created__gte=previous_friday)
-            .order_by("order_number")
-        )
+        orderitems_qs = product.orderitems.filter(item_ordered_date__gte=previous_friday).order_by("order__order_number").select_related("order")
         order_data = ""
-        for order in orders_qs:
-            orderitem = orderitem_model.objects.filter(order=order).get(product=product)
-            order_data += f"(skrz{order.order_number}: {Decimal(orderitem.quantity).normalize()}) "
+        for orderitem in orderitems_qs:
+            order_data += f"(skrz{orderitem.order.order_number}: {Decimal(orderitem.quantity).normalize()}) "
         order_data_list.append(order_data)
     return order_data_list
 

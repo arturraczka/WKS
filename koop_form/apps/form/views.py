@@ -349,7 +349,7 @@ class ProducerBoxReportView(LoginRequiredMixin, TemplateView):
         context["producer"] = producer
 
         products_qs = (
-            Product.objects.prefetch_related("orderitems")
+            Product.objects.prefetch_related("orderitems", "orders")
             .filter(Q(orders__date_created__gte=previous_friday))
             .filter(producer=producer)
             .annotate(ordered_quantity=Sum("orderitems__quantity"))
@@ -358,7 +358,7 @@ class ProducerBoxReportView(LoginRequiredMixin, TemplateView):
 
         context["producers"] = get_producers_list(Producer)
         context["products"] = products_qs
-        order_data_list = create_order_data_list(context["products"], Order, OrderItem)
+        order_data_list = create_order_data_list(context["products"])
         context["order_data"] = order_data_list
         return context
 
