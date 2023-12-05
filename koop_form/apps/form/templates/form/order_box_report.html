@@ -1,27 +1,43 @@
 {% extends "form/base_one.html" %}
 {% load custom_filters %}
 {% block content %}
-
-    <div class="col-md-9">
-        <label for="producers">Zmień producenta:</label>
+    <div class="col-md-10">
+        <label for="producers">Zmień skrzynkę:</label>
         <select name="producers" id="producers">
-          {% for producer in producers %}
-              <option value="{% url 'producer-products-report' slug=producer.0 %}">{{ producer.1 }}</option>
+          {% for order in orders %}
+              <option value="{% url 'order-box-report' pk=order.id %}">Skrzynka nr: {{ order.order_number }}</option>
           {% endfor %}
         </select>
 
         <button onclick="goToSelectedLink()">Idź</button>
         <div class="form-group">
-            <a class="btn btn-outline-secondary my-2" href="{% url 'producer-products-report-download' slug=producer.slug %}">Pobierz raport</a>
+            <a class="btn btn-outline-secondary my-2" href="{% url 'order-box-report-download' pk=order.id %}">Pobierz raport</a>
         </div>
+        <h3>Skrzynka nr: {{ order.order_number }}</h3>
 
-        <h3>{{ producer.name }}</h3>
-        <h4>Przychód z zamówienia: {{ total_income|floatformat:"2" }} zł.</h4>
+        <h4>Do zapłaty: {{ order_cost_with_fund }} zł.</h4>
+        <p class='text-muted'>Fundusz: {{ fund }}</p>
 
         <div class="row">
-            <div class="col-md-4">
+
+            <div class="col-md-1">
+                <span class="mr-2">Producent: </span>
+                {% for short in producer_short %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ short }}</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="col-md-5">
                 <span class="mr-2">Nazwa produktu: </span>
-                {% for name in products_names %}
+                {% for name in orderitems_names %}
                     <article class="media ">
                       <div class="media-body">
 
@@ -34,29 +50,14 @@
                 {% endfor %}
             </div>
 
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <span class="mr-2">Zamówiona ilość: </span>
-                {% for quantity in products_ordered_quantity %}
+                {% for quantity in orderitems_quantity %}
                     <article class="media ">
                       <div class="media-body">
 
                         <div>
-                          <span class="mr-2">{{ quantity }} szt/kg</span>
-                        </div>
-
-                      </div>
-                    </article>
-                {% endfor %}
-            </div>
-
-            <div class="col-md-2">
-                <span class="mr-2">Przychód: </span>
-                {% for income in products_incomes %}
-                    <article class="media ">
-                      <div class="media-body">
-
-                        <div>
-                          <span class="mr-2">{{ income }} zł</span>
+                          <span class="mr-2">{{ quantity }}</span>
                         </div>
 
                       </div>
@@ -65,10 +66,9 @@
             </div>
 
         </div>
-
     </div>
 
-    <div class="col-md-3">
+    <div class="col-md-2">
       <div class="content-section sticky-element">
         <h3>Wybierz raport:</h3>
         <ul class="list-group">
@@ -92,3 +92,4 @@
     </script>
 
 {% endblock content%}
+

@@ -122,12 +122,12 @@ urlpatterns = [
         name="order-box-list",
     ),
     path(
-        "raporty/zamowienia-skrzynki/<int:order_number>/",
+        "raporty/zamowienia-skrzynki/<int:pk>/",
         OrderBoxReportView.as_view(),
         name="order-box-report",
     ),
     path(
-        "pobierz/raporty/zamowienia-skrzynki/<int:order_number>/",
+        "pobierz/raporty/zamowienia-skrzynki/<int:pk>/",
         OrderBoxReportDownloadView.as_view(),
         name="order-box-report-download",
     ),

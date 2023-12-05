@@ -1,0 +1,27 @@
+{% extends "form/base_one.html" %}
+{% block content %}
+    <div class="col-md-8">
+        <h3>Wybierz skrzynkę, aby wyświetlić listę produktów:</h3>
+        {% for order in orders %}
+            <article class="media content-section">
+              <div class="media-body">
+                <h4><a class="article-title" href="{% url 'order-box-report' pk=order.id %}">Skrzynka nr: {{ order.order_number }}</a></h4>
+              </div>
+            </article>
+        {% endfor %}
+    </div>
+
+    <div class="col-md-3">
+      <div class="content-section sticky-element">
+        <h3>Wybierz raport:</h3>
+        <ul class="list-group">
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-products-list' %}">Produkty</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-box-list' %}">Skrzynki Producenci</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'order-box-list' %}">Skrzynki Zamówienia</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'users-report' %}">Kooperanci Koordynacja</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producers-finance' %}">Producenci Finanse</a></li>
+        </ul>
+      </div>
+    </div>
+
+{% endblock content%}

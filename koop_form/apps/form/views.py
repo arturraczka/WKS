@@ -530,7 +530,7 @@ class ProducerBoxReportDownloadView(ProducerBoxReportView):
 
     def render_to_response(self, context, **response_kwargs):
         headers = {
-            "Content-Disposition": f'attachment; filename="raport-skrzynki: {context["producer"].short}.csv"'
+            "Content-Disposition": f'attachment; filename="raport-producent-skrzynka: {context["producer"].short}.csv"'
         }
 
         response = self.response_class(
@@ -633,13 +633,90 @@ class ProducerProductsReportDownloadView(ProducerProductsReportView):
         return response
 
 
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class OrderBoxListView(TemplateView):
-    pass
+    template_name = "form/order_box_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        previous_friday = calculate_previous_weekday()
+        orders = Order.objects.filter(date_created__gte=previous_friday).order_by(
+            "date_created"
+        )
+
+        context["orders"] = orders
+
+        return context
 
 
-class OrderBoxReportView(TemplateView):
-    pass
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class OrderBoxReportView(OrderBoxListView):
+    template_name = "form/order_box_report.html"
+
+    def get_user_fund(self):
+        user_fund = self.request.user.userprofile.fund
+        if user_fund is None:
+            user_fund = 1.3
+        return user_fund
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["fund"] = self.get_user_fund()
+
+        order = get_object_or_404(Order, id=self.kwargs["pk"])
+        context["order"] = order
+
+        orderitems = OrderItem.objects.filter(order=order).select_related("product")
+
+        context["order_cost"] = calculate_order_cost(orderitems)
+        context[
+            "order_cost_with_fund"
+        ] = f'{context["order_cost"] * context["fund"]:.2f}'
+
+        producer_short = []
+        orderitems_names = []
+        orderitems_quantity = []
+
+        for item in orderitems:
+            producer_short += (item.product.producer.short,)
+            orderitems_names += (item.product.name,)
+            orderitems_quantity += (str(item.quantity).rstrip("0").rstrip("."),)
+
+        context["producer_short"] = producer_short
+        context["orderitems_names"] = orderitems_names
+        context["orderitems_quantity"] = orderitems_quantity
+
+        return context
 
 
 class OrderBoxReportDownloadView(OrderBoxReportView):
-    pass
+    response_class = HttpResponse
+    content_type = "text/csv"
+
+    def render_to_response(self, context, **response_kwargs):
+        headers = {
+            "Content-Disposition": f'attachment; filename="raport-zamowienie-skrzynka: {context["order"].order_number}.csv"'
+        }
+
+        response = self.response_class(
+            content_type=self.content_type,
+            headers=headers,
+        )
+        writer = csv.writer(response)
+        writer.writerow(
+            [
+                ".",
+                f'Skrzynka {context["order"].order_number}; do zapłaty: {context["order_cost_with_fund"]} zł; fundusz {context["fund"]}',
+            ]
+        )
+        writer.writerow(["Producent", "Nazwa produktu", "Zamówiona ilość"])
+        for short, name, quantity in zip(
+            context["producer_short"],
+            context["orderitems_names"],
+            context["orderitems_quantity"],
+        ):
+            writer.writerow([short, name, quantity])
+
+        return response
