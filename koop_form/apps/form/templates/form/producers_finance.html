@@ -1,18 +1,45 @@
 {% extends "form/base_one.html" %}
-{% load custom_filters %}
 {% block content %}
 
-    <div class="col-md-8">
-      <div class="content-section">
-        <h3>Producenci finanse:</h3>
+    <div class="col-md-9">
 
-        {% for producer in producers_income %}
-            <article class="media content-section">
-                <div class="media-body">
-                <h5 class="article-title">{{ producer.0 }}: {{ producer.1|floatformat:"2" }} zł</h5>
-                </div>
-            </article>
-        {% endfor %}
+      <div class="form-group">
+        <a class="btn btn-outline-secondary my-2" href="{% url 'producers-finance-report-download' %}">Pobierz raport</a>
+      </div>
+
+      <h3>Producenci finanse:</h3>
+
+      <div class="row">
+
+            <div class="col-md-3">
+                <span class="mr-2">Nazwa: </span>
+                {% for name in producers_names %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ name }}</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="col-md-2">
+                <span class="mr-2">Suma zamówień: </span>
+                {% for income in producers_incomes %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ income }} zł</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
 
       </div>
     </div>

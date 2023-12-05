@@ -406,7 +406,6 @@ class ProducerBoxListView(ProducerProductsListView):
     template_name = "form/producer_box_list.html"
 
 
-# TODO bardzo nieoptymalne query, 6 powtórzeń
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducersFinanceReportView(LoginRequiredMixin, TemplateView):
     template_name = "form/producers_finance.html"
@@ -415,15 +414,19 @@ class ProducersFinanceReportView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         producers = Producer.objects.filter(is_active=True)
 
-        producers_income = []
+        producers_names = []
+        producers_incomes = []
         for producer in producers:
             products = filter_products_with_ordered_quantity_and_income(
                 Product, producer
             )
             total_income = calculate_total_income(products)
-            producers_income.append([producer.name, total_income])
-        logger.info(producers_income)
-        context["producers_income"] = producers_income
+
+            producers_names += (producer.short,)
+            producers_incomes += (f"{total_income:.2f}",)
+
+        context["producers_incomes"] = producers_incomes
+        context["producers_names"] = producers_names
 
         return context
 
@@ -557,5 +560,29 @@ class UsersReportDownloadView(UsersReportView):
             context["user_phone_number_list"],
         ):
             writer.writerow([name, number, day, phone])
+
+        return response
+
+
+class ProducersFinanceReportDownloadView(ProducersFinanceReportView):
+    response_class = HttpResponse
+    content_type = "text/csv"
+
+    def render_to_response(self, context, **response_kwargs):
+        headers = {
+            "Content-Disposition": 'attachment; filename="raport-producenci-finanse.csv"'
+        }
+
+        response = self.response_class(
+            content_type=self.content_type,
+            headers=headers,
+        )
+        writer = csv.writer(response)
+        writer.writerow(["Nazwa producenta", "Suma zamówień"])
+        for name, total in zip(
+            context["producers_names"],
+            context["producers_incomes"],
+        ):
+            writer.writerow([name, total])
 
         return response
