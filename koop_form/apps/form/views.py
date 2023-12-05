@@ -631,3 +631,15 @@ class ProducerProductsReportDownloadView(ProducerProductsReportView):
             writer.writerow([name, quantity, income])
 
         return response
+
+
+class OrderBoxListView(TemplateView):
+    pass
+
+
+class OrderBoxReportView(TemplateView):
+    pass
+
+
+class OrderBoxReportDownloadView(OrderBoxReportView):
+    pass
