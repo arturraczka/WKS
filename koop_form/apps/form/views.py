@@ -106,8 +106,22 @@ class ProducerProductsReportView(LoginRequiredMixin, TemplateView):
         context["producer"] = producer
         context["producers"] = get_producers_list(Producer)
         products = filter_products_with_ordered_quantity_and_income(Product, producer)
-        context["products"] = products
-        total_income = calculate_total_income(context["products"])
+
+        products_names = []
+        products_ordered_quantity = []
+        products_incomes = []
+        for product in products:
+            products_names += (product.name,)
+            products_ordered_quantity += (
+                str(product.ordered_quantity).rstrip("0").rstrip("."),
+            )
+            products_incomes += (f"{product.income:.2f}",)
+
+        context["products_names"] = products_names
+        context["products_ordered_quantity"] = products_ordered_quantity
+        context["products_incomes"] = products_incomes
+
+        total_income = calculate_total_income(products)
         context["total_income"] = total_income
         return context
 
@@ -584,5 +598,36 @@ class ProducersFinanceReportDownloadView(ProducersFinanceReportView):
             context["producers_incomes"],
         ):
             writer.writerow([name, total])
+
+        return response
+
+
+class ProducerProductsReportDownloadView(ProducerProductsReportView):
+    response_class = HttpResponse
+    content_type = "text/csv"
+
+    def render_to_response(self, context, **response_kwargs):
+        headers = {
+            "Content-Disposition": f'attachment; filename="raport-producent-produkty: {context["producer"].short}.csv"'
+        }
+
+        response = self.response_class(
+            content_type=self.content_type,
+            headers=headers,
+        )
+        writer = csv.writer(response)
+        writer.writerow(
+            [
+                f'Przychód łącznie: {context["total_income"]:.2f} zł',
+                context["producer"].name,
+            ]
+        )
+        writer.writerow(["Nazwa produktu", "Zamówiona ilość", "Przychód"])
+        for name, quantity, income in zip(
+            context["products_names"],
+            context["products_ordered_quantity"],
+            context["products_incomes"],
+        ):
+            writer.writerow([name, quantity, income])
 
         return response
