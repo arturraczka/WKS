@@ -32,7 +32,12 @@ from apps.form.forms import (
     CreateOrderItemFormSet,
     UpdateOrderItemForm,
     UpdateOrderItemFormSet,
-    SearchForm, CreateSupplyForm, CreateSupplyItemFormSet, CreateSupplyItemForm,
+    SearchForm,
+    CreateSupplyForm,
+    CreateSupplyItemFormSet,
+    CreateSupplyItemForm,
+    UpdateSupplyItemFormSet,
+    UpdateSupplyItemForm,
 )
 from apps.form.services import (
     calculate_previous_weekday,
@@ -267,7 +272,8 @@ class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
     def get_success_url(self):
         return self.request.path
 
-    def get_producer_order_and_products(self):
+    # TODO czy self.products_with_related musi być tutaj zdefiniowane??
+    def get_order_orderitems_and_products(self):
         self.order = get_users_last_order(Order, self.request.user)
         self.products_with_related = Product.objects.filter(
             orders=self.order
@@ -275,7 +281,7 @@ class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         self.orderitems = get_orderitems_query(OrderItem, self.order.id)
 
     def get_form_class(self):
-        self.get_producer_order_and_products()
+        self.get_order_orderitems_and_products()
         order_item_formset = modelformset_factory(
             OrderItem,
             form=UpdateOrderItemForm,
@@ -640,9 +646,9 @@ class OrderBoxListView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        orders = Order.objects.filter(date_created__gte=calculate_previous_weekday()).order_by(
-            "date_created"
-        )
+        orders = Order.objects.filter(
+            date_created__gte=calculate_previous_weekday()
+        ).order_by("date_created")
 
         context["orders"] = orders
 
@@ -724,7 +730,6 @@ class OrderBoxReportDownloadView(OrderBoxReportView):
 class UsersFinanceReportView(TemplateView):
     template_name = "form/users_finance.html"
 
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -738,11 +743,9 @@ class UsersFinanceReportView(TemplateView):
             koop_id_list.append(user.userprofile.koop_id)
             name_list += (f"{user.first_name} {user.last_name}",)
             orderitems = (
-                Order.objects
-                .filter(date_created__gte=calculate_previous_weekday())
+                Order.objects.filter(date_created__gte=calculate_previous_weekday())
                 .get(user=user)
-                .orderitems
-                .select_related("product")
+                .orderitems.select_related("product")
             )
 
             order_cost = calculate_order_cost(orderitems) * user.userprofile.fund
@@ -763,9 +766,7 @@ class UsersFinanceReportDownloadView(UsersFinanceReportView):
 class SupplyCreateView(SuccessMessageMixin, CreateView):
     model = Supply
     template_name = "form/supply_create.html"
-    # template_name = "form/order_create.html"
     form_class = CreateSupplyForm
-    # form_class = CreateOrderForm
     success_message = "Dostawa została utworzona. Dodaj produkty."
 
     def form_valid(self, form):
@@ -798,18 +799,16 @@ class SupplyProductsFormView(FormView):
 
     def get_products_query(self):
         self.products = (
-            Product.objects.filter(producer=self.producer)
-            .filter(is_active=True)
+            Product.objects.filter(producer=self.producer).filter(is_active=True)
             # .only("id")
         )
 
-    def get_supply_producer_products(self):
-        # self.supply = Supply.objects.filter(producer=self.producer).order_by("-date_created").first()
+    def get_producer_products(self):
         self.get_producer_object()
         self.get_products_query()
 
     def get_form_class(self):
-        self.get_supply_producer_products()
+        self.get_producer_products()
         supply_item_formset = modelformset_factory(
             SupplyItem,
             form=CreateSupplyItemForm,
@@ -819,7 +818,11 @@ class SupplyProductsFormView(FormView):
         return supply_item_formset
 
     def get_initial(self):
-        self.supply = Supply.objects.filter(producer=self.producer).order_by("-date_created").first()
+        self.supply = (
+            Supply.objects.filter(producer=self.producer)
+            .order_by("-date_created")
+            .first()
+        )
         return [
             {"product": product.id, "supply": self.supply} for product in self.products
         ]
@@ -853,4 +856,73 @@ class SupplyProductsFormView(FormView):
                         self.request,
                         f"{instance.product.name}: Produkt został uwzględniony w dostawie.",
                     )
+        return super().form_valid(form)
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class SupplyUpdateFormView(FormView):
+    model = SupplyItem
+    form_class = None
+    template_name = "form/supply_update_form.html"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.supply_items = None
+        self.products = None
+        self.supply = None
+        self.producer = None
+
+    def get_success_url(self):
+        return self.request.path
+
+    def get_shit_done(self):
+        self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+        self.supply = (
+            Supply.objects.filter(producer=self.producer)
+            .order_by("-date_created")
+            .first()
+        )
+        self.supply_items = (
+            SupplyItem.objects.filter(supply=self.supply)
+            .select_related("product")
+            .only("product_id", "quantity", "product__name")
+            .order_by("product__name")
+        )
+
+    def get_form_class(self):
+        self.get_shit_done()
+        supply_item_formset = modelformset_factory(
+            SupplyItem,
+            form=UpdateSupplyItemForm,
+            formset=UpdateSupplyItemFormSet,
+            edit_only=True,
+            extra=0,
+        )
+        return supply_item_formset
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["queryset"] = self.supply_items
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        self.products = Product.objects.filter(supplies=self.supply).only("id", "name")
+        context["supply"] = self.supply
+        context["producer"] = self.producer
+        context["products"] = self.products
+
+        return context
+
+    def form_valid(self, form):
+        formset = form.save(commit=False)
+        for instance in formset:
+            # if not perform_update_orderitem_validations(instance, self.request):
+            #     return self.form_invalid(form)
+            instance.save()
+            messages.success(
+                self.request,
+                f"{instance.product.name}: Dostawa została zaktualizowana.",
+            )
         return super().form_valid(form)

@@ -23,7 +23,11 @@ from apps.form.views import (
     ProducerProductsReportDownloadView,
     OrderBoxListView,
     OrderBoxReportView,
-    OrderBoxReportDownloadView, UsersFinanceReportView, SupplyCreateView, SupplyProductsFormView,
+    OrderBoxReportDownloadView,
+    UsersFinanceReportView,
+    SupplyCreateView,
+    SupplyProductsFormView,
+    SupplyUpdateFormView,
 )
 
 
@@ -145,5 +149,10 @@ urlpatterns = [
         "dostawy/produkty/<str:slug>/",
         SupplyProductsFormView.as_view(),
         name="supply-products-form",
+    ),
+    path(
+        "dostawy/edytuj/<str:slug>/",
+        SupplyUpdateFormView.as_view(),
+        name="supply-update-form",
     ),
 ]

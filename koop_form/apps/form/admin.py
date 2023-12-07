@@ -7,7 +7,9 @@ from apps.form.models import (
     Product,
     Order,
     OrderItem,
-    product_weight_schemes, Supply, SupplyItem,
+    product_weight_schemes,
+    Supply,
+    SupplyItem,
 )
 
 
@@ -42,7 +44,11 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 class OrderItemAdmin(admin.ModelAdmin):
-    list_filter = ["order__user__last_name", "order__date_created", "order__order_number"]
+    list_filter = [
+        "order__user__last_name",
+        "order__date_created",
+        "order__order_number",
+    ]
     list_display = [
         "producer_short",
         "product_name",

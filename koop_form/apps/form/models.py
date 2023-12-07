@@ -153,8 +153,12 @@ class Supply(models.Model):
     product = models.ManyToManyField(
         Product, through="SupplyItem", related_name="supplies", blank=True
     )
-    user = models.ForeignKey(ModelUser, on_delete=models.CASCADE, related_name="supplies")
-    producer = models.ForeignKey(Producer, on_delete=models.CASCADE, related_name="supplies")
+    user = models.ForeignKey(
+        ModelUser, on_delete=models.CASCADE, related_name="supplies"
+    )
+    producer = models.ForeignKey(
+        Producer, on_delete=models.CASCADE, related_name="supplies"
+    )
     date_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -166,12 +170,8 @@ class Supply(models.Model):
     def __str__(self):
         return f"{self.producer.short}: {str(self.date_created)[:19]}"
 
-    # czy get_absolute_url będzie mi potrzebne to się okaże
-
     def get_absolute_url(self):
-        return reverse(
-            "supply-products-form", kwargs={"slug": self.producer.slug}
-        )
+        return reverse("supply-products-form", kwargs={"slug": self.producer.slug})
 
 
 class SupplyItem(models.Model):
