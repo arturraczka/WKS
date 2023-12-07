@@ -23,7 +23,7 @@ from apps.form.views import (
     ProducerProductsReportDownloadView,
     OrderBoxListView,
     OrderBoxReportView,
-    OrderBoxReportDownloadView,
+    OrderBoxReportDownloadView, UsersFinanceReportView, SupplyCreateView, SupplyProductsFormView,
 )
 
 
@@ -130,5 +130,20 @@ urlpatterns = [
         "pobierz/raporty/zamowienia-skrzynki/<int:pk>/",
         OrderBoxReportDownloadView.as_view(),
         name="order-box-report-download",
+    ),
+    path(
+        "raporty/kooperanci-finanse/",
+        UsersFinanceReportView.as_view(),
+        name="users-finance",
+    ),
+    path(
+        "dostawy/nowa/",
+        SupplyCreateView.as_view(),
+        name="supply-create",
+    ),
+    path(
+        "dostawy/produkty/<str:slug>/",
+        SupplyProductsFormView.as_view(),
+        name="supply-products-form",
     ),
 ]

@@ -25,14 +25,14 @@ from django.views.generic import (
 )
 
 from apps.form.custom_mixins import FormOpenMixin
-from apps.form.models import Producer, Order, OrderItem, Product
+from apps.form.models import Producer, Order, OrderItem, Product, Supply, SupplyItem
 from apps.form.forms import (
     CreateOrderForm,
     CreateOrderItemForm,
     CreateOrderItemFormSet,
     UpdateOrderItemForm,
     UpdateOrderItemFormSet,
-    SearchForm,
+    SearchForm, CreateSupplyForm, CreateSupplyItemFormSet, CreateSupplyItemForm,
 )
 from apps.form.services import (
     calculate_previous_weekday,
@@ -640,8 +640,7 @@ class OrderBoxListView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        previous_friday = calculate_previous_weekday()
-        orders = Order.objects.filter(date_created__gte=previous_friday).order_by(
+        orders = Order.objects.filter(date_created__gte=calculate_previous_weekday()).order_by(
             "date_created"
         )
 
@@ -650,7 +649,6 @@ class OrderBoxListView(TemplateView):
         return context
 
 
-@method_decorator(user_passes_test(staff_check), name="dispatch")
 class OrderBoxReportView(OrderBoxListView):
     template_name = "form/order_box_report.html"
 
@@ -720,3 +718,139 @@ class OrderBoxReportDownloadView(OrderBoxReportView):
             writer.writerow([short, name, quantity])
 
         return response
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class UsersFinanceReportView(TemplateView):
+    template_name = "form/users_finance.html"
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        users = get_user_model().objects.all().select_related("userprofile")
+
+        koop_id_list = []
+        name_list = []
+        order_cost_list = []
+
+        for user in users:
+            koop_id_list.append(user.userprofile.koop_id)
+            name_list += (f"{user.first_name} {user.last_name}",)
+            orderitems = (
+                Order.objects
+                .filter(date_created__gte=calculate_previous_weekday())
+                .get(user=user)
+                .orderitems
+                .select_related("product")
+            )
+
+            order_cost = calculate_order_cost(orderitems) * user.userprofile.fund
+            order_cost_list.append(order_cost)
+
+        context["koop_id_list"] = koop_id_list
+        context["name_list"] = name_list
+        context["order_cost_list"] = order_cost_list
+
+        return context
+
+
+class UsersFinanceReportDownloadView(UsersFinanceReportView):
+    pass
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class SupplyCreateView(SuccessMessageMixin, CreateView):
+    model = Supply
+    template_name = "form/supply_create.html"
+    # template_name = "form/order_create.html"
+    form_class = CreateSupplyForm
+    # form_class = CreateOrderForm
+    success_message = "Dostawa została utworzona. Dodaj produkty."
+
+    def form_valid(self, form):
+        # TODO
+        # if validate_order_exists(self.request):
+        #     return self.form_invalid(form)
+        # mogę zrobić walidację, żeby nie dało się zrobić dwóch dostaw tego samego producenta w jednym tygodniu
+
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class SupplyProductsFormView(FormView):
+    model = SupplyItem
+    template_name = "form/supply_products_form.html"
+    form_class = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.supply = None
+        self.products = None
+        self.producer = None
+
+    def get_success_url(self):
+        return self.request.path
+
+    def get_producer_object(self):
+        self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+
+    def get_products_query(self):
+        self.products = (
+            Product.objects.filter(producer=self.producer)
+            .filter(is_active=True)
+            # .only("id")
+        )
+
+    def get_supply_producer_products(self):
+        # self.supply = Supply.objects.filter(producer=self.producer).order_by("-date_created").first()
+        self.get_producer_object()
+        self.get_products_query()
+
+    def get_form_class(self):
+        self.get_supply_producer_products()
+        supply_item_formset = modelformset_factory(
+            SupplyItem,
+            form=CreateSupplyItemForm,
+            formset=CreateSupplyItemFormSet,
+            extra=self.products.count(),
+        )
+        return supply_item_formset
+
+    def get_initial(self):
+        self.supply = Supply.objects.filter(producer=self.producer).order_by("-date_created").first()
+        return [
+            {"product": product.id, "supply": self.supply} for product in self.products
+        ]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["products"] = self.products
+        context["producer"] = self.producer
+        supply_items = SupplyItem.objects.filter(supply=self.supply)
+        context["supply_items"] = supply_items
+        return context
+
+    def form_valid(self, form):
+        formset = form.save(commit=False)
+        for instance in formset:
+            if instance.quantity == 0:
+                pass
+            elif instance.quantity is None:
+                pass
+            else:
+                if False:
+                    pass
+                # if not perform_create_orderitem_validations(
+                #     instance, self.request, Order, Product
+                # ):
+                #     return self.form_invalid(form)
+                else:
+                    # instance.supply = self.supply.id
+                    instance.save()
+                    messages.success(
+                        self.request,
+                        f"{instance.product.name}: Produkt został uwzględniony w dostawie.",
+                    )
+        return super().form_valid(form)
