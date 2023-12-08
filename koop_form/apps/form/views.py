@@ -193,7 +193,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormOpenMixin, FormView):
             Product.objects.filter(producer=self.producer)
             .filter(is_active=True)
             .filter(~Q(quantity_in_stock=0))
-            .prefetch_related("weight_schemes", "statuses")
+            .prefetch_related("weight_schemes", "statuses",)
         )
         self.products_with_quantity = calculate_available_quantity(
             products_with_related
@@ -277,9 +277,12 @@ class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
     # TODO czy self.products_with_related musi być tutaj zdefiniowane??
     def get_order_orderitems_and_products(self):
         self.order = get_users_last_order(Order, self.request.user)
+
+        products_ids = Product.objects.filter(orders=self.order).values_list(flat=True)
         self.products_with_related = Product.objects.filter(
-            orders=self.order
-        ).prefetch_related("weight_schemes", "statuses")
+            pk__in=list(products_ids)
+        ).prefetch_related("weight_schemes", "statuses",)
+
         self.orderitems = get_orderitems_query(OrderItem, self.order.id)
 
     def get_form_class(self):
@@ -322,8 +325,6 @@ class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         )
         add_choices_to_forms(context["form"], products_with_quantity)
 
-        for product in products_with_quantity:
-            logger.debug(product.available_quantity)
         context["products"] = products_with_quantity
         return context
 

@@ -61,7 +61,7 @@ def calculate_available_quantity(products):
         ordered_quantity=Sum(
             "orderitems__quantity",
             filter=Q(orderitems__item_ordered_date__gte=previous_friday),
-        ),
+        )).annotate(
         available_quantity=Case(
             When(ordered_quantity=None, then=Case(
                 When(order_max_quantity=None, then=F("quantity_in_stock")),
@@ -113,7 +113,7 @@ def calculate_total_income(products):
     return total_income
 
 
-def reduce_order_quantity(orderitem_model, product_pk, quantity):
+def reduce_order_quantity(orderitem_model, product_pk, delivered_quantity):
     previous_friday = calculate_previous_weekday()
 
     delivered_quantity_lower_than_ordered_quantity = True
@@ -121,16 +121,21 @@ def reduce_order_quantity(orderitem_model, product_pk, quantity):
         orderitems = (
             orderitem_model.objects.filter(product=product_pk)
             .filter(Q(item_ordered_date__gte=previous_friday))
-            .order_by("item_ordered_date")
+            .order_by("-item_ordered_date")
         )
         ordered_quantity = 0
         for item in orderitems:
             ordered_quantity += item.quantity
 
-        if quantity < ordered_quantity:
-            orderitems.reverse()[0].delete()
+        if delivered_quantity < ordered_quantity:
+            last_item = orderitems[0]
+            if delivered_quantity < ordered_quantity - last_item.quantity:
+                last_item.delete()
+            else:
+                diff_quantity = delivered_quantity - ordered_quantity + last_item.quantity
+                last_item.quantity = diff_quantity
+                last_item.save()
         else:
-            # remnant = quantity - ordered_quantity
             delivered_quantity_lower_than_ordered_quantity = False
 
 
@@ -244,6 +249,7 @@ def filter_products_with_ordered_quantity_and_income(product_model, producer_ins
             ordered_quantity=Sum("orderitems__quantity"),
             income=F("ordered_quantity") * F("price"),
         )
+        .order_by("name")
     )
     return products
 
