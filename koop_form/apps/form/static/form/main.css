@@ -162,3 +162,11 @@ a.article-title:hover {
 .margin-bottom {
     margin-bottom: 20px;
 }
+
+.fixed-height-small {
+    height: 40px;
+}
+
+.position-fix-2 {
+    margin-top: 48px;
+}

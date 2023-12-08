@@ -7,13 +7,13 @@
     <h5>Edytuj dostarczone produktuy:</h5>
 
     <div class="row">
-        <div class="col-md-8 position-fix">
+        <div class="col-md-5 position-fix-2">
 
                 {% for product in products %}
-                    <article class="media fixed-height-div">
+                    <article class="media fixed-height-small">
                       <div class="media-body">
 
-                        <div>
+                        <div class="article-metadata">
                           <span class="article-title border-1">{{ product.name }}</span>
                         </div>
 
@@ -24,14 +24,14 @@
 
         </div>
 
-        <div class="col-md-4 position-fix">
+        <div class="col-md-5 position-fix">
 
             <form method="post">
                 {% csrf_token %}
                 {{ form.management_form }}
 
                 {% for form_instance in form %}
-                    <article class="media fixed-height-div">
+                    <article class="media fixed-height-small">
                       <div class="media-body">
                         <div class="article-metadata">
                           {{ form_instance }}
