@@ -164,6 +164,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         self.products = (
             Product.objects.filter(producer=self.producer)
             .filter(is_active=True)
+            .filter(~Q(quantity_in_stock=0))
             .only("id")
         )
 
@@ -191,6 +192,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         products_with_related = (
             Product.objects.filter(producer=self.producer)
             .filter(is_active=True)
+            .filter(~Q(quantity_in_stock=0))
             .prefetch_related("weight_schemes", "statuses")
         )
         self.products_with_quantity = calculate_available_quantity(
@@ -306,6 +308,11 @@ class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         context = super().get_context_data(**kwargs)
         context["fund"] = self.get_user_fund()
         context["order"] = self.order
+        self.orderitems = get_orderitems_query(
+            OrderItem, self.order.id
+        )  # I am calling this query second time
+        # (first time is for form initial data), for calculating correct order cost
+        # after user has tried to post invalid data
         context["orderitems"] = self.orderitems
         context["order_cost"] = calculate_order_cost(self.orderitems)
         context["order_cost_with_fund"] = context["order_cost"] * context["fund"]
@@ -315,6 +322,8 @@ class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         )
         add_choices_to_forms(context["form"], products_with_quantity)
 
+        for product in products_with_quantity:
+            logger.debug(product.available_quantity)
         context["products"] = products_with_quantity
         return context
 
@@ -460,7 +469,7 @@ def product_search_view(request):
     if form.is_valid():
         search_query = form.cleaned_data.get("search_query")
         if search_query:
-            queryset = Product.objects.filter(name__icontains=search_query)
+            queryset = Product.objects.filter(name__icontains=search_query).filter(~Q(quantity_in_stock=0))
 
     order = get_users_last_order(Order, request.user)
     orderitems = get_orderitems_query(OrderItem, order.id)
@@ -497,7 +506,7 @@ class OrderItemFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         return {"product": self.kwargs["pk"], "order": self.order}
 
     def get_additional_context(self):
-        product = Product.objects.filter(id=self.kwargs["pk"])
+        product = Product.objects.filter(id=self.kwargs["pk"]).filter(~Q(quantity_in_stock=0))
         self.product_with_quantity = calculate_available_quantity(product)
         self.orderitems = get_orderitems_query(OrderItem, self.order.id)
 
@@ -505,8 +514,8 @@ class OrderItemFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         context = super().get_context_data(**kwargs)
         self.get_additional_context()
 
-        add_choices_to_form(context["form"], self.product_with_quantity)
         context["product"] = get_object_or_404(self.product_with_quantity)
+        add_choices_to_form(context["form"], self.product_with_quantity)
         context["order"] = self.order
         context["orderitems"] = self.orderitems
         context["order_cost"] = calculate_order_cost(self.orderitems)

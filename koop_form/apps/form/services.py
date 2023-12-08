@@ -51,6 +51,10 @@ def list_messages(response):
 
 
 def calculate_available_quantity(products):
+    """ First, calculates previous friday.
+     Next, to products queryset annotates ordered_quantity - sum of quantities ordered this week.
+     Finally, annotates available_quantity: order_max_quantity or quantity_in_stock minus ordered_quantity.
+     """
     previous_friday = calculate_previous_weekday()
 
     products_with_available_quantity = products.annotate(
@@ -59,12 +63,35 @@ def calculate_available_quantity(products):
             filter=Q(orderitems__item_ordered_date__gte=previous_friday),
         ),
         available_quantity=Case(
-            When(ordered_quantity=None, then=F("order_max_quantity")),
-            default=F("order_max_quantity") - F("ordered_quantity"),
+            When(ordered_quantity=None, then=Case(
+                When(order_max_quantity=None, then=F("quantity_in_stock")),
+                default=F("order_max_quantity")
+            )),
+            default=Case(
+                When(order_max_quantity=None, then=F("quantity_in_stock") - F("ordered_quantity")),
+                default=F("order_max_quantity") - F("ordered_quantity"),
+            ),
         ),
     ).order_by("name")
 
     return products_with_available_quantity
+
+
+# def calculate_available_quantity(products):
+#     previous_friday = calculate_previous_weekday()
+#
+#     products_with_available_quantity = products.annotate(
+#         ordered_quantity=Sum(
+#             "orderitems__quantity",
+#             filter=Q(orderitems__item_ordered_date__gte=previous_friday),
+#         ),
+#         available_quantity=Case(
+#             When(ordered_quantity=None, then=F("order_max_quantity")),
+#             default=F("order_max_quantity") - F("ordered_quantity"),
+#         ),
+#     ).order_by("name")
+#
+#     return products_with_available_quantity
 
 
 def calculate_order_number(order):

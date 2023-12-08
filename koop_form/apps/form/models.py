@@ -63,7 +63,7 @@ class Product(models.Model):
     description = models.TextField(max_length=1000)
 
     order_max_quantity = models.DecimalField(
-        max_digits=9, decimal_places=3, blank=True, default=9999
+        max_digits=9, decimal_places=3, blank=True, null=True
     )
     quantity_in_stock = models.DecimalField(
         max_digits=9, decimal_places=3, null=True, blank=True

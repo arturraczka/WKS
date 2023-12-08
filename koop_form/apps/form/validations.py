@@ -29,7 +29,11 @@ def validate_product_already_in_order(product, request, order_model):
 
 def validate_order_max_quantity(product, product_instance, form_instance, request):
     previous_friday = calculate_previous_weekday()
-    order_max_quantity = product.order_max_quantity
+    order_max_quantity = None
+    if product.order_max_quantity is not None:
+        order_max_quantity = product.order_max_quantity
+    elif product.quantity_in_stock is not None:
+        order_max_quantity = product.quantity_in_stock
     if order_max_quantity is not None:
         ordered_quantity = (
             product_instance.orderitems.filter(order__date_created__gte=previous_friday)
