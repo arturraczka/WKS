@@ -22,6 +22,9 @@ class Producer(models.Model):
     )  # Default order or use choices for specific values
     is_active = models.BooleanField(default=True)
     not_arrived = models.BooleanField(default=False, blank=True)
+    manager_name = models.CharField(blank=True, null=True)
+    manager_email = models.EmailField(blank=True, null=True)
+    manager_phone = models.PositiveIntegerField(blank=True, null=True)
 
     class Meta:
         ordering = ["order"]
