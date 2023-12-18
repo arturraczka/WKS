@@ -21,7 +21,23 @@ class ProductWeightSchemeInLine(admin.TabularInline):
     extra = 1
 
 
-class ProducerAdmin(admin.ModelAdmin):
+class ProducerResource(resources.ModelResource):
+    class Meta:
+        model = Producer
+        import_id_fields = ("id",)
+        fields = (
+            "id",
+            "name",
+            "short",
+            "manager_name",
+            "manager_email",
+            "manager_phone",
+            "description",
+        )
+
+
+class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_classes = [ProducerResource]
     list_display = ["name", "short", "is_active"]
 
 
