@@ -1,5 +1,8 @@
 from django.contrib import admin
 
+from import_export.admin import ImportExportModelAdmin
+from import_export import resources, fields, widgets
+
 from apps.form.models import (
     Producer,
     WeightScheme,
@@ -22,7 +25,31 @@ class ProducerAdmin(admin.ModelAdmin):
     list_display = ["name", "short", "is_active"]
 
 
-class ProductAdmin(admin.ModelAdmin):
+class ProductResource(resources.ModelResource):
+    weight_schemes = fields.Field(
+        column_name='weight_schemes',
+        attribute='weight_schemes',
+        widget=widgets.ManyToManyWidget(WeightScheme, field='quantity', separator='|')
+    )
+
+    class Meta:
+        model = Product
+        import_id_fields = ("id",)
+        fields = (
+            "id",
+            "producer",
+            "name",
+            "description",
+            "price",
+            "category",
+            "subcategory",
+            "unit",
+            "info",
+        )
+
+
+class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_classes = [ProductResource]
     list_filter = ["producer__name"]
     inlines = (ProductWeightSchemeInLine,)
     list_display = ["name", "producer", "is_active"]
