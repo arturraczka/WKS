@@ -56,11 +56,16 @@ class Status(models.Model):
 
 
 class Product(models.Model):
+    unit_choices = [
+        ("S", "S"),
+        ("W", "W"),
+        ("G", "G"),
+    ]
     producer = models.ForeignKey(
         Producer, on_delete=models.CASCADE, related_name="products"
     )
     name = models.CharField()
-    description = models.TextField(max_length=1000)
+    description = models.TextField(max_length=1000, null=True, blank=True)
 
     order_max_quantity = models.DecimalField(
         max_digits=9, decimal_places=3, blank=True, null=True
@@ -78,6 +83,11 @@ class Product(models.Model):
     )
     is_active = models.BooleanField(default=True)
     statuses = models.ManyToManyField(Status, related_name="products", blank=True)
+    category = models.CharField()  # possible CHOICES
+    subcategory = models.CharField(null=True, blank=True)
+    # ordinal_num = models.IntegerField(unique=True)  # to think about it
+    unit = models.CharField(choices=unit_choices)
+    info = models.TextField(max_length=255, null=True, blank=True)
 
     class Meta:
         ordering = ["producer__short", "name"]
