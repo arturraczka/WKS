@@ -72,7 +72,7 @@ def calculate_available_quantity(products):
                 default=F("order_max_quantity") - F("ordered_quantity"),
             ),
         ),
-    ).order_by("name")
+    ).order_by("category", "name")
 
     return products_with_available_quantity
 

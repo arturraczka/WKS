@@ -165,6 +165,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormOpenMixin, FormView):
             Product.objects.filter(producer=self.producer)
             .filter(is_active=True)
             .filter(~Q(quantity_in_stock=0))
+            .order_by("category", "name")
             .only("id")
         )
 
