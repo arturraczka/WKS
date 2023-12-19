@@ -87,6 +87,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 class OrderItemAdmin(admin.ModelAdmin):
+    raw_id_fields = ('product',)
     list_filter = [
         "order__user__last_name",
         "order__date_created",
@@ -136,6 +137,7 @@ class SupplyAdmin(admin.ModelAdmin):
 
 
 class SupplyItemAdmin(admin.ModelAdmin):
+    raw_id_fields = ('product',)
     list_filter = ["product__producer__short", "date_created"]
     list_display = ["producer_short", "product_name", "quantity", "date_created"]
     search_fields = ["product__name"]
