@@ -282,7 +282,7 @@ class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         self.order = None
         self.producer = None
         self.products_with_related = None
-        self.products = None
+        # self.products = None
         self.orderitems = None
 
     def get_success_url(self):
@@ -292,10 +292,10 @@ class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
     def get_order_orderitems_and_products(self):
         self.order = get_users_last_order(Order, self.request.user)
 
-        products_ids = Product.objects.filter(orders=self.order).values_list(flat=True)
+        products_ids = Product.objects.filter(orders=self.order).values_list(flat=True).order_by("name")
         self.products_with_related = Product.objects.filter(
             pk__in=list(products_ids)
-        ).prefetch_related("weight_schemes", "statuses",)
+        ).prefetch_related("weight_schemes", "statuses",).order_by("name")
 
         self.orderitems = get_orderitems_query(OrderItem, self.order.id)
 
@@ -336,7 +336,7 @@ class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
 
         products_with_quantity = calculate_available_quantity(
             self.products_with_related
-        )
+        ).order_by("name")
         add_choices_to_forms(context["form"], products_with_quantity)
 
         context["products"] = products_with_quantity
