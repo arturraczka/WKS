@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
@@ -76,3 +77,21 @@ def check_before_switch_products_isactive_bool_value(sender, instance, **kwargs)
     else:
         if producer_db.is_active != instance.is_active:
             switch_products_isactive_bool_value(instance)
+
+
+@receiver(pre_save, sender=OrderItem)
+def adjust_product_in_stock_quantity(sender, instance, **kwargs):
+    product = Product.objects.get(id=instance.product.id)
+    if product.quantity_in_stock is not None:
+        try:
+            item_db = sender.objects.get(pk=instance.pk)
+        except sender.DoesNotExist:
+            if product.quantity_in_stock is not None:
+                product.quantity_in_stock -= instance.quantity
+                product.save()
+        else:
+            if instance.quantity is not None:
+                ordered_quantity = item_db.quantity
+                quantity_delta = instance.quantity - ordered_quantity
+                product.quantity_in_stock -= quantity_delta
+                product.save()
