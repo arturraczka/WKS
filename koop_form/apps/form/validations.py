@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
@@ -28,13 +29,9 @@ def validate_product_already_in_order(product, request, order_model):
 
 
 def validate_order_max_quantity(product, product_instance, form_instance, request):
+    """Validates whether created/updated orderitem.quantity exceeds product.quantity_in_stock or product.quantity_in_stock """
     previous_friday = calculate_previous_weekday()
-    order_max_quantity = None
     if product.order_max_quantity is not None:
-        order_max_quantity = product.order_max_quantity
-    elif product.quantity_in_stock is not None:
-        order_max_quantity = product.quantity_in_stock
-    if order_max_quantity is not None:
         ordered_quantity = (
             product_instance.orderitems.filter(order__date_created__gte=previous_friday)
             .exclude(pk=form_instance.id)
@@ -42,7 +39,20 @@ def validate_order_max_quantity(product, product_instance, form_instance, reques
         )
         if ordered_quantity is None:
             ordered_quantity = 0
-        if order_max_quantity < ordered_quantity + form_instance.quantity:
+        if product.order_max_quantity < ordered_quantity + form_instance.quantity:
+            messages.warning(
+                request,
+                f"{product.name}: Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle.",
+            )
+            return True
+
+    if product.quantity_in_stock is not None:
+        try:
+            item_db = product_instance.orderitems.get(pk=form_instance.id)
+            quantity_delta = form_instance.quantity - item_db.quantity
+        except ObjectDoesNotExist:
+            quantity_delta = form_instance.quantity
+        if product.quantity_in_stock < quantity_delta:
             messages.warning(
                 request,
                 f"{product.name}: Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle.",
