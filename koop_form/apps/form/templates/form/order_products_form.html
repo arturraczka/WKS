@@ -28,7 +28,7 @@
 
                         <div>
                           <span class="mr-2"><strong>{{ product.price }}</strong> zł za szt/kg</span>
-
+                          <span class="mr-2"> | Kategoria: {{ product.category }}</span>
                           <span class="text-muted"> | Status produktu: </span>
                           {% for status in product.statuses.all %}
                             <span class="text-muted"><strong>{{ status.status_type }},</strong></span>
