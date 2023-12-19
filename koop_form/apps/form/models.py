@@ -93,7 +93,7 @@ class Product(models.Model):
     info = models.TextField(max_length=255, null=True, blank=True)
 
     class Meta:
-        ordering = ["producer__short", "category", "name"]
+        ordering = ["name"]
 
     def __str__(self):
         return f"{self.producer.short}: {self.name}"
