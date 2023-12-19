@@ -68,7 +68,7 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [ProductResource]
     list_filter = ["producer__name"]
     inlines = (ProductWeightSchemeInLine,)
-    list_display = ["name", "producer", "is_active"]
+    list_display = ["name", "producer", "category", "is_active"]
     search_fields = [
         "name",
     ]
