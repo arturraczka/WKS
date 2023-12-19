@@ -59,6 +59,7 @@ from apps.form.validations import (
     validate_order_exists,
     perform_update_orderitem_validations,
 )
+from django.core.paginator import Paginator
 
 logger = logging.getLogger("django.server")
 
@@ -155,19 +156,23 @@ class OrderProductsFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         self.orderitems = None
 
     def get_success_url(self):
-        return self.request.path
+        page_number = self.request.GET.get("page")
+        return str(self.request.path) + f"?page={page_number}"
 
     def get_producer_object(self):
         self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
 
     def get_products_query(self):
-        self.products = (
+        products = (
             Product.objects.filter(producer=self.producer)
             .filter(is_active=True)
             .filter(~Q(quantity_in_stock=0))
             .order_by("category", "name")
             .only("id")
         )
+        page_number = self.request.GET.get("page")
+        form_paginator = Paginator(products, 50)
+        self.products = form_paginator.get_page(page_number)
 
     def get_order_producer_products(self):
         self.order = get_users_last_order(Order, self.request.user)
@@ -208,7 +213,7 @@ class OrderProductsFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         context = super().get_context_data(**kwargs)
         self.get_additional_context()
 
-        add_choices_to_forms(context["form"], self.products_with_quantity)
+
         context["order"] = self.order
         context["orderitems"] = self.orderitems
         context["order_cost"] = calculate_order_cost(self.orderitems)
@@ -216,6 +221,14 @@ class OrderProductsFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         context["producers"] = get_producers_list(Producer)
         context["producer"] = self.producer
         context["products"] = self.products_with_quantity
+
+        page_number = self.request.GET.get("page")
+        products_paginator = Paginator(self.products_with_quantity, 50)
+        context["products"] = products_paginator.get_page(page_number)
+        context["form_for_management"] = context["form"]
+        form_paginator = Paginator(context["form"], 50)
+        context["form"] = form_paginator.get_page(page_number)
+        add_choices_to_forms(context["form"], context["products"])
         return context
 
     def form_valid(self, form):

@@ -14,6 +14,24 @@
     <h3>{{ producer.name }}</h3>
     <p>{{ producer.description }}</p>
 
+    <div class="pagination">
+        <span class="step-links margin-bottom">
+            {% if products.has_previous %}
+                <a href="?page=1">&laquo; pierwsza</a>
+                <a href="?page={{ products.previous_page_number }}">&lsaquo; wcześniejsza</a>
+            {% endif %}
+
+            <span class="current">
+                Strona {{ products.number }} z {{ products.paginator.num_pages }}.
+            </span>
+
+            {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}">następna &rsaquo;</a>
+                <a href="?page={{ products.paginator.num_pages }}">ostatnia &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+
     <div class="row">
         <div class="col-md-8">
 
@@ -53,7 +71,7 @@
 
             <form method="post">
                 {% csrf_token %}
-                {{ form.management_form }}
+                {{ form_for_management.management_form }}
 
                 {% for form_instance in form %}
                     <article class="media fixed-height-div">
@@ -71,6 +89,23 @@
         </div>
 
 
+    </div>
+    <div class="pagination">
+        <span class="step-links margin-bottom margin-top-fix-60">
+            {% if products.has_previous %}
+                <a href="?page=1">&laquo; pierwsza</a>
+                <a href="?page={{ products.previous_page_number }}">&lsaquo; wcześniejsza</a>
+            {% endif %}
+
+            <span class="current">
+                Strona {{ products.number }} z {{ products.paginator.num_pages }}.
+            </span>
+
+            {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}">następna &rsaquo;</a>
+                <a href="?page={{ products.paginator.num_pages }}">ostatnia &raquo;</a>
+            {% endif %}
+        </span>
     </div>
 </div>
 

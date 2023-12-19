@@ -163,6 +163,10 @@ a.article-title:hover {
     margin-bottom: 20px;
 }
 
+.margin-top-fix-60 {
+    margin-top: -60px;
+}
+
 .fixed-height-small {
     height: 40px;
 }
