@@ -43,9 +43,9 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 class ProductResource(resources.ModelResource):
     weight_schemes = fields.Field(
-        column_name='weight_schemes',
-        attribute='weight_schemes',
-        widget=widgets.ManyToManyWidget(WeightScheme, field='quantity', separator='|')
+        column_name="weight_schemes",
+        attribute="weight_schemes",
+        widget=widgets.ManyToManyWidget(WeightScheme, field="quantity", separator="|"),
     )
 
     class Meta:
@@ -87,7 +87,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 class OrderItemAdmin(admin.ModelAdmin):
-    raw_id_fields = ('product',)
+    raw_id_fields = ("product",)
     list_filter = [
         "order__user__last_name",
         "order__date_created",
@@ -137,7 +137,7 @@ class SupplyAdmin(admin.ModelAdmin):
 
 
 class SupplyItemAdmin(admin.ModelAdmin):
-    raw_id_fields = ('product',)
+    raw_id_fields = ("product",)
     list_filter = ["product__producer__short", "date_created"]
     list_display = ["producer_short", "product_name", "quantity", "date_created"]
     search_fields = ["product__name"]

@@ -5,7 +5,6 @@ logger = logging.getLogger("django.server")
 register = template.Library()
 
 
-
 @register.filter
 def format_decimal(value, decimal_places=3):
     try:

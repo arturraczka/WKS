@@ -199,7 +199,10 @@ class OrderProductsFormView(LoginRequiredMixin, FormOpenMixin, FormView):
             Product.objects.filter(producer=self.producer)
             .filter(is_active=True)
             .filter(~Q(quantity_in_stock=0))
-            .prefetch_related("weight_schemes", "statuses",)
+            .prefetch_related(
+                "weight_schemes",
+                "statuses",
+            )
         )
         self.products_with_quantity = calculate_available_quantity(
             products_with_related
@@ -212,7 +215,6 @@ class OrderProductsFormView(LoginRequiredMixin, FormOpenMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         self.get_additional_context()
-
 
         context["order"] = self.order
         context["orderitems"] = self.orderitems
@@ -292,10 +294,19 @@ class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
     def get_order_orderitems_and_products(self):
         self.order = get_users_last_order(Order, self.request.user)
 
-        products_ids = Product.objects.filter(orders=self.order).values_list(flat=True).order_by("name")
-        self.products_with_related = Product.objects.filter(
-            pk__in=list(products_ids)
-        ).prefetch_related("weight_schemes", "statuses",).order_by("name")
+        products_ids = (
+            Product.objects.filter(orders=self.order)
+            .values_list(flat=True)
+            .order_by("name")
+        )
+        self.products_with_related = (
+            Product.objects.filter(pk__in=list(products_ids))
+            .prefetch_related(
+                "weight_schemes",
+                "statuses",
+            )
+            .order_by("name")
+        )
 
         self.orderitems = get_orderitems_query(OrderItem, self.order.id)
 
@@ -484,7 +495,9 @@ def product_search_view(request):
     if form.is_valid():
         search_query = form.cleaned_data.get("search_query")
         if search_query:
-            queryset = Product.objects.filter(name__icontains=search_query).filter(~Q(quantity_in_stock=0))
+            queryset = Product.objects.filter(name__icontains=search_query).filter(
+                ~Q(quantity_in_stock=0)
+            )
 
     order = get_users_last_order(Order, request.user)
     orderitems = get_orderitems_query(OrderItem, order.id)
@@ -521,7 +534,9 @@ class OrderItemFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         return {"product": self.kwargs["pk"], "order": self.order}
 
     def get_additional_context(self):
-        product = Product.objects.filter(id=self.kwargs["pk"]).filter(~Q(quantity_in_stock=0))
+        product = Product.objects.filter(id=self.kwargs["pk"]).filter(
+            ~Q(quantity_in_stock=0)
+        )
         self.product_with_quantity = calculate_available_quantity(product)
         self.orderitems = get_orderitems_query(OrderItem, self.order.id)
 

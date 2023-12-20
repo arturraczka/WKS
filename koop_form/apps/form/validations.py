@@ -29,7 +29,7 @@ def validate_product_already_in_order(product, request, order_model):
 
 
 def validate_order_max_quantity(product, product_instance, form_instance, request):
-    """Validates whether created/updated orderitem.quantity exceeds product.quantity_in_stock or product.quantity_in_stock """
+    """Validates whether created/updated orderitem.quantity exceeds product.quantity_in_stock or product.quantity_in_stock"""
     previous_friday = calculate_previous_weekday()
     if product.order_max_quantity is not None:
         ordered_quantity = (

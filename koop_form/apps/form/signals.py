@@ -1,5 +1,4 @@
 import logging
-from decimal import Decimal
 
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
@@ -58,7 +57,7 @@ def delete_instance_if_quantity_eq_0(sender, instance, **kwargs):
 
 @receiver(pre_delete, sender=Order)
 def on_order_delete_trigger_recalculate_order_numbers(sender, instance, **kwargs):
-    recalculate_order_numbers(sender, instance.date_created, instance.order_number)
+    recalculate_order_numbers(sender, instance.date_created)
 
 
 @receiver(post_save, sender=Producer)
