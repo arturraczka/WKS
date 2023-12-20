@@ -46,6 +46,7 @@ def staff_check(user):
 
 
 def list_messages(response):
+    """Extracts messages from response object and returns them as a list."""
     messages = [msg.message for msg in list(get_messages(response.wsgi_request))]
     return messages
 
@@ -56,7 +57,6 @@ def calculate_available_quantity(products):
      Finally, annotates available_quantity: order_max_quantity minus ordered_quantity or quantity_in_stock.
      """
     previous_friday = calculate_previous_weekday()
-
     products_with_available_quantity = products.annotate(
         ordered_quantity=Sum(
             "orderitems__quantity",
@@ -73,50 +73,27 @@ def calculate_available_quantity(products):
             ),
         ),
     ).order_by("category", "name")
-
-    # products_with_available_quantity = products.annotate(
-    #     ordered_quantity=Sum(
-    #         "orderitems__quantity",
-    #         filter=Q(orderitems__item_ordered_date__gte=previous_friday),
-    #     )).annotate(
-    #     available_quantity=Case(
-    #         When(ordered_quantity=None, then=Case(
-    #             When(order_max_quantity=None, then=F("quantity_in_stock")),
-    #             default=F("order_max_quantity")
-    #         )),
-    #         default=Case(
-    #             When(order_max_quantity=None, then=F("quantity_in_stock") - F("ordered_quantity")),
-    #             default=F("order_max_quantity") - F("ordered_quantity"),
-    #         ),
-    #     ),
-    # ).order_by("category", "name")
-
     return products_with_available_quantity
 
 
-# def calculate_available_quantity(products):
-#     previous_friday = calculate_previous_weekday()
-#
-#     products_with_available_quantity = products.annotate(
-#         ordered_quantity=Sum(
-#             "orderitems__quantity",
-#             filter=Q(orderitems__item_ordered_date__gte=previous_friday),
-#         ),
-#         available_quantity=Case(
-#             When(ordered_quantity=None, then=F("order_max_quantity")),
-#             default=F("order_max_quantity") - F("ordered_quantity"),
-#         ),
-#     ).order_by("name")
-#
-#     return products_with_available_quantity
-
-
-def calculate_order_number(order):
-    order_number = 1
+def calculate_order_number(order_model):
+    """Returns order number as a sum of orders from this week + 1. Used for newly created Order instances."""
     previous_friday = calculate_previous_weekday()
-    order_count = order.objects.filter(date_created__gte=previous_friday).count()
-    order_number += order_count
-    return order_number
+    return order_model.objects.filter(date_created__gte=previous_friday).count() + 1
+
+
+def recalculate_order_numbers(order_model, order_instance_date_created, number):
+    """Retrieves queryset of Order instances newer than given date. Decrements order_number by 1
+    for all instances. Used in signals in case of Order instance deletion to avoid order_number step other than 1."""
+    previous_friday = calculate_previous_weekday()
+    if order_instance_date_created < previous_friday:
+        return
+    orders_qs = order_model.objects.filter(date_created__gt=order_instance_date_created).order_by(
+        "date_created"
+    )
+    for order in orders_qs:
+        order.order_number = F("order_number") - 1
+        order.save()
 
 
 def calculate_total_income(products):
@@ -154,20 +131,6 @@ def reduce_order_quantity(orderitem_model, product_pk, delivered_quantity):
                 last_item.save()
         else:
             delivered_quantity_lower_than_ordered_quantity = False
-
-
-def recalculate_order_numbers(order_model, date, number):
-    previous_friday = calculate_previous_weekday()
-    if date < previous_friday:
-        return
-    orders_qs = order_model.objects.filter(date_created__gt=date).order_by(
-        "date_created"
-    )
-    initial = number
-    for order in orders_qs:
-        order.order_number = initial
-        order.save()
-        initial += 1
 
 
 def create_order_data_list(products):
