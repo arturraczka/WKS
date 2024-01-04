@@ -75,7 +75,8 @@ class ProducersView(ListView):
         return get_producers_list(Producer)
 
 
-class ProductsView(LoginRequiredMixin, DetailView):
+@method_decorator(login_required, name="dispatch")
+class ProductsView(DetailView):
     model = Producer
     context_object_name = "producer"
     template_name = "form/product_list.html"
@@ -102,7 +103,7 @@ class ProducerProductsListView(ProducersView):
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerProductsReportView(LoginRequiredMixin, TemplateView):
+class ProducerProductsReportView(TemplateView):
     template_name = "form/producer_products_report.html"
 
     def get_context_data(self, **kwargs):
@@ -132,6 +133,7 @@ class ProducerProductsReportView(LoginRequiredMixin, TemplateView):
         return context
 
 
+@method_decorator(login_required, name="dispatch")
 @method_decorator(
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
 )
@@ -139,10 +141,11 @@ class OrderProducersView(ProducersView):
     template_name = "form/order_producers.html"
 
 
+@method_decorator(login_required, name="dispatch")
 @method_decorator(
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
 )
-class OrderProductsFormView(LoginRequiredMixin, FormOpenMixin, FormView):
+class OrderProductsFormView(FormOpenMixin, FormView):
     model = OrderItem
     template_name = "form/order_products_form.html"
     form_class = None
@@ -252,7 +255,8 @@ class OrderProductsFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         return super().form_valid(form)
 
 
-class OrderCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+@method_decorator(login_required, name="dispatch")
+class OrderCreateView(SuccessMessageMixin, CreateView):
     model = Order
     template_name = "form/order_create.html"
     form_class = CreateOrderForm
@@ -271,10 +275,11 @@ class OrderCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
         return success_url
 
 
+@method_decorator(login_required, name="dispatch")
 @method_decorator(
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
 )
-class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
+class OrderUpdateFormView(FormOpenMixin, FormView):
     model = OrderItem
     form_class = None
     template_name = "form/order_update_form.html"
@@ -366,8 +371,9 @@ class OrderUpdateFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         return super().form_valid(form)
 
 
+@method_decorator(login_required, name="dispatch")
 class OrderUpdateView(
-    LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView
+    UserPassesTestMixin, SuccessMessageMixin, UpdateView
 ):
     model = Order
     fields = ["pick_up_day"]
@@ -380,8 +386,9 @@ class OrderUpdateView(
         return self.request.user == order.user
 
 
+@method_decorator(login_required, name="dispatch")
 class OrderDeleteView(
-    LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, DeleteView
+    UserPassesTestMixin, SuccessMessageMixin, DeleteView
 ):
     model = Order
     template_name = "form/order_delete.html"
@@ -394,7 +401,7 @@ class OrderDeleteView(
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerBoxReportView(LoginRequiredMixin, TemplateView):
+class ProducerBoxReportView(TemplateView):
     template_name = "form/producer_box_report.html"
 
     def get_context_data(self, **kwargs):
@@ -421,7 +428,7 @@ class ProducerBoxReportView(LoginRequiredMixin, TemplateView):
 
 # TODO refactoring
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class UsersReportView(LoginRequiredMixin, TemplateView):
+class UsersReportView(TemplateView):
     template_name = "form/users_report.html"
 
     def get_context_data(self, **kwargs):
@@ -457,12 +464,13 @@ class UsersReportView(LoginRequiredMixin, TemplateView):
         return context
 
 
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducerBoxListView(ProducerProductsListView):
     template_name = "form/producer_box_list.html"
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducersFinanceReportView(LoginRequiredMixin, TemplateView):
+class ProducersFinanceReportView(TemplateView):
     template_name = "form/producers_finance.html"
 
     def get_context_data(self, **kwargs):
@@ -514,10 +522,11 @@ def product_search_view(request):
     return render(request, "form/product_search.html", context)
 
 
+@method_decorator(login_required, name="dispatch")
 @method_decorator(
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
 )
-class OrderItemFormView(LoginRequiredMixin, FormOpenMixin, FormView):
+class OrderItemFormView(FormOpenMixin, FormView):
     model = OrderItem
     template_name = "form/order_item_form.html"
     form_class = CreateOrderItemForm
@@ -569,6 +578,7 @@ class OrderItemFormView(LoginRequiredMixin, FormOpenMixin, FormView):
         return super().form_valid(saved_form)
 
 
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducerBoxReportDownloadView(ProducerBoxReportView):
     response_class = HttpResponse
     content_type = "text/csv"
@@ -595,6 +605,7 @@ class ProducerBoxReportDownloadView(ProducerBoxReportView):
         return response
 
 
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class UsersReportDownloadView(UsersReportView):
     response_class = HttpResponse
     content_type = "text/csv"
@@ -623,6 +634,7 @@ class UsersReportDownloadView(UsersReportView):
         return response
 
 
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducersFinanceReportDownloadView(ProducersFinanceReportView):
     response_class = HttpResponse
     content_type = "text/csv"
@@ -647,6 +659,7 @@ class ProducersFinanceReportDownloadView(ProducersFinanceReportView):
         return response
 
 
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducerProductsReportDownloadView(ProducerProductsReportView):
     response_class = HttpResponse
     content_type = "text/csv"
@@ -694,6 +707,7 @@ class OrderBoxListView(TemplateView):
         return context
 
 
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class OrderBoxReportView(OrderBoxListView):
     template_name = "form/order_box_report.html"
 
@@ -734,6 +748,7 @@ class OrderBoxReportView(OrderBoxListView):
         return context
 
 
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class OrderBoxReportDownloadView(OrderBoxReportView):
     response_class = HttpResponse
     content_type = "text/csv"
@@ -797,6 +812,7 @@ class UsersFinanceReportView(TemplateView):
         return context
 
 
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class UsersFinanceReportDownloadView(UsersFinanceReportView):
     pass
 
@@ -914,6 +930,7 @@ class SupplyUpdateFormView(FormView):
     def get_success_url(self):
         return self.request.path
 
+    # TODO zmień kurwa nazwę tej metody
     def get_shit_done(self):
         self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
         self.supply = (
