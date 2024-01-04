@@ -192,6 +192,7 @@ def get_quantity_choices():
     return sorted(choices)
 
 
+# TODO do testu samodzielnego, nie w widokach!!!!!!!!!!!!!!!!!
 def get_producers_list(producer_model):
     producers = producer_model.objects.filter(is_active=True).values("slug", "name")
     return [[producer["slug"], producer["name"]] for producer in producers]
