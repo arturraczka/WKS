@@ -106,30 +106,36 @@ class ProducerProductsListView(ProducersView):
 class ProducerProductsReportView(TemplateView):
     template_name = "form/producer_products_report.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.producer = None
+        self.products = None
+        self.product_names_list = []
+        self.product_ordered_quantities_list = []
+        self.product_incomes_list = []
 
-        producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
-        context["producer"] = producer
-        context["producers"] = get_producers_list(Producer)
-        products = filter_products_with_ordered_quantity_and_income(Product, producer)
+    def get_producer_products(self):
+        self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+        self.products = filter_products_with_ordered_quantity_and_income(Product, self.producer.id)
 
-        products_names = []
-        products_ordered_quantity = []
-        products_incomes = []
-        for product in products:
-            products_names += (product.name,)
-            products_ordered_quantity += (
+    def get_product_names_quantities_incomes(self):
+        for product in self.products:
+            self.product_names_list += (product.name,)
+            self.product_ordered_quantities_list += (
                 str(product.ordered_quantity).rstrip("0").rstrip("."),
             )
-            products_incomes += (f"{product.income:.2f}",)
+            self.product_incomes_list += (f"{product.income:.2f}",)
 
-        context["products_names"] = products_names
-        context["products_ordered_quantity"] = products_ordered_quantity
-        context["products_incomes"] = products_incomes
-
-        total_income = calculate_total_income(products)
-        context["total_income"] = total_income
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        self.get_producer_products()
+        self.get_product_names_quantities_incomes()
+        context["producer"] = self.producer
+        context["producers"] = get_producers_list(Producer)
+        context["product_names_list"] = self.product_names_list
+        context["product_ordered_quantities_list"] = self.product_ordered_quantities_list
+        context["product_incomes_list"] = self.product_incomes_list
+        context["total_income"] = calculate_total_income(self.products)
         return context
 
 

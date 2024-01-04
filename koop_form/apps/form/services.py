@@ -228,13 +228,13 @@ def add_choices_to_form(form, product):
     form.fields["quantity"].choices = product_weight_schemes_list[0]
 
 
-def filter_products_with_ordered_quantity_and_income(product_model, producer_instance):
+def filter_products_with_ordered_quantity_and_income(product_model, producer_id):
     previous_friday = calculate_previous_weekday()
 
     products = (
         product_model.objects.prefetch_related("orderitems")
         .only("name", "orderitems__quantity")
-        .filter(producer=producer_instance)
+        .filter(producer=producer_id)
         .filter(Q(orderitems__item_ordered_date__gte=previous_friday))
         .annotate(
             ordered_quantity=Sum("orderitems__quantity"),

@@ -21,7 +21,7 @@
         <div class="row">
             <div class="col-md-4">
                 <span class="mr-2">Nazwa produktu: </span>
-                {% for name in products_names %}
+                {% for name in product_names_list %}
                     <article class="media ">
                       <div class="media-body">
 
@@ -36,7 +36,7 @@
 
             <div class="col-md-2">
                 <span class="mr-2">Zamówiona ilość: </span>
-                {% for quantity in products_ordered_quantity %}
+                {% for quantity in product_ordered_quantities_list %}
                     <article class="media ">
                       <div class="media-body">
 
@@ -51,7 +51,7 @@
 
             <div class="col-md-2">
                 <span class="mr-2">Przychód: </span>
-                {% for income in products_incomes %}
+                {% for income in product_incomes_list %}
                     <article class="media ">
                       <div class="media-body">
 
