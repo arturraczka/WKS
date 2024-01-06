@@ -121,9 +121,7 @@ class ProducerProductsReportView(TemplateView):
     def get_product_names_quantities_incomes(self):
         for product in self.products:
             self.product_names_list += (product.name,)
-            self.product_ordered_quantities_list += (
-                str(product.ordered_quantity).rstrip("0").rstrip("."),
-            )
+            self.product_ordered_quantities_list.append(product.ordered_quantity)
             self.product_incomes_list += (f"{product.income:.2f}",)
 
     def get_context_data(self, **kwargs):
