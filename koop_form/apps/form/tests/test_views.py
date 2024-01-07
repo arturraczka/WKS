@@ -1,4 +1,6 @@
 import random
+from decimal import Decimal
+
 import pytest
 import datetime
 import logging
@@ -105,39 +107,32 @@ class TestProducerProductsReportView(TestCase):
         self.url = reverse(
             "producer-products-report", kwargs={"slug": self.producer.slug}
         )
-        self.product1 = ProductFactory(producer=self.producer)
-        self.product2 = ProductFactory(producer=self.producer)
+        self.product1 = ProductFactory(producer=self.producer, price=5.5, name="warzywo")
+        self.product2 = ProductFactory(producer=self.producer, price=14, name="cebula")
         self.product3 = ProductFactory()
-        for _ in range(0, 5):
-            OrderItemFactory(product=self.product1)
-            OrderItemFactory(product=self.product2)
-            number = random.randint(7, 20)
-            past_date = timezone.now() - datetime.timedelta(days=number)
-            OrderItemFactory(product=self.product1, item_ordered_date=past_date)
-            OrderItemFactory(product=self.product2, item_ordered_date=past_date)
+        OrderItemFactory(product=self.product1, quantity=Decimal(2.5))
+        OrderItemFactory(product=self.product1, quantity=Decimal(2))
+        OrderItemFactory(product=self.product2, quantity=Decimal(5))
+        OrderItemFactory(product=self.product2, quantity=Decimal(0.5))
+        OrderItemFactory(product=self.product3)
+        OrderItemFactory(product=self.product3)
+        number = random.randint(8, 20)
+        past_date = timezone.now() - datetime.timedelta(days=number)
+        item = OrderItemFactory(product=self.product1)
+        item.item_ordered_date = past_date
+        item.save()
 
     def test_response_and_context(self):
         response = self.client.get(self.url)
         context_data = response.context
 
-        previous_friday = calculate_previous_weekday()
-
-        prod_quantities = []
-        for product in [self.product1, self.product2]:
-            orderitem_qs = OrderItem.objects.filter(product=product).filter(Q(item_ordered_date__gte=previous_friday))
-            quantity_sum = 0
-            for item in orderitem_qs:
-                quantity_sum += item.quantity
-            prod_quantities.append(quantity_sum)
-
-        incomes = [f"{prod_quantities[0] * self.product1.price:.2f}", f"{prod_quantities[1] * self.product2.price:.2f}"]
-
         assert response.status_code == 200
         assert context_data["producer"] == self.producer
         assert context_data["producers"] == get_producers_list(Producer)
-        assert sorted(context_data["product_names_list"]) == sorted([self.product1.name, self.product2.name])
-        assert sorted(context_data["product_ordered_quantities_list"]) == sorted([str(q).rstrip("0").rstrip(".") for q in prod_quantities])
-        assert sorted(context_data["product_incomes_list"]) == sorted(incomes)
+        assert sorted(context_data["product_names_list"]) == ['cebula', 'warzywo']
+        assert sorted(context_data["product_ordered_quantities_list"]) == [4.5, 5.5]
+        assert sorted(context_data["product_incomes_list"]) == ['24.75', '77.00']
+        assert context_data["total_income"] == 101.75
 
     def test_user_is_not_staff(self):
         self.client.force_login(UserFactory())
