@@ -9,25 +9,8 @@ from apps.form.views import (
     OrderDeleteView,
     OrderProducersView,
     OrderUpdateFormView,
-    ProducerProductsReportView,
-    ProducerBoxReportView,
-    UsersReportView,
-    ProducerProductsListView,
-    ProducerBoxListView,
-    ProducersFinanceReportView,
-    product_search_view,
     OrderItemFormView,
-    ProducerBoxReportDownloadView,
-    UsersReportDownloadView,
-    ProducersFinanceReportDownloadView,
-    ProducerProductsReportDownloadView,
-    OrderBoxListView,
-    OrderBoxReportView,
-    OrderBoxReportDownloadView,
-    UsersFinanceReportView,
-    SupplyCreateView,
-    SupplyProductsFormView,
-    SupplyUpdateFormView,
+    product_search_view,
 )
 
 
@@ -37,16 +20,6 @@ urlpatterns = [
         "producenci/<str:slug>/",
         ProductsView.as_view(),
         name="products",
-    ),
-    path(
-        "raporty/producenci-produkty/",
-        ProducerProductsListView.as_view(),
-        name="producer-products-list",
-    ),
-    path(
-        "raporty/producenci-produkty/<str:slug>/",
-        ProducerProductsReportView.as_view(),
-        name="producer-products-report",
     ),
     path(
         "zamowienie/producenci/",
@@ -74,85 +47,10 @@ urlpatterns = [
         OrderDeleteView.as_view(),
         name="order-delete",
     ),
-    path(
-        "raporty/producenci-skrzynki/",
-        ProducerBoxListView.as_view(),
-        name="producer-box-list",
-    ),
-    path(
-        "raporty/producenci-skrzynki/<str:slug>/",
-        ProducerBoxReportView.as_view(),
-        name="producer-box-report",
-    ),
-    path(
-        "raporty/kooperanci/",
-        UsersReportView.as_view(),
-        name="users-report",
-    ),
-    path(
-        "raporty/producenci-finanse/",
-        ProducersFinanceReportView.as_view(),
-        name="producers-finance",
-    ),
     path("wyszukiwarka/", product_search_view, name="product-search"),
     path(
         "wyszukiwarka/produkt/<int:pk>",
         OrderItemFormView.as_view(),
         name="order-item-form",
-    ),
-    path(
-        "pobierz/raporty/producenci-skrzynki/<str:slug>/",
-        ProducerBoxReportDownloadView.as_view(),
-        name="producer-box-report-download",
-    ),
-    path(
-        "pobierz/raporty/kooperanci/",
-        UsersReportDownloadView.as_view(),
-        name="users-report-download",
-    ),
-    path(
-        "pobierz/raporty/producenci-finanse/",
-        ProducersFinanceReportDownloadView.as_view(),
-        name="producers-finance-report-download",
-    ),
-    path(
-        "pobierz/raporty/producenci-produkty/<str:slug>/",
-        ProducerProductsReportDownloadView.as_view(),
-        name="producer-products-report-download",
-    ),
-    path(
-        "raporty/zamowienia-skrzynki/",
-        OrderBoxListView.as_view(),
-        name="order-box-list",
-    ),
-    path(
-        "raporty/zamowienia-skrzynki/<int:pk>/",
-        OrderBoxReportView.as_view(),
-        name="order-box-report",
-    ),
-    path(
-        "pobierz/raporty/zamowienia-skrzynki/<int:pk>/",
-        OrderBoxReportDownloadView.as_view(),
-        name="order-box-report-download",
-    ),
-    path(
-        "raporty/kooperanci-finanse/",
-        UsersFinanceReportView.as_view(),
-        name="users-finance",
-    ),
-    path(
-        "dostawy/nowa/",
-        SupplyCreateView.as_view(),
-        name="supply-create",
-    ),
-    path(
-        "dostawy/produkty/<str:slug>/",
-        SupplyProductsFormView.as_view(),
-        name="supply-products-form",
-    ),
-    path(
-        "dostawy/edytuj/<str:slug>/",
-        SupplyUpdateFormView.as_view(),
-        name="supply-update-form",
     ),
 ]

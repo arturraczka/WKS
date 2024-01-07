@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "apps.form",
     "apps.user",
+    "apps.report",
     "django_extensions",
     "import_export",
     "axes",

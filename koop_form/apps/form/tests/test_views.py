@@ -5,14 +5,16 @@ import pytest
 import datetime
 import logging
 
-from django.db.models import Q
 from django.urls import reverse
 from django.test import TestCase
 from django.utils import timezone
 
 from apps.form.models import Order, OrderItem, Producer, Product
-from apps.form.services import list_messages, calculate_available_quantity, get_producers_list, \
-    calculate_previous_weekday
+from apps.form.services import (
+    list_messages,
+    calculate_available_quantity,
+    get_producers_list,
+)
 from factories.model_factories import (
     ProducerFactory,
     UserFactory,
@@ -107,7 +109,9 @@ class TestProducerProductsReportView(TestCase):
         self.url = reverse(
             "producer-products-report", kwargs={"slug": self.producer.slug}
         )
-        self.product1 = ProductFactory(producer=self.producer, price=5.5, name="warzywo")
+        self.product1 = ProductFactory(
+            producer=self.producer, price=5.5, name="warzywo"
+        )
         self.product2 = ProductFactory(producer=self.producer, price=14, name="cebula")
         self.product3 = ProductFactory()
         OrderItemFactory(product=self.product1, quantity=Decimal(2.5))
@@ -129,9 +133,9 @@ class TestProducerProductsReportView(TestCase):
         assert response.status_code == 200
         assert context_data["producer"] == self.producer
         assert context_data["producers"] == get_producers_list(Producer)
-        assert sorted(context_data["product_names_list"]) == ['cebula', 'warzywo']
+        assert sorted(context_data["product_names_list"]) == ["cebula", "warzywo"]
         assert sorted(context_data["product_ordered_quantities_list"]) == [4.5, 5.5]
-        assert sorted(context_data["product_incomes_list"]) == ['24.75', '77.00']
+        assert sorted(context_data["product_incomes_list"]) == ["24.75", "77.00"]
         assert context_data["total_income"] == 101.75
 
     def test_user_is_not_staff(self):
