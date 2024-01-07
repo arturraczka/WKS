@@ -9,18 +9,14 @@ from django.urls import reverse
 from django.test import TestCase
 from django.utils import timezone
 
-from apps.form.models import Order, OrderItem, Producer, Product
+from apps.form.models import Producer, Product
 from apps.form.services import (
-    list_messages,
-    calculate_available_quantity,
     get_producers_list,
 )
 from factories.model_factories import (
     ProducerFactory,
     UserFactory,
-    WeightSchemeFactory,
     ProductFactory,
-    OrderWithProductFactory,
     OrderItemFactory,
     OrderFactory,
     ProfileFactory,
@@ -119,7 +115,6 @@ class TestProducerBoxReportView(TestCase):
         assert response.status_code == 302
 
 
-
 @pytest.mark.django_db
 class TestUsersReportView(TestCase):
     def setUp(self):
@@ -127,9 +122,9 @@ class TestUsersReportView(TestCase):
         self.client.force_login(self.user)
         self.url = reverse("users-report")
 
-        self.user1 = UserFactory(first_name='Kamil', last_name='K')
-        self.user2 = UserFactory(first_name='Marek', last_name='M')
-        self.user3 = UserFactory(first_name='Wojtek', last_name='W')
+        self.user1 = UserFactory(first_name="Kamil", last_name="K")
+        self.user2 = UserFactory(first_name="Marek", last_name="M")
+        self.user3 = UserFactory(first_name="Wojtek", last_name="W")
         ProfileFactory(koop_id=1, user=self.user1, phone_number=444555666)
         ProfileFactory(koop_id=2, user=self.user2, phone_number=777666555)
         OrderFactory(user=self.user1, pick_up_day="środa")
@@ -140,11 +135,10 @@ class TestUsersReportView(TestCase):
         context_data = response.context
 
         assert response.status_code == 200
-        assert context_data["user_name_list"] == ['Kamil K', 'Marek M']
+        assert context_data["user_name_list"] == ["Kamil K", "Marek M"]
         assert context_data["user_order_number_list"] == [1, 2]
         assert context_data["user_pickup_day_list"] == ["środa", "czwartek"]
         assert context_data["user_phone_number_list"] == [444555666, 777666555]
-
 
     def test_user_is_not_staff(self):
         self.client.force_login(UserFactory())

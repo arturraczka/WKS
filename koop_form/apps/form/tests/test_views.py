@@ -1,6 +1,3 @@
-import random
-from decimal import Decimal
-
 import pytest
 import datetime
 import logging
@@ -13,7 +10,6 @@ from apps.form.models import Order, OrderItem, Producer, Product
 from apps.form.services import (
     list_messages,
     calculate_available_quantity,
-    get_producers_list,
 )
 from factories.model_factories import (
     ProducerFactory,
