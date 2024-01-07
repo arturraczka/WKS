@@ -11,8 +11,6 @@ from apps.form.models import (
     Order,
     OrderItem,
     product_weight_schemes,
-    Supply,
-    SupplyItem,
 )
 
 
@@ -157,5 +155,3 @@ admin.site.register(Status)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(OrderItem, OrderItemAdmin)
-admin.site.register(Supply, SupplyAdmin)
-admin.site.register(SupplyItem, SupplyItemAdmin)

@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "apps.form",
     "apps.user",
     "apps.report",
+    "apps.supply",
     "django_extensions",
     "import_export",
     "axes",

@@ -14,9 +14,6 @@ from apps.report.views import (
     OrderBoxReportView,
     OrderBoxReportDownloadView,
     UsersFinanceReportView,
-    SupplyCreateView,
-    SupplyProductsFormView,
-    SupplyUpdateFormView,
     ProducerProductsListView,
 )
 
@@ -91,20 +88,5 @@ urlpatterns = [
         "kooperanci-finanse/",
         UsersFinanceReportView.as_view(),
         name="users-finance",
-    ),
-    path(
-        "dostawy/nowa/",
-        SupplyCreateView.as_view(),
-        name="supply-create",
-    ),
-    path(
-        "dostawy/produkty/<str:slug>/",
-        SupplyProductsFormView.as_view(),
-        name="supply-products-form",
-    ),
-    path(
-        "dostawy/edytuj/<str:slug>/",
-        SupplyUpdateFormView.as_view(),
-        name="supply-update-form",
     ),
 ]
