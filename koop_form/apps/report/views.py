@@ -1,6 +1,7 @@
 import logging
 import csv
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.models import Sum, Q, Prefetch
@@ -92,41 +93,44 @@ class ProducerBoxReportView(TemplateView):
         return context
 
 
-# TODO refactoring
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class UsersReportView(TemplateView):
     template_name = "report/users_report.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        previous_friday = calculate_previous_weekday()
+    def __init__(self):
+        super().__init__()
+        self.previous_friday = calculate_previous_weekday()
+        self.user_phone_number_list = []
+        self.user_pickup_day_list = []
+        self.user_order_number_list = []
+        self.user_name_list = []
 
-        newest_order = Order.objects.filter(date_created__gte=previous_friday)
-        prefetch = Prefetch("orders", queryset=newest_order, to_attr="order")
+    def get_users_queryset(self):
+        newest_orders = Order.objects.filter(date_created__gte=self.previous_friday)
+        prefetch = Prefetch("orders", queryset=newest_orders, to_attr="order")
 
         users_qs = (
             get_user_model()
-            .objects.filter(Q(orders__date_created__gte=previous_friday))
+            .objects.filter(Q(orders__date_created__gte=self.previous_friday))
             .select_related("userprofile")
             .prefetch_related(prefetch)
         )
+        return users_qs
 
-        user_name_list = []
-        user_order_number_list = []
-        user_pickup_day_list = []
-        user_phone_number_list = []
+    def get_additional_context(self):
+        for user in self.get_users_queryset():
+            self.user_name_list.append(user.first_name + " " + user.last_name)
+            self.user_order_number_list.append(user.order[0].order_number)
+            self.user_pickup_day_list.append(user.order[0].pick_up_day)
+            self.user_phone_number_list.append(user.userprofile.phone_number)
 
-        for user in users_qs:
-            user_name_list.append(user.first_name + " " + user.last_name)
-            user_order_number_list.append(user.order[0].order_number)
-            user_pickup_day_list.append(user.order[0].pick_up_day)
-            user_phone_number_list.append(user.userprofile.phone_number)
-
-        context["user_name_list"] = user_name_list
-        context["user_order_number_list"] = user_order_number_list
-        context["user_pickup_day_list"] = user_pickup_day_list
-        context["user_phone_number_list"] = user_phone_number_list
-
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        self.get_additional_context()
+        context["user_name_list"] = self.user_name_list
+        context["user_order_number_list"] = self.user_order_number_list
+        context["user_pickup_day_list"] = self.user_pickup_day_list
+        context["user_phone_number_list"] = self.user_phone_number_list
         return context
 
 
@@ -380,16 +384,20 @@ class UsersFinanceReportView(TemplateView):
         name_list = []
         order_cost_list = []
 
+        # TODO przyda się logika, że jeśli user nic nie zamówił, to nie pojawi się w raporcie
         for user in users:
             koop_id_list.append(user.userprofile.koop_id)
             name_list += (f"{user.first_name} {user.last_name}",)
-            orderitems = (
-                Order.objects.filter(date_created__gte=calculate_previous_weekday())
-                .get(user=user)
-                .orderitems.select_related("product")
-            )
-
-            order_cost = calculate_order_cost(orderitems) * user.userprofile.fund
+            try:
+                orderitems = (
+                    Order.objects.filter(date_created__gte=calculate_previous_weekday())
+                    .get(user=user)
+                    .orderitems.select_related("product")
+                )
+            except ObjectDoesNotExist:
+                order_cost = 0
+            else:
+                order_cost = calculate_order_cost(orderitems) * user.userprofile.fund
             order_cost_list.append(order_cost)
 
         context["koop_id_list"] = koop_id_list

@@ -140,8 +140,7 @@ class SupplyUpdateFormView(FormView):
     def get_success_url(self):
         return self.request.path
 
-    # TODO zmień kurwa nazwę tej metody
-    def get_shit_done(self):
+    def get_producer_supply_and_items(self):
         self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
         self.supply = (
             Supply.objects.filter(producer=self.producer)
@@ -156,7 +155,7 @@ class SupplyUpdateFormView(FormView):
         )
 
     def get_form_class(self):
-        self.get_shit_done()
+        self.get_producer_supply_and_items()
         supply_item_formset = modelformset_factory(
             SupplyItem,
             form=UpdateSupplyItemForm,
