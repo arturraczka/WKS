@@ -71,7 +71,7 @@
 
             <form method="post">
                 {% csrf_token %}
-                {{ form_for_management.management_form }}
+                {{ management_form }}
 
                 {% for form_instance in form %}
                     <article class="media fixed-height-div">

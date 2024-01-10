@@ -168,18 +168,17 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         context = super().get_context_data(**kwargs)
         self.get_additional_context()
 
-        context["order"] = self.order
+        context["order"] = self.order  # TODO
         context["orderitems"] = self.orderitems
-        context["order_cost"] = calculate_order_cost(self.orderitems)
+        context["order_cost"] = calculate_order_cost(self.orderitems)  # TODO
 
-        context["producers"] = get_producers_list(Producer)
-        context["producer"] = self.producer
-        context["products"] = self.products_with_quantity
+        context["producers"] = get_producers_list(Producer)  # TODO
+        context["producer"] = self.producer  # TODO
 
         page_number = self.request.GET.get("page")
         products_paginator = Paginator(self.products_with_quantity, 50)
         context["products"] = products_paginator.get_page(page_number)
-        context["form_for_management"] = context["form"]
+        context["management_form"] = context["form"].management_form
         form_paginator = Paginator(context["form"], 50)
         context["form"] = form_paginator.get_page(page_number)
         add_choices_to_forms(context["form"], context["products"])
