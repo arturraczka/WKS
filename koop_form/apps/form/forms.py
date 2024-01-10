@@ -26,7 +26,7 @@ class CreateOrderItemForm(ModelForm):
         model = OrderItem
         fields = ["product", "quantity", "order"]
         labels = {
-            "quantity": "sztuk/waga(kg)",
+            "quantity": "szt/kg",
         }
 
     def __init__(self, *args, **kwargs):
@@ -46,7 +46,7 @@ class UpdateOrderItemForm(ModelForm):
         model = OrderItem
         fields = "__all__"
         labels = {
-            "quantity": "sztuk/waga(kg)",
+            "quantity": "szt/kg",
         }
 
     def __init__(self, *args, **kwargs):

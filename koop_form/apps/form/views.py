@@ -168,6 +168,11 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         context = super().get_context_data(**kwargs)
         self.get_additional_context()
 
+        available_quantities_list = []
+        for product in self.products_with_quantity:
+            available_quantities_list.append(product.available_quantity)
+
+        context["available_quantities_list"] = available_quantities_list
         context["order"] = self.order  # TODO
         context["orderitems"] = self.orderitems
         context["order_cost"] = calculate_order_cost(self.orderitems)  # TODO
