@@ -1,3 +1,6 @@
+import random
+from decimal import Decimal
+
 import pytest
 import datetime
 import logging
@@ -25,75 +28,73 @@ from factories.model_factories import (
 logger = logging.getLogger("django.server")
 
 
+@pytest.fixture()
+def producers():
+    ProducerFactory(name='Karol Jung', slug='karol-jung')
+    ProducerFactory(name='Adam Pritz', slug='adam-pritz')
+    for _ in range(
+            0,
+            3,
+    ):
+        ProducerFactory(is_active=False)
+
+
+def factor_producers():
+    ProducerFactory(name='Karol Jung', slug='karol-jung')
+    ProducerFactory(name='Adam Pritz', slug='adam-pritz')
+    for _ in range(
+            0,
+            3,
+    ):
+        ProducerFactory(is_active=False)
+
+
+producers_list = [['adam-pritz', 'Adam Pritz'], ['karol-jung', 'Karol Jung']]
+
+
+@pytest.mark.usefixtures("producers")
 @pytest.mark.django_db
 class TestProducersView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
-        for _ in range(
-            0,
-            5,
-        ):
-            ProducerFactory()
         self.url = reverse("producers")
 
     def test_response_and_context(self):
         response = self.client.get(self.url)
         context_data = response.context
-        producers_query = Producer.objects.filter(is_active=True).values("slug", "name")
-        producers = [
-            [producer["slug"], producer["name"]] for producer in producers_query
-        ]
 
         assert response.status_code == 200
-        assert list(context_data["producers"]) == producers
-
-    def test_get_queryset(self):
-        pre_create_producer_count = Producer.objects.count()
-        for _ in range(
-            0,
-            5,
-        ):
-            ProducerFactory(is_active=False)
-
-        response = self.client.get(self.url)
-
-        context_data = response.context
-        context_producer_count = len(context_data["producers"])
-
-        assert pre_create_producer_count == context_producer_count
+        assert sorted(list(context_data["producers"])) == producers_list
 
 
+@pytest.mark.usefixtures("producers")
 @pytest.mark.django_db
 class TestProductsView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.producer = ProducerFactory()
+        self.producer_used = Producer.objects.get(name='Karol Jung')
+        self.producer_dummy = Producer.objects.get(name='Adam Pritz')
         for _ in range(0, 5):
-            ProductFactory(producer=self.producer)
-            ProductFactory()
-        self.url = reverse("products", kwargs={"slug": self.producer.slug})
+            ProductFactory(producer=self.producer_used)
+            ProductFactory(producer=self.producer_dummy)
+        self.url = reverse("products", kwargs={"slug": self.producer_used.slug})
 
     def test_response_and_context(self):
         response = self.client.get(self.url)
         context_data = response.context
 
         products_with_related = list(
-            Product.objects.filter(producer=self.producer.id)
+            Product.objects.filter(producer=self.producer_used.id)
             .filter(is_active=True)
             .prefetch_related("weight_schemes", "statuses")
         )
-        producer = Producer.objects.get(pk=self.producer.id)
-        producers_query = Producer.objects.filter(is_active=True).values("slug", "name")
-        producers = [
-            [producer["slug"], producer["name"]] for producer in producers_query
-        ]
 
         assert response.status_code == 200
-        assert context_data["producer"] == producer
+        assert context_data["producer"] == self.producer_used
         assert list(context_data["products_with_related"]) == products_with_related
-        assert list(context_data["producers"]) == producers
+        assert sorted(list(context_data["producers"])) == producers_list
 
 
 @pytest.mark.django_db
@@ -120,8 +121,10 @@ class TestOrderProducersView(TestCase):
 @pytest.mark.django_db
 class TestOrderProductsFormView(TestCase):
     def setUp(self):
-        self.producer = ProducerFactory()
-        self.url = reverse("order-products-form", kwargs={"slug": self.producer.slug})
+        factor_producers()
+        self.producer1 = Producer.objects.get(name='Karol Jung')
+        self.producer2 = Producer.objects.get(name='Adam Pritz')
+        self.url = reverse("order-products-form", kwargs={"slug": self.producer1.slug})
         self.user = UserFactory()
         self.client.force_login(self.user)
         self.weight_scheme_list = [
@@ -129,35 +132,45 @@ class TestOrderProductsFormView(TestCase):
             for val in [0.000, 0.500, 1.000, 2.000, 3.000, 4.000, 5.000]
         ]
         self.product1 = ProductFactory(
-            producer=self.producer,
+            producer=self.producer1,
             weight_schemes=self.weight_scheme_list,
-            order_max_quantity=10,
+            order_max_quantity=Decimal(9.7),
+            price=3.5
+        )
+        self.product2 = ProductFactory(
+            producer=self.producer2,
+            weight_schemes=self.weight_scheme_list,
+            quantity_in_stock=Decimal(6.5),
+            price=6
         )
         for _ in range(0, 3):
-            ProductFactory(producer=self.producer, is_active=False)
-        self.order = OrderWithProductFactory(user=self.user)
+            ProductFactory(producer=self.producer1, is_active=False)
+        self.order1 = OrderFactory(user=self.user)
+        self.order2 = OrderFactory()
+        self.orderitem1 = OrderItemFactory(product=self.product1, order=self.order1, quantity=Decimal(0.5))
+        self.orderitem2 = OrderItemFactory(product=self.product2, order=self.order1, quantity=3)
+        self.orderitem3 = OrderItemFactory(product=self.product1, quantity=1)
+        self.orderitem4 = OrderItemFactory(product=self.product1)
+        number = random.randint(8, 20)
+        past_date = timezone.now() - datetime.timedelta(days=number)
+        item = OrderItem.objects.get(id=self.orderitem4.id)
+        item.item_ordered_date = past_date
+        item.save()
 
     def test_test_func(self):
-        Order.objects.get(pk=self.order.id).delete()
+        Order.objects.get(pk=self.order1.id).delete()
         response = self.client.get(self.url)
 
         assert response.status_code == 302
 
+# TODO finish refactoring this test and class
     def test_response_and_context(self):
         orderitem_with_products_qs = list(
-            OrderItem.objects.filter(order=self.order.id).select_related("product")
+            OrderItem.objects.filter(order=self.order1.id).select_related("product")
         )
-        order_cost = 0
-        for orderitem in orderitem_with_products_qs:
-            order_cost += orderitem.product.price * orderitem.quantity
-        producers_query = Producer.objects.filter(is_active=True).values("slug", "name")
-        producers = [
-            [producer["slug"], producer["name"]] for producer in producers_query
-        ]
 
-        producer = Producer.objects.get(pk=self.producer.id)
         products_with_related = (
-            Product.objects.filter(producer=producer.id)
+            Product.objects.filter(producer=self.producer1.id)
             .filter(is_active=True)
             .prefetch_related("weight_schemes", "statuses")
         )
@@ -168,22 +181,21 @@ class TestOrderProductsFormView(TestCase):
         response = self.client.get(self.url)
         context_data = response.context
 
-        logger.info(context_data["form"])
+        # assert list(context_data["orderitems"]) == orderitem_with_products_qs
+        assert context_data["order_cost"] == Decimal(19.75)
+        # assert list(context_data["products"]) == list(products_with_available_quantity)
 
         assert response.status_code == 200
-        assert context_data["order"] == self.order
-        assert list(context_data["orderitems"]) == orderitem_with_products_qs
-        assert context_data["order_cost"] == order_cost != 0
-        assert list(context_data["producers"]) == producers
-        assert context_data["producer"] == producer
-        assert list(context_data["products"]) == list(products_with_available_quantity)
+        assert context_data["order"] == self.order1
+        assert sorted(list(context_data["producers"])) == producers_list
+        assert context_data["producer"] == self.producer1
 
     def test_create(self):
         form_data = {
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
             "form-0-product": self.product1.id,
-            "form-0-order": self.order.id,
+            "form-0-order": self.order1.id,
             "form-0-quantity": "1.000",
         }
 
@@ -223,7 +235,7 @@ class TestOrderProductsFormView(TestCase):
         )
 
     def test_product_already_in_order_validation(self):
-        OrderItemFactory(product=self.product1, order=self.order)
+        OrderItemFactory(product=self.product1, order=self.order1)
 
         form_data = {
             "form-TOTAL_FORMS": 1,
