@@ -99,12 +99,15 @@ class OrderProductsFormView(FormOpenMixin, FormView):
     model = OrderItem
     template_name = "form/order_products_form.html"
     form_class = None
+    products_per_page = 50
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.order = None
         self.producer = None
+        self.products = None
         self.paginated_products = None
+        self.products_with_quantity = None
         self.initial_data = []
         self.products_name = []
         self.products_price = []
@@ -119,11 +122,12 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         page_number = self.request.GET.get("page")
         return str(self.request.path) + f"?page={page_number}"
 
-    def get_producer_object(self):
+    def get_order_and_producer(self):
+        self.order = get_users_last_order(Order, self.request.user)
         self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
 
-    def get_products_query(self):
-        products = (
+    def get_products_queryset(self):
+        self.products = (
             Product.objects.filter(producer=self.producer)
             .filter(is_active=True)
             .filter(~Q(quantity_in_stock=0))
@@ -133,17 +137,19 @@ class OrderProductsFormView(FormOpenMixin, FormView):
                 "statuses",
             )
         )
+
+    def paginate_products(self):
         page_number = self.request.GET.get("page")
-        products_paginator = Paginator(products, 50)
+        products_paginator = Paginator(self.products, self.products_per_page)
         self.paginated_products = products_paginator.get_page(page_number)
 
-        products_with_quantity = calculate_available_quantity(
+    def get_available_quantities(self):
+        self.products_with_quantity = calculate_available_quantity(
             self.paginated_products.object_list
         )
 
-        # TODO refactoring, podzielenie na kilka metod: paginate, get view data
-
-        for product in products_with_quantity:
+    def extract_data_from_products(self):
+        for product in self.products_with_quantity:
             self.product_count += 1
             self.initial_data.append({"product": product.id, "order": self.order})
             self.products_name.append(product.name)
@@ -165,13 +171,15 @@ class OrderProductsFormView(FormOpenMixin, FormView):
             self.products_category.append(product.category)
             self.available_quantities_list.append(product.available_quantity)
 
-    def get_order_producer_products(self):
-        self.order = get_users_last_order(Order, self.request.user)
-        self.get_producer_object()
-        self.get_products_query()
+    def get_view_data(self):
+        self.get_order_and_producer()
+        self.get_products_queryset()
+        self.paginate_products()
+        self.get_available_quantities()
+        self.extract_data_from_products()
 
     def get_form_class(self):
-        self.get_order_producer_products()
+        self.get_view_data()
         order_item_formset = modelformset_factory(
             OrderItem,
             form=CreateOrderItemForm,
@@ -187,8 +195,13 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         context = super().get_context_data(**kwargs)
 
         context["order"] = self.order  # TODO
+
+        # TODO te dwie rzeczy też można zoptymalizować - nie potrzebuję przekazywać do templatki querysetu
+        # gdy robię calculate_order_cost() mogę w tej samej pętli zgarnąć product name i item.quantity,
+        # i do tego product.price też się przyda jednak!
         context["orderitems"] = get_orderitems_query(OrderItem, self.order.id)
         context["order_cost"] = calculate_order_cost(context["orderitems"])  # TODO
+        ###
 
         context["producers"] = get_producers_list(Producer)  # TODO
         context["producer"] = self.producer  # TODO
