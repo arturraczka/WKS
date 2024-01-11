@@ -79,7 +79,7 @@ def calculate_available_quantity(products):
                 ),
             ),
         )
-        .order_by("category", "name")
+        # .order_by("category", "name")
     )
     return products_with_available_quantity
 

@@ -104,10 +104,16 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         super().__init__(*args, **kwargs)
         self.order = None
         self.producer = None
-        self.products = None
-        self.products_with_quantity = None
-        self.products_with_statuses = None
-        self.orderitems = None
+        self.paginated_products = None
+        self.initial_data = []
+        self.products_name = []
+        self.products_price = []
+        self.products_category = []
+        self.products_statuses = []
+        self.available_quantities_list = []
+        self.products_description = []
+        self.products_weight_schemes = []
+        self.product_count = 0
 
     def get_success_url(self):
         page_number = self.request.GET.get("page")
@@ -122,11 +128,42 @@ class OrderProductsFormView(FormOpenMixin, FormView):
             .filter(is_active=True)
             .filter(~Q(quantity_in_stock=0))
             .order_by("category", "name")
-            .only("id")
+            .prefetch_related(
+                "weight_schemes",
+                "statuses",
+            )
         )
         page_number = self.request.GET.get("page")
-        form_paginator = Paginator(products, 50)
-        self.products = form_paginator.get_page(page_number)
+        products_paginator = Paginator(products, 50)
+        self.paginated_products = products_paginator.get_page(page_number)
+
+        products_with_quantity = calculate_available_quantity(
+            self.paginated_products.object_list
+        )
+
+        # TODO refactoring, podzielenie na kilka metod: paginate, get view data
+
+        for product in products_with_quantity:
+            self.product_count += 1
+            self.initial_data.append({"product": product.id, "order": self.order})
+            self.products_name.append(product.name)
+            self.products_price.append(product.price)
+            self.products_description.append(product.description)
+            statuses = []
+            for status in product.statuses.all():
+                statuses.append(status.status_type)
+            self.products_statuses.append(statuses)
+            weight_schemes = []
+            for scheme in product.weight_schemes.all():
+                weight_schemes.append(
+                    (
+                        Decimal(scheme.quantity),
+                        f"{scheme.quantity}".rstrip("0").rstrip("."),
+                    )
+                )
+            self.products_weight_schemes.append(weight_schemes)
+            self.products_category.append(product.category)
+            self.available_quantities_list.append(product.available_quantity)
 
     def get_order_producer_products(self):
         self.order = get_users_last_order(Order, self.request.user)
@@ -139,110 +176,36 @@ class OrderProductsFormView(FormOpenMixin, FormView):
             OrderItem,
             form=CreateOrderItemForm,
             formset=CreateOrderItemFormSet,
-            extra=len(self.products),
+            extra=self.product_count,
         )
         return order_item_formset
 
     def get_initial(self):
-        return [
-            {"product": product.id, "order": self.order} for product in self.products
-        ]
-
-    def get_products_with_available_quantity_query(self):
-        products_with_weight_schemes = (
-            Product.objects.filter(producer=self.producer)
-            .filter(is_active=True)
-            .filter(~Q(quantity_in_stock=0))
-            .prefetch_related(
-                "weight_schemes",
-            )
-        )
-        self.products_with_quantity = calculate_available_quantity(
-            products_with_weight_schemes
-        )
-        self.products_with_statuses = (
-            Product.objects.filter(producer=self.producer)
-            .filter(is_active=True)
-            .filter(~Q(quantity_in_stock=0))
-            .prefetch_related(
-                "statuses",
-            )
-        )
-
-    def get_additional_context(self):
-        self.get_products_with_available_quantity_query()
-        self.orderitems = get_orderitems_query(OrderItem, self.order.id)
+        return self.initial_data
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        self.get_additional_context()
-
-        # products_name = []
-        # products_price = []
-        # products_category = []
-        # products_statuses = []
-
-        available_quantities_list = []
-        products_description = []
-        products_weight_schemes = []
-        for product in self.products_with_quantity:
-            # products_name.append(product.name)
-            # products_price.append(product.price)
-            products_description.append(product.description)
-            # statuses = []
-            # for status in product.statuses.all():
-            #     statuses.append(status.status_type)
-            # products_statuses.append(statuses)
-            weight_schemes = []
-            for scheme in product.weight_schemes.all():
-                weight_schemes.append(
-                    (
-                        Decimal(scheme.quantity),
-                        f"{scheme.quantity}".rstrip("0").rstrip("."),
-                    )
-                )
-            products_weight_schemes.append(weight_schemes)
-            # products_category.append(product.category)
-            available_quantities_list.append(product.available_quantity)
 
         context["order"] = self.order  # TODO
-        context["orderitems"] = self.orderitems
-        context["order_cost"] = calculate_order_cost(self.orderitems)  # TODO
+        context["orderitems"] = get_orderitems_query(OrderItem, self.order.id)
+        context["order_cost"] = calculate_order_cost(context["orderitems"])  # TODO
 
         context["producers"] = get_producers_list(Producer)  # TODO
         context["producer"] = self.producer  # TODO
         context["management_form"] = context["form"].management_form
 
-        prods_per_pg = 50
+        context["available_quantities_list"] = self.available_quantities_list
+        context["products_description"] = self.products_description
+        context["paginated_products"] = self.paginated_products
 
-        page_number = self.request.GET.get("page")
-        form_paginator = Paginator(context["form"], prods_per_pg)
-        products_paginator = Paginator(self.products_with_statuses, prods_per_pg)
+        context["zipped_products_data"] = zip(
+            self.products_name,
+            self.products_price,
+            self.products_category,
+            self.products_statuses,
+        )
 
-        available_quantities_list_paginator = Paginator(available_quantities_list, prods_per_pg)
-
-        # products_name_paginator = Paginator(products_name, prods_per_pg)
-        # products_price_paginator = Paginator(products_price, prods_per_pg)
-        # products_category_paginator = Paginator(products_category, prods_per_pg)
-        # products_statuses_paginator = Paginator(products_statuses, prods_per_pg)
-
-        products_description_paginator = Paginator(products_description, prods_per_pg)
-        products_weight_schemes_paginator = Paginator(products_weight_schemes, prods_per_pg)
-
-        context["form"] = form_paginator.get_page(page_number)
-
-        context["available_quantities_list"] = available_quantities_list_paginator.get_page(page_number)
-        context["products_description"] = products_description_paginator.get_page(page_number)
-        context["products"] = products_paginator.get_page(page_number)
-
-        # context["zipped_products_data"] = zip(
-        #     products_name_paginator.get_page(page_number),
-        #     products_price_paginator.get_page(page_number),
-        #     products_category_paginator.get_page(page_number),
-        #     products_statuses_paginator.get_page(page_number),
-        # )
-
-        add_weight_schemes_as_choices_to_forms(context["form"], products_weight_schemes_paginator.get_page(page_number))
+        add_weight_schemes_as_choices_to_forms(context["form"], self.products_weight_schemes)
         return context
 
     def form_valid(self, form):
