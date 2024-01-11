@@ -106,6 +106,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         self.producer = None
         self.products = None
         self.products_with_quantity = None
+        self.products_with_statuses = None
         self.orderitems = None
 
     def get_success_url(self):
@@ -148,17 +149,24 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         ]
 
     def get_products_with_available_quantity_query(self):
-        products_with_related = (
+        products_with_weight_schemes = (
             Product.objects.filter(producer=self.producer)
             .filter(is_active=True)
             .filter(~Q(quantity_in_stock=0))
             .prefetch_related(
                 "weight_schemes",
-                "statuses",
             )
         )
         self.products_with_quantity = calculate_available_quantity(
-            products_with_related
+            products_with_weight_schemes
+        )
+        self.products_with_statuses = (
+            Product.objects.filter(producer=self.producer)
+            .filter(is_active=True)
+            .filter(~Q(quantity_in_stock=0))
+            .prefetch_related(
+                "statuses",
+            )
         )
 
     def get_additional_context(self):
@@ -169,21 +177,22 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         context = super().get_context_data(**kwargs)
         self.get_additional_context()
 
+        # products_name = []
+        # products_price = []
+        # products_category = []
+        # products_statuses = []
+
         available_quantities_list = []
-        products_name = []
-        products_category = []
-        products_price = []
         products_description = []
-        products_statuses = []
         products_weight_schemes = []
         for product in self.products_with_quantity:
-            products_name.append(product.name)
-            products_price.append(product.price)
+            # products_name.append(product.name)
+            # products_price.append(product.price)
             products_description.append(product.description)
-            statuses = []
-            for status in product.statuses.all():
-                statuses.append(status.status_type)
-            products_statuses.append(statuses)
+            # statuses = []
+            # for status in product.statuses.all():
+            #     statuses.append(status.status_type)
+            # products_statuses.append(statuses)
             weight_schemes = []
             for scheme in product.weight_schemes.all():
                 weight_schemes.append(
@@ -193,7 +202,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
                     )
                 )
             products_weight_schemes.append(weight_schemes)
-            products_category.append(product.category)
+            # products_category.append(product.category)
             available_quantities_list.append(product.available_quantity)
 
         context["order"] = self.order  # TODO
@@ -208,26 +217,30 @@ class OrderProductsFormView(FormOpenMixin, FormView):
 
         page_number = self.request.GET.get("page")
         form_paginator = Paginator(context["form"], prods_per_pg)
+        products_paginator = Paginator(self.products_with_statuses, prods_per_pg)
 
         available_quantities_list_paginator = Paginator(available_quantities_list, prods_per_pg)
-        products_name_paginator = Paginator(products_name, prods_per_pg)
-        products_category_paginator = Paginator(products_category, prods_per_pg)
-        products_price_paginator = Paginator(products_price, prods_per_pg)
+
+        # products_name_paginator = Paginator(products_name, prods_per_pg)
+        # products_price_paginator = Paginator(products_price, prods_per_pg)
+        # products_category_paginator = Paginator(products_category, prods_per_pg)
+        # products_statuses_paginator = Paginator(products_statuses, prods_per_pg)
+
         products_description_paginator = Paginator(products_description, prods_per_pg)
-        products_statuses_paginator = Paginator(products_statuses, prods_per_pg)
         products_weight_schemes_paginator = Paginator(products_weight_schemes, prods_per_pg)
 
         context["form"] = form_paginator.get_page(page_number)
 
         context["available_quantities_list"] = available_quantities_list_paginator.get_page(page_number)
         context["products_description"] = products_description_paginator.get_page(page_number)
+        context["products"] = products_paginator.get_page(page_number)
 
-        context["zipped_products_data"] = zip(
-            products_name_paginator.get_page(page_number),
-            products_price_paginator.get_page(page_number),
-            products_category_paginator.get_page(page_number),
-            products_statuses_paginator.get_page(page_number),
-        )
+        # context["zipped_products_data"] = zip(
+        #     products_name_paginator.get_page(page_number),
+        #     products_price_paginator.get_page(page_number),
+        #     products_category_paginator.get_page(page_number),
+        #     products_statuses_paginator.get_page(page_number),
+        # )
 
         add_weight_schemes_as_choices_to_forms(context["form"], products_weight_schemes_paginator.get_page(page_number))
         return context
