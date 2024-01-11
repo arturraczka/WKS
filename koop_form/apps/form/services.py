@@ -218,9 +218,8 @@ def add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes):
         form.fields["quantity"].choices = scheme
 
 
-def add_choices_to_forms(forms, products):
-    products_weight_schemes_list = get_products_weight_schemes_list(products)
-    add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes_list)
+def add_choices_to_forms(forms, weight_schemes):
+    add_weight_schemes_as_choices_to_forms(forms, weight_schemes)
 
 
 def add_choices_to_form(form, product):

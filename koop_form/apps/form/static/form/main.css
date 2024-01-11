@@ -174,3 +174,15 @@ a.article-title:hover {
 .position-fix-2 {
     margin-top: 48px;
 }
+
+.row-block {
+    display: block;
+    height: 100px;
+}
+
+.border-bottom {
+    margin-top: 5px;
+    border-bottom: 1px;
+    display:block;
+    height:100px;
+}

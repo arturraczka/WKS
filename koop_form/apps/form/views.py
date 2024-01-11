@@ -1,5 +1,6 @@
 import copy
 import logging
+from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -37,7 +38,7 @@ from apps.form.services import (
     add_choices_to_forms,
     add_choices_to_form,
     get_users_last_order,
-    get_orderitems_query,
+    get_orderitems_query, add_weight_schemes_as_choices_to_forms,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -169,24 +170,66 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         self.get_additional_context()
 
         available_quantities_list = []
+        products_name = []
+        products_category = []
+        products_price = []
+        products_description = []
+        products_statuses = []
+        products_weight_schemes = []
         for product in self.products_with_quantity:
+            products_name.append(product.name)
+            products_price.append(product.price)
+            products_description.append(product.description)
+            statuses = []
+            for status in product.statuses.all():
+                statuses.append(status.status_type)
+            products_statuses.append(statuses)
+            weight_schemes = []
+            for scheme in product.weight_schemes.all():
+                weight_schemes.append(
+                    (
+                        Decimal(scheme.quantity),
+                        f"{scheme.quantity}".rstrip("0").rstrip("."),
+                    )
+                )
+            products_weight_schemes.append(weight_schemes)
+            products_category.append(product.category)
             available_quantities_list.append(product.available_quantity)
 
-        context["available_quantities_list"] = available_quantities_list
         context["order"] = self.order  # TODO
         context["orderitems"] = self.orderitems
         context["order_cost"] = calculate_order_cost(self.orderitems)  # TODO
 
         context["producers"] = get_producers_list(Producer)  # TODO
         context["producer"] = self.producer  # TODO
+        context["management_form"] = context["form"].management_form
+
+        prods_per_pg = 50
 
         page_number = self.request.GET.get("page")
-        products_paginator = Paginator(self.products_with_quantity, 50)
-        context["products"] = products_paginator.get_page(page_number)
-        context["management_form"] = context["form"].management_form
-        form_paginator = Paginator(context["form"], 50)
+        form_paginator = Paginator(context["form"], prods_per_pg)
+
+        available_quantities_list_paginator = Paginator(available_quantities_list, prods_per_pg)
+        products_name_paginator = Paginator(products_name, prods_per_pg)
+        products_category_paginator = Paginator(products_category, prods_per_pg)
+        products_price_paginator = Paginator(products_price, prods_per_pg)
+        products_description_paginator = Paginator(products_description, prods_per_pg)
+        products_statuses_paginator = Paginator(products_statuses, prods_per_pg)
+        products_weight_schemes_paginator = Paginator(products_weight_schemes, prods_per_pg)
+
         context["form"] = form_paginator.get_page(page_number)
-        add_choices_to_forms(context["form"], context["products"])
+
+        context["available_quantities_list"] = available_quantities_list_paginator.get_page(page_number)
+        context["products_description"] = products_description_paginator.get_page(page_number)
+
+        context["zipped_products_data"] = zip(
+            products_name_paginator.get_page(page_number),
+            products_price_paginator.get_page(page_number),
+            products_category_paginator.get_page(page_number),
+            products_statuses_paginator.get_page(page_number),
+        )
+
+        add_weight_schemes_as_choices_to_forms(context["form"], products_weight_schemes_paginator.get_page(page_number))
         return context
 
     def form_valid(self, form):
