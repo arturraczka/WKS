@@ -102,14 +102,18 @@ class TestOrderProducersView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.producer = ProducerFactory()
+        factor_producers()
+        self.producer1 = Producer.objects.get(name='Karol Jung')
+        self.producer2 = Producer.objects.get(name='Adam Pritz')
         self.order = OrderFactory(user=self.user)
         self.url = reverse("order-producers")
 
-    def test_response(self):
+    def test_response_and_context(self):
         response = self.client.get(self.url)
+        context_data = response.context
 
         assert response.status_code == 200
+        assert sorted(list(context_data["producers"])) == producers_list
 
     def test_test_func(self):
         Order.objects.get(pk=self.order.id).delete()
@@ -165,10 +169,6 @@ class TestOrderProductsFormView(TestCase):
 
 # TODO finish refactoring this test and class
     def test_response_and_context(self):
-        orderitem_with_products_qs = list(
-            OrderItem.objects.filter(order=self.order1.id).select_related("product")
-        )
-
         products_with_related = (
             Product.objects.filter(producer=self.producer1.id)
             .filter(is_active=True)
@@ -181,7 +181,7 @@ class TestOrderProductsFormView(TestCase):
         response = self.client.get(self.url)
         context_data = response.context
 
-        # assert list(context_data["orderitems"]) == orderitem_with_products_qs
+        assert list(context_data["orderitems"]) == [self.orderitem1, self.orderitem2]
         assert context_data["order_cost"] == Decimal(19.75)
         # assert list(context_data["products"]) == list(products_with_available_quantity)
 

@@ -194,17 +194,13 @@ class OrderProductsFormView(FormOpenMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["order"] = self.order  # TODO
+        context["order"] = self.order  # TODO Done
 
-        # TODO te dwie rzeczy też można zoptymalizować - nie potrzebuję przekazywać do templatki querysetu
-        # gdy robię calculate_order_cost() mogę w tej samej pętli zgarnąć product name i item.quantity,
-        # i do tego product.price też się przyda jednak!
-        context["orderitems"] = get_orderitems_query(OrderItem, self.order.id)
-        context["order_cost"] = calculate_order_cost(context["orderitems"])  # TODO
-        ###
+        context["orderitems"] = get_orderitems_query(OrderItem, self.order.id)  # TODO Done
+        context["order_cost"] = calculate_order_cost(context["orderitems"])  # TODO Done
 
-        context["producers"] = get_producers_list(Producer)  # TODO
-        context["producer"] = self.producer  # TODO
+        context["producers"] = get_producers_list(Producer)  # TODO Done
+        context["producer"] = self.producer  # TODO Done
         context["management_form"] = context["form"].management_form
 
         context["available_quantities_list"] = self.available_quantities_list

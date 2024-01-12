@@ -162,7 +162,7 @@ def create_order_data_list(products):
 
 
 def set_products_quantity_to_0(producer_instance):
-    """docstrings"""
+    """"""
     product_qs = producer_instance.products.all()
     for product in product_qs:
         product.quantity_delivered_this_week = 0
@@ -213,6 +213,7 @@ def get_products_weight_schemes_list(products_with_available_quantity):
     return products_weight_schemes_list
 
 
+# TODO zmienić nazwę na add_choices_to_forms - albo może nie
 def add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes):
     for form, scheme in zip(forms, products_weight_schemes):
         form.fields["quantity"].choices = scheme
@@ -266,8 +267,9 @@ def check_if_form_is_open():
         form_open = calculate_previous_weekday(3, 12)
         form_closed = form_open + timedelta(hours=56)
         today = datetime.now().astimezone()
-        if form_open < today < form_closed:
-            is_open = True
-        else:
-            is_open = False
-        return is_open
+        return form_open < today < form_closed
+        # if form_open < today < form_closed:
+        #     is_open = True
+        # else:
+        #     is_open = False
+        # return is_open

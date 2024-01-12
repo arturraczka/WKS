@@ -136,7 +136,7 @@
     <p class='text-muted'>Numer zamówienia/skrzynki: {{ order.order_number }}.</p>
     <ul class="list-group">
     {% for orderitem in orderitems %}
-      <li class="list-group-item list-group-item-light">{{ orderitem.product.name }}: {{ orderitem.quantity|format_decimal:3 }}</li>
+      <li class="list-group-item list-group-item-light">{{ orderitem.quantity|format_decimal:3 }} x {{ orderitem.product.name }} {{ orderitem.product.price }} zł</li>
     {% endfor %}
     </ul>
   </div>
