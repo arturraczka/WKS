@@ -140,7 +140,7 @@ class TestOrderProductsFormView(TestCase):
             producer=self.producer1,
             weight_schemes=self.weight_scheme_list,
             order_max_quantity=None,
-            quantity_in_stock=Decimal(6.5),
+            quantity_in_stock=Decimal('6.5'),
             price=12,
             description='test description 0'
         )
@@ -148,7 +148,7 @@ class TestOrderProductsFormView(TestCase):
             name='aronia',
             producer=self.producer1,
             weight_schemes=self.weight_scheme_list,
-            order_max_quantity=Decimal(9.7),
+            order_max_quantity=Decimal('9.7'),
             price=3.5,
             description='test description 1'
         )
@@ -156,7 +156,7 @@ class TestOrderProductsFormView(TestCase):
             name='burak',
             producer=self.producer2,
             weight_schemes=self.weight_scheme_list,
-            quantity_in_stock=Decimal(6.5),
+            quantity_in_stock=Decimal('6.5'),
             price=6
         )
         for _ in range(0, 3):
@@ -263,11 +263,6 @@ class TestOrderProductsFormView(TestCase):
     def test_order_deadline_validation(self):
         self.product0.order_deadline = datetime.datetime(2023, 9, 17, 18).astimezone()
         self.product0.save()
-        # product2 = ProductFactory(
-        #     weight_schemes=self.weight_scheme_list,
-        #     order_deadline=datetime.datetime(2023, 9, 17, 18).astimezone(),
-        # )
-        # OrderItemFactory(product=product2, quantity=9, order=OrderFactory())
 
         form_data = {
             "form-TOTAL_FORMS": 1,
@@ -333,6 +328,50 @@ class TestOrderCreateView(TestCase):
         assert "Zamówienie zostało utworzone. Dodaj produkty." in messages
         assert pre_save_order_count + 1 == post_save_order_count
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestOrderUpdateFormView(TestCase):
+    def setUp(self):
+        factor_producers()
+        self.producer1 = Producer.objects.get(name='Karol Jung')
+        self.producer2 = Producer.objects.get(name='Adam Pritz')
+
+        self.url = reverse("order-update-form")
+        self.user = UserFactory()
+        self.profile = ProfileFactory(user=self.user, fund=Decimal('1.1'))
+        self.client.force_login(self.user)
+
+        self.order1 = OrderFactory(user=self.user)
+        self.order2 = OrderFactory(user=self.user)
+        self.order3 = OrderFactory()
+        number = random.randint(8, 20)
+        past_date = timezone.now() - datetime.timedelta(days=number)
+        order = Order.objects.get(id=self.order2.id)
+        order.date_created = past_date
+        order.save()
+
+        self.product0 = ProductFactory(name='alfa', price=Decimal('6.5'))
+        self.product1 = ProductFactory(name='beta', price=Decimal('5'))
+        self.product2 = ProductFactory(name='gamma', price=Decimal('12.8'))
+        ProductFactory(), ProductFactory()
+
+        self.orderitem1 = OrderItemFactory(product=self.product0, order=self.order1, quantity=Decimal(0.5))
+        self.orderitem2 = OrderItemFactory(product=self.product1, order=self.order1, quantity=3)
+        self.orderitem3 = OrderItemFactory(product=self.product1, order=self.order2, quantity=7)
+        self.orderitem4 = OrderItemFactory(product=self.product1)
+
+    def test_response_and_context(self):
+        response = self.client.get(self.url)
+        context = response.context
+
+        assert response.status_code == 200
+        assert context["order"] == self.order1
+        assert context["fund"] == Decimal('1.1')
+        assert list(context["orderitems"]) == [self.orderitem1, self.orderitem2]
+        assert context["order_cost"] == Decimal('18.25')
+        assert context["order_cost_with_fund"] == Decimal('20.075')
+        assert list(context["products"]) == [self.product0, self.product1]
 
 
 @pytest.mark.django_db
