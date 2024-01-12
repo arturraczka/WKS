@@ -38,7 +38,7 @@ from apps.form.services import (
     add_choices_to_forms,
     add_choices_to_form,
     get_users_last_order,
-    get_orderitems_query, add_weight_schemes_as_choices_to_forms,
+    get_orderitems_query, add_weight_schemes_as_choices_to_forms, get_orderitems_query_2,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -46,6 +46,8 @@ from apps.form.validations import (
     perform_update_orderitem_validations,
 )
 from django.core.paginator import Paginator
+
+from apps.user.models import UserProfile
 
 logger = logging.getLogger("django.server")
 
@@ -248,35 +250,18 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         super().__init__(*args, **kwargs)
         self.order = None
         self.producer = None
-        self.products_with_related = None
-        # self.products = None
+        self.products_with_quantity = None
         self.orderitems = None
 
     def get_success_url(self):
         return self.request.path
 
-    # TODO czy self.products_with_related musi być tutaj zdefiniowane??
-    def get_order_orderitems_and_products(self):
+    def get_order_and_orderitems(self):
         self.order = get_users_last_order(Order, self.request.user)
-
-        products_ids = (
-            Product.objects.filter(orders=self.order)
-            .values_list("id", flat=True)
-            # .order_by("name")
-        )
-        self.products_with_related = (
-            Product.objects.filter(pk__in=list(products_ids))
-            .prefetch_related(
-                "weight_schemes",
-                "statuses",
-            )
-            .order_by("name")
-        )
-
-        self.orderitems = get_orderitems_query(OrderItem, self.order.id)
+        self.orderitems = get_orderitems_query_2(OrderItem, self.order.id)
 
     def get_form_class(self):
-        self.get_order_orderitems_and_products()
+        self.get_order_and_orderitems()
         order_item_formset = modelformset_factory(
             OrderItem,
             form=UpdateOrderItemForm,
@@ -297,25 +282,33 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
             user_fund = 1.3
         return user_fund
 
+    def get_products_with_related(self):
+        products_ids = (
+            Product.objects.filter(orders=self.order)
+            .values_list("id", flat=True)
+        )
+        products_with_related = (
+            Product.objects.filter(pk__in=list(products_ids))
+            .prefetch_related(
+                "weight_schemes",
+                "statuses",
+            )
+        )
+        self.products_with_quantity = calculate_available_quantity(
+            products_with_related
+        ).order_by("name")
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        self.get_products_with_related()
+
         context["fund"] = self.get_user_fund()
         context["order"] = self.order
-        self.orderitems = get_orderitems_query(
-            OrderItem, self.order.id
-        )  # I am calling this query second time
-        # (first time is for form initial data), for calculating correct order cost
-        # after user has tried to post invalid data
         context["orderitems"] = self.orderitems
-        context["order_cost"] = calculate_order_cost(self.orderitems)  # TODO duplicated
+        context["order_cost"] = calculate_order_cost(self.orderitems)
         context["order_cost_with_fund"] = context["order_cost"] * context["fund"]
-
-        products_with_quantity = calculate_available_quantity(
-            self.products_with_related
-        ).order_by("name")
-        add_choices_to_forms(context["form"], products_with_quantity)  # TODO duplicated
-
-        context["products"] = products_with_quantity
+        add_choices_to_forms(context["form"], self.products_with_quantity)
+        context["products"] = self.products_with_quantity
         return context
 
     def form_valid(self, form):

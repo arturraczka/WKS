@@ -261,6 +261,15 @@ def get_orderitems_query(orderitem_model, order_id):
     )
 
 
+def get_orderitems_query_2(orderitem_model, order_id):
+    return (
+        orderitem_model.objects.filter(order=order_id)
+        .select_related("product", "order")
+        .only("quantity", "product__price", "product__name", "order__id")
+        .order_by("product__name")
+    )
+
+
 def check_if_form_is_open():
     if DEBUG:
         return True
