@@ -135,13 +135,25 @@ class TestOrderProductsFormView(TestCase):
             WeightSchemeFactory(quantity=val)
             for val in [0.000, 0.500, 1.000, 2.000, 3.000, 4.000, 5.000]
         ]
+        self.product0 = ProductFactory(
+            name='agawa',
+            producer=self.producer1,
+            weight_schemes=self.weight_scheme_list,
+            order_max_quantity=None,
+            quantity_in_stock=Decimal(6.5),
+            price=12,
+            description='test description 0'
+        )
         self.product1 = ProductFactory(
+            name='aronia',
             producer=self.producer1,
             weight_schemes=self.weight_scheme_list,
             order_max_quantity=Decimal(9.7),
-            price=3.5
+            price=3.5,
+            description='test description 1'
         )
         self.product2 = ProductFactory(
+            name='burak',
             producer=self.producer2,
             weight_schemes=self.weight_scheme_list,
             quantity_in_stock=Decimal(6.5),
@@ -167,24 +179,15 @@ class TestOrderProductsFormView(TestCase):
 
         assert response.status_code == 302
 
-# TODO finish refactoring this test and class
     def test_response_and_context(self):
-        products_with_related = (
-            Product.objects.filter(producer=self.producer1.id)
-            .filter(is_active=True)
-            .prefetch_related("weight_schemes", "statuses")
-        )
-        products_with_available_quantity = calculate_available_quantity(
-            products_with_related
-        )
-
         response = self.client.get(self.url)
         context_data = response.context
 
         assert list(context_data["orderitems"]) == [self.orderitem1, self.orderitem2]
         assert context_data["order_cost"] == Decimal(19.75)
-        # assert list(context_data["products"]) == list(products_with_available_quantity)
-
+        assert list(context_data["products"]) == [self.product0, self.product1]
+        assert context_data["products_description"] == ['test description 0', 'test description 1']
+        assert context_data["available_quantities_list"] == [Decimal('6.500'), Decimal('8.200')]
         assert response.status_code == 200
         assert context_data["order"] == self.order1
         assert sorted(list(context_data["producers"])) == producers_list
@@ -194,7 +197,7 @@ class TestOrderProductsFormView(TestCase):
         form_data = {
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
-            "form-0-product": self.product1.id,
+            "form-0-product": self.product0.id,
             "form-0-order": self.order1.id,
             "form-0-quantity": "1.000",
         }
@@ -209,16 +212,17 @@ class TestOrderProductsFormView(TestCase):
 
         assert response.status_code == 200
         assert pre_create_orderitem_count + 1 == post_create_orderitem_count
-        assert f"{self.product1.name}: Produkt został dodany do zamówienia." in messages
+        assert f"{self.product0.name}: Produkt został dodany do zamówienia." in messages
 
     def test_max_quantity_validation(self):
         for _ in range(2):
-            OrderItemFactory(product=self.product1, quantity=5, order=OrderFactory())
+            OrderItemFactory(product=self.product0, quantity=Decimal('3.25'), order=OrderFactory())
 
         form_data = {
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
-            "form-0-product": self.product1.id,
+            "form-0-product": self.product0.id,
+            "form-0-order": self.order1.id,
             "form-0-quantity": "1.000",
         }
 
@@ -230,17 +234,18 @@ class TestOrderProductsFormView(TestCase):
         assert pre_create_orderitem_count == post_create_orderitem_count
         assert response.status_code == 200
         assert (
-            f"{self.product1.name}: Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle."
+            f"{self.product0.name}: Przekroczona maksymalna ilość lub waga zamawianego produktu. Nie ma tyle."
             in messages
         )
 
     def test_product_already_in_order_validation(self):
-        OrderItemFactory(product=self.product1, order=self.order1)
+        OrderItemFactory(product=self.product0, order=self.order1)
 
         form_data = {
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
-            "form-0-product": self.product1.id,
+            "form-0-product": self.product0.id,
+            "form-0-order": self.order1.id,
             "form-0-quantity": "1.000",
         }
 
@@ -250,23 +255,26 @@ class TestOrderProductsFormView(TestCase):
 
         messages = list_messages(response)
         assert (
-            f"{self.product1.name}: Dodałeś już ten produkt do zamówienia." in messages
+            f"{self.product0.name}: Dodałeś już ten produkt do zamówienia." in messages
         )
         assert pre_create_orderitem_count == post_create_orderitem_count
         assert response.status_code == 200
 
     def test_order_deadline_validation(self):
-        product2 = ProductFactory(
-            weight_schemes=self.weight_scheme_list,
-            order_deadline=datetime.datetime(2023, 9, 17, 18).astimezone(),
-        )
-        OrderItemFactory(product=product2, quantity=9, order=OrderFactory())
+        self.product0.order_deadline = datetime.datetime(2023, 9, 17, 18).astimezone()
+        self.product0.save()
+        # product2 = ProductFactory(
+        #     weight_schemes=self.weight_scheme_list,
+        #     order_deadline=datetime.datetime(2023, 9, 17, 18).astimezone(),
+        # )
+        # OrderItemFactory(product=product2, quantity=9, order=OrderFactory())
 
         form_data = {
             "form-TOTAL_FORMS": 1,
             "form-INITIAL_FORMS": 0,
-            "form-0-product": product2.id,
-            "form-0-quantity": "0.500",
+            "form-0-product": self.product0.id,
+            "form-0-order": self.order1.id,
+            "form-0-quantity": "1.000",
         }
 
         pre_create_orderitem_count = OrderItem.objects.count()
@@ -277,7 +285,7 @@ class TestOrderProductsFormView(TestCase):
         assert pre_create_orderitem_count == post_create_orderitem_count
         assert response.status_code == 200
         assert (
-            f"{product2.name}: Termin minął, nie możesz już dodać tego produktu do zamówienia."
+            f"{self.product0.name}: Termin minął, nie możesz już dodać tego produktu do zamówienia."
             in messages
         )
 

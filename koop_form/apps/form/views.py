@@ -109,10 +109,6 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         self.paginated_products = None
         self.products_with_quantity = None
         self.initial_data = []
-        self.products_name = []
-        self.products_price = []
-        self.products_category = []
-        self.products_statuses = []
         self.available_quantities_list = []
         self.products_description = []
         self.products_weight_schemes = []
@@ -130,7 +126,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         self.products = (
             Product.objects.filter(producer=self.producer)
             .filter(is_active=True)
-            .filter(~Q(quantity_in_stock=0))
+            # .filter(~Q(quantity_in_stock=0))
             .order_by("category", "name")
             .prefetch_related(
                 "weight_schemes",
@@ -152,13 +148,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         for product in self.products_with_quantity:
             self.product_count += 1
             self.initial_data.append({"product": product.id, "order": self.order})
-            self.products_name.append(product.name)
-            self.products_price.append(product.price)
             self.products_description.append(product.description)
-            statuses = []
-            for status in product.statuses.all():
-                statuses.append(status.status_type)
-            self.products_statuses.append(statuses)
             weight_schemes = []
             for scheme in product.weight_schemes.all():
                 weight_schemes.append(
@@ -168,7 +158,6 @@ class OrderProductsFormView(FormOpenMixin, FormView):
                     )
                 )
             self.products_weight_schemes.append(weight_schemes)
-            self.products_category.append(product.category)
             self.available_quantities_list.append(product.available_quantity)
 
     def get_view_data(self):
@@ -194,26 +183,16 @@ class OrderProductsFormView(FormOpenMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["order"] = self.order  # TODO Done
-
-        context["orderitems"] = get_orderitems_query(OrderItem, self.order.id)  # TODO Done
-        context["order_cost"] = calculate_order_cost(context["orderitems"])  # TODO Done
-
-        context["producers"] = get_producers_list(Producer)  # TODO Done
-        context["producer"] = self.producer  # TODO Done
+        context["order"] = self.order
+        context["orderitems"] = get_orderitems_query(OrderItem, self.order.id)
+        context["order_cost"] = calculate_order_cost(context["orderitems"])
+        context["producers"] = get_producers_list(Producer)
+        context["producer"] = self.producer
         context["management_form"] = context["form"].management_form
-
         context["available_quantities_list"] = self.available_quantities_list
         context["products_description"] = self.products_description
         context["paginated_products"] = self.paginated_products
-
-        context["zipped_products_data"] = zip(
-            self.products_name,
-            self.products_price,
-            self.products_category,
-            self.products_statuses,
-        )
-
+        context["products"] = self.products_with_quantity
         add_weight_schemes_as_choices_to_forms(context["form"], self.products_weight_schemes)
         return context
 
@@ -282,8 +261,8 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
 
         products_ids = (
             Product.objects.filter(orders=self.order)
-            .values_list(flat=True)
-            .order_by("name")
+            .values_list("id", flat=True)
+            # .order_by("name")
         )
         self.products_with_related = (
             Product.objects.filter(pk__in=list(products_ids))
@@ -328,13 +307,13 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         # (first time is for form initial data), for calculating correct order cost
         # after user has tried to post invalid data
         context["orderitems"] = self.orderitems
-        context["order_cost"] = calculate_order_cost(self.orderitems)
+        context["order_cost"] = calculate_order_cost(self.orderitems)  # TODO duplicated
         context["order_cost_with_fund"] = context["order_cost"] * context["fund"]
 
         products_with_quantity = calculate_available_quantity(
             self.products_with_related
         ).order_by("name")
-        add_choices_to_forms(context["form"], products_with_quantity)
+        add_choices_to_forms(context["form"], products_with_quantity)  # TODO duplicated
 
         context["products"] = products_with_quantity
         return context
