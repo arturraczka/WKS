@@ -36,7 +36,7 @@ class ProducerResource(resources.ModelResource):
 
 class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [ProducerResource]
-    list_display = ["name", "short", "is_active"]
+    list_display = ["name", "short", "is_active", "manager_name", "manager_email", "manager_phone",]
 
 
 class ProductResource(resources.ModelResource):

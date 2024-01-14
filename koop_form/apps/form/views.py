@@ -57,7 +57,7 @@ class ProducersView(ListView):
     model = Producer
     context_object_name = "producers"
     template_name = "form/producer_list.html"
-    paginate_by = 25
+    paginate_by = 100
 
     def get_queryset(self):
         return get_producers_list(Producer)
