@@ -413,5 +413,64 @@ class UsersFinanceReportView(TemplateView):
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
+class MassProducerBoxReportDownloadView(TemplateView):
+    template_name = "report/producer_box_report.html"
+    response_class = HttpResponse
+    content_type = "text/csv"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        previous_friday = calculate_previous_weekday()
+        products_qs = (
+            Product.objects.prefetch_related("orderitems", "orders")
+            .select_related("producer")
+            .filter(Q(orders__date_created__gte=previous_friday))
+            .annotate(ordered_quantity=Sum("orderitems__quantity"))
+            .distinct()
+            .order_by("producer__short")
+        )
+        products_names = []
+        products_quantities = []
+        products_producers = []
+        products_quant_in_stock = []
+        for product in products_qs:
+            products_names.append(product.name)
+            products_quantities.append(product.ordered_quantity)
+            if product.quantity_in_stock:
+                products_quant_in_stock.append(product.quantity_in_stock + product.ordered_quantity)
+            else:
+                products_quant_in_stock.append(' ')
+            products_producers.append(product.producer.short)
+        context["products_producers"] = products_producers
+        context["products_quantities"] = products_quantities
+        context["products_names"] = products_names
+        context["products_quant_in_stock"] = products_quant_in_stock
+        context["order_data"] = create_order_data_list(products_qs)
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        headers = {
+            "Content-Disposition": f'attachment; filename="raport-paczkowanie.csv"'
+        }
+
+        response = self.response_class(
+            content_type=self.content_type,
+            headers=headers,
+        )
+        writer = csv.writer(response)
+        writer.writerow(["Producent", "Ilość łącznie", "W magazynie", "Produkt", "Lista skrzynek"])
+
+        for producer, quant, stock, product, boxlist in zip(
+            context["products_producers"],
+            context["products_quantities"],
+            context["products_quant_in_stock"],
+            context["products_names"],
+            context["order_data"],
+        ):
+            writer.writerow([producer, quant, stock, product, boxlist])
+        return response
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class UsersFinanceReportDownloadView(UsersFinanceReportView):
     pass

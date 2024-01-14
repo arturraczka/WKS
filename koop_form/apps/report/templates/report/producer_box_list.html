@@ -1,6 +1,9 @@
 {% extends "form/base_one.html" %}
 {% block content %}
     <div class="col-md-8">
+        <div class="form-group">
+            <a class="btn btn-outline-secondary my-2" href="{% url 'mass-producer-box-report-download' %}">Pobierz pełny raport</a>
+        </div>
         <h3>Wybierz producenta, żeby wyświetlić cotygodniowy raport skrzynek/produktów:</h3>
         {% for producer in producers %}
             <article class="media content-section">

@@ -14,7 +14,7 @@ from apps.report.views import (
     OrderBoxReportView,
     OrderBoxReportDownloadView,
     UsersFinanceReportView,
-    ProducerProductsListView,
+    ProducerProductsListView, MassProducerBoxReportDownloadView,
 )
 
 
@@ -88,5 +88,10 @@ urlpatterns = [
         "kooperanci-finanse/",
         UsersFinanceReportView.as_view(),
         name="users-finance",
+    ),
+    path(
+        "pobierz/raporty/wszyscy-producenci-skrzynki/",
+        MassProducerBoxReportDownloadView.as_view(),
+        name="mass-producer-box-report-download",
     ),
 ]
