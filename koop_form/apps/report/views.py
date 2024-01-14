@@ -326,11 +326,16 @@ class OrderBoxReportView(OrderBoxListView):
         producer_short = []
         orderitems_names = []
         orderitems_quantity = []
+        product_ids = []
 
         for item in orderitems:
-            producer_short += (item.product.producer.short,)
+            product_ids += (item.product.id,)
             orderitems_names += (item.product.name,)
             orderitems_quantity += (str(item.quantity).rstrip("0").rstrip("."),)
+
+        products = Product.objects.filter(id__in=product_ids).select_related("producer")
+        for prod in products:
+            producer_short += (prod.producer.short,)
 
         context["producer_short"] = producer_short
         context["orderitems_names"] = orderitems_names
