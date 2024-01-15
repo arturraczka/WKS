@@ -160,8 +160,9 @@ class ProducersFinanceReportView(TemplateView):
             )
             total_income = calculate_total_income(products)
 
-            producers_names += (producer.short,)
-            producers_incomes += (f"{total_income:.2f}",)
+            if total_income:
+                producers_names += (producer.short,)
+                producers_incomes += (f"{total_income:.2f}",)
 
         context["producers_incomes"] = producers_incomes
         context["producers_names"] = producers_names
