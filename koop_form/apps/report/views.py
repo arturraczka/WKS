@@ -1,5 +1,6 @@
 import logging
 import csv
+from decimal import Decimal
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
@@ -21,6 +22,7 @@ from apps.form.services import (
     staff_check,
     get_producers_list,
     filter_products_with_ordered_quantity_and_income,
+    filter_products_with_ordered_quantity_and_income2,
 )
 
 from apps.form.views import ProducersView
@@ -39,31 +41,46 @@ class ProducerProductsReportView(TemplateView):
         self.product_names_list = []
         self.product_ordered_quantities_list = []
         self.product_incomes_list = []
+        self.supply_quantities_list = []
+        self.supply_incomes_list = []
+        self.total_income = 0
+        self.total_supply_income = 0
+        self.product_excess_list = []
 
     def get_producer_products(self):
         self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
-        self.products = filter_products_with_ordered_quantity_and_income(
+        self.products = filter_products_with_ordered_quantity_and_income2(
             Product, self.producer.id
         )
 
     def get_product_names_quantities_incomes(self):
         for product in self.products:
+            self.total_income += product.income
+            self.total_supply_income += product.supply_income
+
             self.product_names_list += (product.name,)
             self.product_ordered_quantities_list.append(product.ordered_quantity)
-            self.product_incomes_list += (f"{product.income:.2f}",)
+            self.product_incomes_list += (f"{Decimal(product.income):.2f}",)
+
+            self.supply_quantities_list += (product.supply_quantity,)
+            self.supply_incomes_list += (f"{Decimal(product.supply_income):.2f}",)
+            self.product_excess_list += (product.excess,)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         self.get_producer_products()
         self.get_product_names_quantities_incomes()
         context["producer"] = self.producer
         context["producers"] = get_producers_list(Producer)
         context["product_names_list"] = self.product_names_list
-        context[
-            "product_ordered_quantities_list"
-        ] = self.product_ordered_quantities_list
+        context["product_ordered_quantities_list"] = self.product_ordered_quantities_list
         context["product_incomes_list"] = self.product_incomes_list
-        context["total_income"] = calculate_total_income(self.products)
+        context["supply_quantities_list"] = self.supply_quantities_list
+        context["supply_incomes_list"] = self.supply_incomes_list
+        context["excess"] = self.product_excess_list
+        context["total_income"] = self.total_income
+        context["total_supply_income"] = self.total_supply_income
         return context
 
 

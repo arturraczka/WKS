@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from django.db.models import Sum
+from django.db.models import Sum, Prefetch, Value
 from django.contrib.messages import get_messages
 from django.db.models import Q
 from django.db.models import Case, When, F
@@ -242,6 +242,37 @@ def filter_products_with_ordered_quantity_and_income(product_model, producer_id)
             ordered_quantity=Sum("orderitems__quantity"),
             income=F("ordered_quantity") * F("price"),
         )
+        .order_by("name")
+    )
+    return products
+
+
+# TODO function to be renamed
+def filter_products_with_ordered_quantity_and_income2(product_model, producer_id):
+    previous_friday = calculate_previous_weekday()
+    products = (
+        product_model.objects.only(
+            "name",
+            "orderitems__quantity",
+            "supplyitems__quantity"
+        )
+        .filter(producer=producer_id)
+        .annotate(
+            ordered_quantity=Sum(
+                Case(
+                    When(orderitems__item_ordered_date__gte=previous_friday, then=F('orderitems__quantity')),
+                    default=Decimal(0),
+                )
+            ),
+            income=F("ordered_quantity") * F("price"),
+            supply_quantity=Case(
+                When(supplyitems__date_created__gte=previous_friday, then=F('supplyitems__quantity')),
+                default=Decimal(0),
+            ),
+            supply_income=F("supply_quantity") * F("price"),
+            excess=F("supply_quantity") - F("ordered_quantity")
+        )
+        .distinct()
         .order_by("name")
     )
     return products

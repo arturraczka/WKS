@@ -16,7 +16,8 @@
         </div>
 
         <h3>{{ producer.name }}</h3>
-        <h4>Przychód z zamówienia: {{ total_income|floatformat:"2" }} zł.</h4>
+        <h4>Kwota z zamówienia łącznie: {{ total_income|floatformat:"2" }} zł.</h4>
+        <h4>Kwota z dostawy łącznie: {{ total_supply_income|floatformat:"2" }} zł.</h4>
 
         <div class="row">
             <div class="col-md-4">
@@ -34,8 +35,8 @@
                 {% endfor %}
             </div>
 
-            <div class="col-md-2">
-                <span class="mr-2">Zamówiona ilość: </span>
+            <div class="col-md-1">
+                <span class="mr-2">Zamówiono: </span>
                 {% for quantity in product_ordered_quantities_list %}
                     <article class="media ">
                       <div class="media-body">
@@ -50,13 +51,58 @@
             </div>
 
             <div class="col-md-2">
-                <span class="mr-2">Przychód: </span>
+                <span class="mr-2">Kwota z zamówienia: </span>
                 {% for income in product_incomes_list %}
                     <article class="media ">
                       <div class="media-body">
 
                         <div>
                           <span class="mr-2">{{ income }} zł</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="col-md-1">
+                <span class="mr-2">Dostawa: </span>
+                {% for sup_quantity in supply_quantities_list %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ sup_quantity|format_decimal }} szt/kg</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="col-md-2">
+                <span class="mr-2">Kwota z dostawy: </span>
+                {% for income in supply_incomes_list %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ income }} zł</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="col-md-1">
+                <span class="mr-2">Nadwyżka: </span>
+                {% for ex in excess %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ ex|format_decimal }} szt/kg</span>
                         </div>
 
                       </div>
