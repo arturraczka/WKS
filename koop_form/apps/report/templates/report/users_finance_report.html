@@ -1,0 +1,76 @@
+{% extends "form/base_one.html" %}
+{% load custom_filters %}
+{% block content %}
+
+    <div class="col-md-9">
+
+      <div class="form-group">
+        <a class="btn btn-outline-secondary my-2" href=#>Pobierz raport</a>
+      </div>
+
+      <h3>Finanse kooperantów:</h3>
+
+      <div class="row">
+
+            <div class="col-md-3">
+                <span class="mr-2">Imię i nazwisko: </span>
+                {% for username in name_list %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ username }}</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="col-md-2">
+                <span class="mr-2">Koop ID: </span>
+                {% for id in koop_id_list %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ id }}</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="col-md-2">
+                <span class="mr-2">Kwota zamówienia: </span>
+                {% for cost in order_cost_list %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ cost|format_decimal:2 }} zł</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="content-section sticky-element">
+        <h3>Wybierz raport:</h3>
+        <ul class="list-group">
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-products-list' %}">Produkty</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-box-list' %}">Skrzynki Producenci</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'order-box-list' %}">Skrzynki Zamówienia</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'users-report' %}">Kooperanci Koordynacja</a></li>
+          <li class="list-group-item list-group-item-light"><a href="{% url 'producers-finance' %}">Producenci Finanse</a></li>
+        </ul>
+      </div>
+    </div>
+
+{% endblock content%}
