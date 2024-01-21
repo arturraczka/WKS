@@ -26,6 +26,7 @@ from apps.form.services import (
 )
 
 from apps.form.views import ProducersView
+from apps.user.models import UserProfile
 
 logger = logging.getLogger("django.server")
 
@@ -139,7 +140,10 @@ class UsersReportView(TemplateView):
             self.user_name_list.append(user.first_name + " " + user.last_name)
             self.user_order_number_list.append(user.order[0].order_number)
             self.user_pickup_day_list.append(user.order[0].pick_up_day)
-            self.user_phone_number_list.append(user.userprofile.phone_number)
+            try:
+                self.user_phone_number_list.append(user.userprofile.phone_number)
+            except UserProfile.DoesNotExist:
+                self.user_phone_number_list.append("brak telefonu")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -396,7 +400,7 @@ class OrderBoxReportDownloadView(OrderBoxReportView):
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class UsersFinanceReportView(TemplateView):
-    template_name = "report/users_finance.html"
+    template_name = "report/users_finance_report.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -409,7 +413,10 @@ class UsersFinanceReportView(TemplateView):
 
         # TODO przyda się logika, że jeśli user nic nie zamówił, to nie pojawi się w raporcie
         for user in users:
-            koop_id_list.append(user.userprofile.koop_id)
+            try:
+                koop_id_list.append(user.userprofile.koop_id)
+            except UserProfile.DoesNotExist:
+                koop_id_list.append('brak')
             name_list += (f"{user.first_name} {user.last_name}",)
             try:
                 orderitems = (
@@ -420,7 +427,10 @@ class UsersFinanceReportView(TemplateView):
             except ObjectDoesNotExist:
                 order_cost = 0
             else:
-                order_cost = calculate_order_cost(orderitems) * user.userprofile.fund
+                try:
+                    order_cost = calculate_order_cost(orderitems) * user.userprofile.fund
+                except UserProfile.DoesNotExist:
+                    order_cost = calculate_order_cost(orderitems) * Decimal('1.3')
             order_cost_list.append(order_cost)
 
         context["koop_id_list"] = koop_id_list
