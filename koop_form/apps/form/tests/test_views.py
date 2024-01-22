@@ -85,7 +85,7 @@ class TestProductsView(TestCase):
         response = self.client.get(self.url)
         context_data = response.context
 
-        products_with_related = list(
+        products = list(
             Product.objects.filter(producer=self.producer_used.id)
             .filter(is_active=True)
             .prefetch_related("weight_schemes", "statuses")
@@ -93,7 +93,7 @@ class TestProductsView(TestCase):
 
         assert response.status_code == 200
         assert context_data["producer"] == self.producer_used
-        assert list(context_data["products_with_related"]) == products_with_related
+        assert list(context_data["products"]) == products
         assert sorted(list(context_data["producers"])) == producers_list
 
 

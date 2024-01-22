@@ -1,7 +1,7 @@
 {% extends "form/base_one.html" %}
 {% load custom_filters %}
 {% block content %}
-    <div class="col-md-8">
+    <div class="col-md-7">
     <label for="producers">Zmień producenta:</label>
     <select name="producers" id="producers">
       {% for producer in producers %}
@@ -14,28 +14,22 @@
     <h3>{{ producer.name }}</h3>
     <p>{{ producer.description }}</p>
 
-    {% for product in products_with_related %}
-        <article class="media content-section">
-          <div class="media-body">
-            <h5 class="article-title">{{ product.name }}</h5>
-            <div>
-              <span class="mr-2"><strong>Cena (za szt/kg): {{ product.price }} zł</strong></span>
-              <span class="article-content">Opis: {{ product.description }}</span>
-            </div>
-            <div class="article-metadata">
-                <span class="text-muted">Dostępne wagi(kg)/liczba sztuk: </span>
-                {% for weight_scheme in product.weight_schemes.all %}
-                    <span class="text-muted">{{ weight_scheme.quantity|format_decimal:3 }},</span>
-                {% endfor %}
-            </div>
-            <div class="article-metadata">
-                <span class="text-muted">Status produktu: </span>
-                {% for status in product.statuses.all %}
-                    <span class="text-muted">{{ status.status_type }},</span>
-                {% endfor %}
-            </div>
-          </div>
-        </article>
+
+
+    {% for product in products %}
+      <div class="section-product">
+
+        <div>
+          <span class="border-1">{{ product.name }}</span>
+          <span class="mr-2"><strong>  {{ product.price }}</strong> zł za szt/kg</span>
+          <span class="mr-2"> | Kat: {{ product.category }}</span>
+        </div>
+
+        <div>
+          <span class="">{{ product.description }}</span>
+        </div>
+
+      </div>
     {% endfor %}
     </div>
 

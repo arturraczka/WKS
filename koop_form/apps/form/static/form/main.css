@@ -195,3 +195,11 @@ a.article-title:hover {
     border: 1px solid;
     border-radius: 2px
 }
+
+.section-product {
+    margin-top: 5px;
+    border-bottom: 1px solid;
+    display:block;
+    height:75px;
+    margin-bottom: 10px;
+}
