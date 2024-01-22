@@ -252,6 +252,9 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         self.producer = None
         self.products_with_quantity = None
         self.orderitems = None
+        self.products_description = []
+        self.products_weight_schemes = []
+        self.available_quantities_list = []
 
     def get_success_url(self):
         return self.request.path
@@ -277,9 +280,12 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         return kwargs
 
     def get_user_fund(self):
-        user_fund = self.request.user.userprofile.fund
+        try:
+            user_fund = self.request.user.userprofile.fund
+        except UserProfile.DoesNotExist:
+            user_fund = Decimal('1.3')
         if user_fund is None:
-            user_fund = 1.3
+            user_fund = Decimal('1.3')
         return user_fund
 
     def get_products_with_related(self):
@@ -298,17 +304,38 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
             products_with_related
         ).order_by("name")
 
+    def extract_data_from_products(self):
+        for product in self.products_with_quantity:
+            self.products_description.append(product.description)
+            weight_schemes = []
+            for scheme in product.weight_schemes.all():
+                weight_schemes.append(
+                    (
+                        Decimal(scheme.quantity),
+                        f"{scheme.quantity}".rstrip("0").rstrip("."),
+                    )
+                )
+            self.products_weight_schemes.append(weight_schemes)
+            self.available_quantities_list.append(product.available_quantity)
+
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         self.get_products_with_related()
+        self.extract_data_from_products()
 
         context["fund"] = self.get_user_fund()
         context["order"] = self.order
         context["orderitems"] = self.orderitems
         context["order_cost"] = calculate_order_cost(self.orderitems)
         context["order_cost_with_fund"] = context["order_cost"] * context["fund"]
-        add_choices_to_forms(context["form"], self.products_with_quantity)
         context["products"] = self.products_with_quantity
+
+        context["products_description"] = self.products_description
+        context["products_weight_schemes"] = self.products_weight_schemes
+        add_weight_schemes_as_choices_to_forms(context["form"], self.products_weight_schemes)
+        context["available_quantities_list"] = self.available_quantities_list
+
         return context
 
     def form_valid(self, form):
