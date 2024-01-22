@@ -1,30 +1,36 @@
 {% extends "form/base_one.html" %}
 {% block content %}
-    <div class="col-md-8">
+
+<div class="col-md-9">
+    <div class="row">
         <div class="form-group">
             <a class="btn btn-outline-secondary my-2" href="{% url 'mass-producer-box-report-download' %}">Pobierz pełny raport</a>
         </div>
-        <h3>Wybierz producenta, żeby wyświetlić cotygodniowy raport skrzynek/produktów:</h3>
-        {% for producer in producers %}
-            <article class="media content-section">
-              <div class="media-body">
-                <h4><a class="article-title" href="{% url 'producer-box-report' slug=producer.0 %}">{{ producer.1 }}</a></h4>
-              </div>
-            </article>
-        {% endfor %}
+        <div class="col-md-12">
+            <h3>Wybierz producenta, żeby wyświetlić cotygodniowy raport skrzynek/produktów:</h3>
+        </div>
     </div>
-
-    <div class="col-md-3">
-      <div class="content-section sticky-element">
-        <h3>Wybierz raport:</h3>
-        <ul class="list-group">
-          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-products-list' %}">Produkty</a></li>
-          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-box-list' %}">Skrzynki Producenci</a></li>
-          <li class="list-group-item list-group-item-light"><a href="{% url 'order-box-list' %}">Skrzynki Zamówienia</a></li>
-          <li class="list-group-item list-group-item-light"><a href="{% url 'users-report' %}">Kooperanci Koordynacja</a></li>
-          <li class="list-group-item list-group-item-light"><a href="{% url 'producers-finance' %}">Producenci Finanse</a></li>
-        </ul>
-      </div>
+    <div class="row">
+        <div class="col-md-5">
+            {% for producer in producers %}
+                  <div class="producer">
+                    <h5><a class="article-title" href="{% url 'producer-box-report' slug=producer.0 %}">{{ producer.1 }}</a></h5>
+                  </div>
+            {% endfor %}
+        </div>
     </div>
+</div>
+<div class="col-md-3">
+  <div class="content-section sticky-element">
+    <h3>Wybierz raport:</h3>
+    <ul class="list-group">
+      <li class="list-group-item list-group-item-light"><a href="{% url 'producer-products-list' %}">Produkty</a></li>
+      <li class="list-group-item list-group-item-light"><a href="{% url 'producer-box-list' %}">Skrzynki Producenci</a></li>
+      <li class="list-group-item list-group-item-light"><a href="{% url 'order-box-list' %}">Skrzynki Zamówienia</a></li>
+      <li class="list-group-item list-group-item-light"><a href="{% url 'users-report' %}">Kooperanci Koordynacja</a></li>
+      <li class="list-group-item list-group-item-light"><a href="{% url 'producers-finance' %}">Producenci Finanse</a></li>
+    </ul>
+  </div>
+</div>
 
 {% endblock content%}

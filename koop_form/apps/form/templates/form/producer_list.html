@@ -1,13 +1,19 @@
 {% extends "form/base_one.html" %}
 {% block content %}
-    <div class="col-md-8">
-        <h3>Przeglądanie produktów bez składania zamówienia, wybierz producenta:</h3>
-        {% for producer in producers %}
-            <article class="media content-section">
-              <div class="media-body">
-                <h4><a class="article-title" href="{% url 'products' slug=producer.0 %}">{{ producer.1 }}</a></h4>
-              </div>
-            </article>
-        {% endfor %}
+<div class="col-md-10">
+    <div class="row">
+        <div class="col-md-9">
+            <h3>Przeglądanie produktów bez składania zamówienia, wybierz producenta:</h3>
+        </div>
     </div>
+    <div class="row">
+        <div class="col-md-5">
+            {% for producer in producers %}
+                  <div class="producer">
+                    <h5><a class="article-title" href="{% url 'products' slug=producer.0 %}">{{ producer.1 }}</a></h5>
+                  </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 {% endblock content%}
