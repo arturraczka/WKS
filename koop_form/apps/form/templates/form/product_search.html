@@ -20,7 +20,7 @@
             <article class="media">
               <div class="media-body">
                 <div class="article-metadata">
-                  <a href="{% url 'order-item-form' pk=product.id %}">{{ product.producer.short }}: {{ product.name }}, {{ product.description }}</a>
+                  <a class="article-title" href="{% url 'order-item-form' pk=product.id %}"><strong>{{ product.price|floatformat:2 }} zł</strong> | kat: {{ product.category }} | <strong>{{ product.name }}</strong> | {{ product.producer.short }}</a>
                 </div>
               </div>
             </article>

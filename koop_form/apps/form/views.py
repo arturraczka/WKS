@@ -442,7 +442,7 @@ def product_search_view(request):
         if search_query:
             queryset = Product.objects.filter(name__icontains=search_query).filter(
                 ~Q(quantity_in_stock=0)
-            )
+            ).order_by("-category", "price")
 
     order = get_users_last_order(Order, request.user)
     orderitems = get_orderitems_query(OrderItem, order.id)
