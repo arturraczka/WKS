@@ -14,7 +14,9 @@ from apps.report.views import (
     OrderBoxReportView,
     OrderBoxReportDownloadView,
     UsersFinanceReportView,
-    ProducerProductsListView, MassProducerBoxReportDownloadView,
+    ProducerProductsListView,
+    MassProducerBoxReportDownloadView,
+    UsersFinanceReportDownloadView,
 )
 
 
@@ -50,22 +52,22 @@ urlpatterns = [
         name="producers-finance",
     ),
     path(
-        "pobierz/raporty/producenci-skrzynki/<str:slug>/",
+        "pobierz/producenci-skrzynki/<str:slug>/",
         ProducerBoxReportDownloadView.as_view(),
         name="producer-box-report-download",
     ),
     path(
-        "pobierz/raporty/kooperanci/",
+        "pobierz/kooperanci/",
         UsersReportDownloadView.as_view(),
         name="users-report-download",
     ),
     path(
-        "pobierz/raporty/producenci-finanse/",
+        "pobierz/producenci-finanse/",
         ProducersFinanceReportDownloadView.as_view(),
         name="producers-finance-report-download",
     ),
     path(
-        "pobierz/raporty/producenci-produkty/<str:slug>/",
+        "pobierz/producenci-produkty/<str:slug>/",
         ProducerProductsReportDownloadView.as_view(),
         name="producer-products-report-download",
     ),
@@ -80,18 +82,23 @@ urlpatterns = [
         name="order-box-report",
     ),
     path(
-        "pobierz/raporty/zamowienia-skrzynki/<int:pk>/",
+        "pobierz/zamowienia-skrzynki/<int:pk>/",
         OrderBoxReportDownloadView.as_view(),
         name="order-box-report-download",
     ),
     path(
         "kooperanci-finanse/",
         UsersFinanceReportView.as_view(),
-        name="users-finance",
+        name="users-finance-report",
     ),
     path(
-        "pobierz/raporty/wszyscy-producenci-skrzynki/",
+        "pobierz/wszyscy-producenci-skrzynki/",
         MassProducerBoxReportDownloadView.as_view(),
         name="mass-producer-box-report-download",
+    ),
+    path(
+        "pobierz/kooperanci-finanse/",
+        UsersFinanceReportDownloadView.as_view(),
+        name="users-finance-report-download",
     ),
 ]

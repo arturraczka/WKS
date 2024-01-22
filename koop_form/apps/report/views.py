@@ -74,11 +74,13 @@ class ProducerProductsReportView(TemplateView):
         self.get_product_names_quantities_incomes()
         context["producer"] = self.producer
         context["producers"] = get_producers_list(Producer)
+
         context["product_names_list"] = self.product_names_list
         context["product_ordered_quantities_list"] = self.product_ordered_quantities_list
         context["product_incomes_list"] = self.product_incomes_list
         context["supply_quantities_list"] = self.supply_quantities_list
         context["supply_incomes_list"] = self.supply_incomes_list
+
         context["excess"] = self.product_excess_list
         context["total_income"] = self.total_income
         context["total_supply_income"] = self.total_supply_income
@@ -289,17 +291,28 @@ class ProducerProductsReportDownloadView(ProducerProductsReportView):
         writer = csv.writer(response)
         writer.writerow(
             [
-                f'Przychód łącznie: {context["total_income"]:.2f} zł',
                 context["producer"].name,
             ]
         )
-        writer.writerow(["Nazwa produktu", "Zamówiona ilość", "Przychód"])
-        for name, quantity, income in zip(
-            context["products_names"],
-            context["products_ordered_quantity"],
-            context["products_incomes"],
+        writer.writerow(
+            [
+                f'Kwota zamówienia: {context["total_income"]:.2f} zł',
+            ]
+        )
+        writer.writerow(
+            [
+                f'Kwota dostawy: {context["total_supply_income"]:.2f} zł',
+            ]
+        )
+        writer.writerow(["Nazwa produktu", "Zamówiona ilość", "Kwota z zamówienia", "Dostarczona ilość", "Kwota z dostawy"])
+        for name, quantity, income, supply_quantity, supply_income in zip(
+            context["product_names_list"],
+            context["product_ordered_quantities_list"],
+            context["product_incomes_list"],
+            context["supply_quantities_list"],
+            context["supply_incomes_list"],
         ):
-            writer.writerow([name, quantity, income])
+            writer.writerow([name, quantity, income, supply_quantity, supply_income])
 
         return response
 
@@ -405,7 +418,7 @@ class UsersFinanceReportView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        users = get_user_model().objects.all().select_related("userprofile")
+        users = get_user_model().objects.all().select_related("userprofile").order_by("userprofile__koop_id")
 
         koop_id_list = []
         name_list = []
@@ -501,4 +514,25 @@ class MassProducerBoxReportDownloadView(TemplateView):
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class UsersFinanceReportDownloadView(UsersFinanceReportView):
-    pass
+    response_class = HttpResponse
+    content_type = "text/csv"
+
+    def render_to_response(self, context, **response_kwargs):
+        headers = {
+            "Content-Disposition": f'attachment; filename="raport-finanse-kooperantów.csv"'
+        }
+
+        response = self.response_class(
+            content_type=self.content_type,
+            headers=headers,
+        )
+        writer = csv.writer(response)
+        writer.writerow(["imię nazwisko", "koop ID", "kwota zamówienia"])
+        for short, name, quantity in zip(
+                context["name_list"],
+                context["koop_id_list"],
+                context["order_cost_list"],
+        ):
+            writer.writerow([short, name, quantity])
+
+        return response
