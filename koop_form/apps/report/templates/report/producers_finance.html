@@ -1,7 +1,7 @@
 {% extends "form/base_one.html" %}
 {% block content %}
 
-    <div class="col-md-9">
+    <div class="col-md-10">
 
       <div class="form-group">
         <a class="btn btn-outline-secondary my-2" href="{% url 'producers-finance-report-download' %}">Pobierz raport</a>
@@ -43,17 +43,19 @@
 
       </div>
     </div>
-    <div class="col-md-3">
-      <div class="content-section sticky-element">
-        <h3>Wybierz raport:</h3>
-        <ul class="list-group">
-          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-products-list' %}">Produkty</a></li>
-          <li class="list-group-item list-group-item-light"><a href="{% url 'producer-box-list' %}">Skrzynki Producenci</a></li>
-          <li class="list-group-item list-group-item-light"><a href="{% url 'order-box-list' %}">Skrzynki Zamówienia</a></li>
-          <li class="list-group-item list-group-item-light"><a href="{% url 'users-report' %}">Kooperanci Koordynacja</a></li>
-          <li class="list-group-item list-group-item-light"><a href="{% url 'producers-finance' %}">Producenci Finanse</a></li>
-        </ul>
-      </div>
-    </div>
+<div class="col-md-2">
+  <div class="content-section sticky-element">
+    <h3>Wybierz raport:</h3>
+    <ul class="list-group">
+      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'producer-products-list' %}">Producenci Produkty</a></li>
+        <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'producer-box-list' %}">Producenci Skrzynki</a></li>
+        <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'producers-finance' %}">Producenci Finanse</a></li>
+        <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'order-box-list' %}">Zamówienia Skrzynki</a></li>
+        <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'users-report' %}">Kooperanci Lista</a></li>
+      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'users-finance-report' %}">Kooperanci Finanse</a></li>
+      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'supply-create' %}">Nowa dostawa</a></li>
+    </ul>
+  </div>
+</div>
 
 {% endblock content%}
