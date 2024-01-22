@@ -59,20 +59,6 @@
 
         </div>
 
-        <div class="col-md-4">
-
-                {% for desc in products_description %}
-                      <div class="border-bottom">
-
-                        <div>
-                          <span class="mr-2">{{ desc }}</span>
-                        </div>
-
-                      </div>
-                {% endfor %}
-
-        </div>
-
         <div class="col-md-2">
 
             <form method="post">
@@ -106,6 +92,20 @@
                         </div>
                       </div>
                 {% endfor %}
+        </div>
+
+        <div class="col-md-4">
+
+                {% for desc in products_description %}
+                      <div class="border-bottom">
+
+                        <div>
+                          <span class="mr-2">{{ desc }}</span>
+                        </div>
+
+                      </div>
+                {% endfor %}
+
         </div>
 
 
