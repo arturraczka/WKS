@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Q
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
 from django.urls import reverse, reverse_lazy
@@ -431,3 +431,8 @@ def product_search_view(request):
     }
 
     return render(request, "form/product_search.html", context)
+
+
+def main_page_redirect(request):
+    response = redirect('order-producers')
+    return response
