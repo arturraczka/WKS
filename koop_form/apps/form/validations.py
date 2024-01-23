@@ -117,3 +117,8 @@ def validate_order_exists(request):
 def validate_supply_exists(supply_model, producer_instance):
     previous_friday = calculate_previous_weekday()
     return supply_model.objects.filter(producer=producer_instance).filter(date_created__gte=previous_friday).exists()
+
+
+def validate_supplyitem_exists(product_instance, supplyitem_model):
+    previous_friday = calculate_previous_weekday()
+    return supplyitem_model.objects.filter(product=product_instance).filter(date_created__gte=previous_friday).exists()

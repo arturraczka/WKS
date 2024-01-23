@@ -12,7 +12,7 @@ from django.views.generic import (
 )
 
 from apps.form.models import Producer, Product
-from apps.form.validations import validate_supply_exists
+from apps.form.validations import validate_supply_exists, validate_supplyitem_exists
 from apps.supply.models import Supply, SupplyItem
 from apps.supply.forms import (
     CreateSupplyForm,
@@ -110,14 +110,15 @@ class SupplyProductsFormView(FormView):
             elif instance.quantity is None:
                 pass
             else:
-                if False:
-                    pass
-                # if not perform_create_orderitem_validations(
-                #     instance, self.request, Order, Product
-                # ):
-                #     return self.form_invalid(form)
+                if validate_supplyitem_exists(
+                    instance.product, SupplyItem
+                ):
+                    messages.warning(
+                        self.request,
+                        f"{instance.product.name}: Już dodałaś/eś ten produkt do dostawy.",
+                    )
+                    return self.form_invalid(form)
                 else:
-                    # instance.supply = self.supply.id
                     instance.save()
                     messages.success(
                         self.request,
@@ -126,6 +127,7 @@ class SupplyProductsFormView(FormView):
         return super().form_valid(form)
 
 
+# NOT IN USE ##################################################################
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class SupplyUpdateFormView(FormView):
     model = SupplyItem
@@ -193,3 +195,4 @@ class SupplyUpdateFormView(FormView):
                 f"{instance.product.name}: Dostawa została zaktualizowana.",
             )
         return super().form_valid(form)
+# NOT IN USE ###########################################################
