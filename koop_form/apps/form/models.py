@@ -79,7 +79,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=7, decimal_places=2)
     order_deadline = models.DateTimeField(null=True, blank=True)
     quantity_delivered_this_week = models.DecimalField(
-        max_digits=9, decimal_places=3, default=-1, null=True, blank=True
+        max_digits=9, decimal_places=3, default=0, null=True, blank=True
     )
     weight_schemes = models.ManyToManyField(
         WeightScheme, related_name="products", through="product_weight_schemes"
