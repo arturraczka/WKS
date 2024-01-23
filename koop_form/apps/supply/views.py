@@ -12,6 +12,7 @@ from django.views.generic import (
 )
 
 from apps.form.models import Producer, Product
+from apps.form.validations import validate_supply_exists
 from apps.supply.models import Supply, SupplyItem
 from apps.supply.forms import (
     CreateSupplyForm,
@@ -36,11 +37,12 @@ class SupplyCreateView(SuccessMessageMixin, CreateView):
     success_message = "Dostawa została utworzona. Dodaj produkty."
 
     def form_valid(self, form):
-        # TODO
-        # if validate_order_exists(self.request):
-        #     return self.form_invalid(form)
-        # mogę zrobić walidację, żeby nie dało się zrobić dwóch dostaw tego samego producenta w jednym tygodniu
-
+        if validate_supply_exists(Supply, form.instance.producer):
+            messages.warning(
+                self.request,
+                f"{form.instance.producer}: Ten producent ma już dostawę na ten tydzień.",
+            )
+            return self.form_invalid(form)
         form.instance.user = self.request.user
         return super().form_valid(form)
 

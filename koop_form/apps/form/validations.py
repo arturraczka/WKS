@@ -112,3 +112,8 @@ def validate_order_exists(request):
     if order_check(request.user):
         messages.warning(request, "Masz już zamówienie na ten tydzień.")
         return True
+
+
+def validate_supply_exists(supply_model, producer_instance):
+    previous_friday = calculate_previous_weekday()
+    return supply_model.objects.filter(producer=producer_instance).filter(date_created__gte=previous_friday).exists()
