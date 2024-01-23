@@ -13,9 +13,9 @@
         <div class="form-group">
             <a class="btn btn-outline-secondary my-2" href="{% url 'order-box-report-download' pk=order.id %}">Pobierz raport</a>
         </div>
-        <h3>Skrzynka nr: {{ order.order_number }}</h3>
-
-        <h4>Do zapłaty: {{ order_cost_with_fund }} zł.</h4>
+        <h4>{{ username }}</h4>
+        <h4>Skrzynka nr: {{ order.order_number }}</h4>
+        <h5>Do zapłaty: {{ order_cost_with_fund }} zł.</h5>
         <p class='text-muted'>Fundusz: {{ fund }}</p>
 
         <div class="row">

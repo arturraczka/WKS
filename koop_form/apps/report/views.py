@@ -337,19 +337,16 @@ class OrderBoxListView(TemplateView):
 class OrderBoxReportView(OrderBoxListView):
     template_name = "report/order_box_report.html"
 
-    def get_user_fund(self):
-        user_fund = self.request.user.userprofile.fund
-        if user_fund is None:
-            user_fund = 1.3
-        return user_fund
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["fund"] = self.get_user_fund()
-
         order = get_object_or_404(Order, id=self.kwargs["pk"])
         context["order"] = order
+        try:
+            context["fund"] = order.user.userprofile.fund
+        except UserProfile.DoesNotExist:
+            context["fund"] = Decimal('1.3')
+        context["username"] = order.user.first_name + " " + order.user.last_name
 
         orderitems = OrderItem.objects.filter(order=order).select_related("product")
 
@@ -386,7 +383,7 @@ class OrderBoxReportDownloadView(OrderBoxReportView):
 
     def render_to_response(self, context, **response_kwargs):
         headers = {
-            "Content-Disposition": f'attachment; filename="raport-zamowienie-skrzynka: {context["order"].order_number}.csv"'
+            "Content-Disposition": f'attachment; filename="raport-zamowienie-skrzynka:{context["order"].order_number}.csv"'
         }
 
         response = self.response_class(
@@ -396,8 +393,7 @@ class OrderBoxReportDownloadView(OrderBoxReportView):
         writer = csv.writer(response)
         writer.writerow(
             [
-                ".",
-                f'Skrzynka {context["order"].order_number}; do zapłaty: {context["order_cost_with_fund"]} zł; fundusz {context["fund"]}',
+                f'{context["username"]}; skrzynka {context["order"].order_number}; do zapłaty: {context["order_cost_with_fund"]} zł; fundusz {context["fund"]}',
             ]
         )
         writer.writerow(["Producent", "Nazwa produktu", "Zamówiona ilość"])
@@ -536,3 +532,82 @@ class UsersFinanceReportDownloadView(UsersFinanceReportView):
             writer.writerow([short, name, quantity])
 
         return response
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class MassOrderBoxReportDownloadView(TemplateView):
+    template_name = "report/order_box_report.html"
+    response_class = HttpResponse
+    content_type = "text/csv"
+
+    def render_to_response(self, context, **response_kwargs):
+        headers = {
+            "Content-Disposition": f'attachment; filename="raport-zamowienia-skrzynki-wszystkie.csv"'
+        }
+
+        response = self.response_class(
+            content_type=self.content_type,
+            headers=headers,
+        )
+        writer = csv.writer(response)
+
+        previous_friday = calculate_previous_weekday()
+        orders_queryset = Order.objects.filter(date_created__gt=previous_friday).order_by("order_number")
+
+        for order in orders_queryset:
+            try:
+                fund = order.user.userprofile.fund
+            except UserProfile.DoesNotExist:
+                fund = Decimal('1.3')
+            username = order.user.first_name + " " + order.user.last_name
+
+            orderitems = OrderItem.objects.filter(order=order).select_related("product")
+
+            order_cost = calculate_order_cost(orderitems)
+            order_cost_with_fund = f'{order_cost * fund:.2f}'
+
+            producer_short = []
+            orderitems_names = []
+            orderitems_quantity = []
+            product_ids = []
+
+            for item in orderitems:
+                product_ids += (item.product.id,)
+                orderitems_names += (item.product.name,)
+                orderitems_quantity += (str(item.quantity).rstrip("0").rstrip("."),)
+
+            products = Product.objects.filter(id__in=product_ids).select_related("producer")
+            for prod in products:
+                producer_short += (prod.producer.short,)
+
+            writer.writerow(
+                [
+                    f'{username}; skrzynka {order.order_number}; do zapłaty: {order_cost_with_fund} zł; fundusz {fund}',
+                ]
+            )
+            writer.writerow(["Producent", "Nazwa produktu", "Zamówiona ilość"])
+            for short, name, quantity in zip(
+                producer_short,
+                orderitems_names,
+                orderitems_quantity,
+            ):
+                writer.writerow([short, name, quantity])
+
+        return response
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

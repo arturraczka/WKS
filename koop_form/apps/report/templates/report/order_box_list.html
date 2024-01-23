@@ -1,7 +1,11 @@
 {% extends "form/base_one.html" %}
 {% block content %}
+
 <div class="col-md-10">
     <div class="row">
+        <div class="form-group">
+            <a class="btn btn-outline-secondary my-2" href="{% url 'mass-order-box-report-download' %}">Pobierz pełny raport</a>
+        </div>
         <div class="col-md-9">
             <h3>Wybierz skrzynkę, aby wyświetlić listę produktów:</h3>
         </div>

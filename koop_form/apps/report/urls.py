@@ -16,7 +16,7 @@ from apps.report.views import (
     UsersFinanceReportView,
     ProducerProductsListView,
     MassProducerBoxReportDownloadView,
-    UsersFinanceReportDownloadView,
+    UsersFinanceReportDownloadView, MassOrderBoxReportDownloadView,
 )
 
 
@@ -101,4 +101,10 @@ urlpatterns = [
         UsersFinanceReportDownloadView.as_view(),
         name="users-finance-report-download",
     ),
+    path(
+        "pobierz/wszystkie-zamowienia-skrzynki/",
+        MassOrderBoxReportDownloadView.as_view(),
+        name="mass-order-box-report-download",
+    ),
 ]
+
