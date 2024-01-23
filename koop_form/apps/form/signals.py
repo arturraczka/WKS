@@ -27,19 +27,19 @@ def add_zero_as_weight_scheme(sender, instance, **kwargs):
     instance.weight_schemes.add(weight_scheme_zero.id)
 
 
-@receiver(pre_save, sender=Product)
-def check_before_reduce_order_quantity(sender, instance, **kwargs):
-    if instance.quantity_delivered_this_week != -1:
-        product_db = sender.objects.get(pk=instance.id)
-
-        if (
-            product_db.quantity_delivered_this_week
-            != instance.quantity_delivered_this_week
-        ):
-            reduce_order_quantity(
-                OrderItem, instance.id, instance.quantity_delivered_this_week
-            )
-            instance.quantity_delivered_this_week = -1
+# @receiver(pre_save, sender=Product)
+# def check_before_reduce_order_quantity(sender, instance, **kwargs):
+#     if instance.quantity_delivered_this_week != -1:
+#         product_db = sender.objects.get(pk=instance.id)
+#
+#         if (
+#             product_db.quantity_delivered_this_week
+#             != instance.quantity_delivered_this_week
+#         ):
+#             reduce_order_quantity(
+#                 OrderItem, instance.id, instance.quantity_delivered_this_week
+#             )
+#             instance.quantity_delivered_this_week = -1
 
 
 @receiver(pre_save, sender=Order)
