@@ -32,7 +32,7 @@ logger = logging.getLogger("django.server")
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class SupplyCreateView(SuccessMessageMixin, CreateView):
     model = Supply
-    template_name = "report/supply_create.html"
+    template_name = "supply/supply_create.html"
     form_class = CreateSupplyForm
     success_message = "Dostawa została utworzona. Dodaj produkty."
 
@@ -50,7 +50,7 @@ class SupplyCreateView(SuccessMessageMixin, CreateView):
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class SupplyProductsFormView(FormView):
     model = SupplyItem
-    template_name = "report/supply_products_form.html"
+    template_name = "supply/supply_products_form.html"
     form_class = None
 
     def __init__(self, *args, **kwargs):
@@ -132,7 +132,7 @@ class SupplyProductsFormView(FormView):
 class SupplyUpdateFormView(FormView):
     model = SupplyItem
     form_class = None
-    template_name = "report/supply_update_form.html"
+    template_name = "supply/supply_update_form.html"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -1,10 +1,9 @@
-{% extends "form/base_one.html" %}
+{% extends "templates/base_one.html" %}
 {% load custom_filters %}
 {% block content %}
 <div class="col-md-9">
 
-    <h3>Dostawa od {{ producer.short }}</h3>
-    <h5>Edytuj dostarczone produktuy:</h5>
+    <h3>{{ producer.name }}</h3>
 
     <div class="row">
         <div class="col-md-5 position-fix-2">
@@ -16,7 +15,6 @@
                         <div class="article-metadata">
                           <span class="article-title border-1">{{ product.name }}</span>
                         </div>
-
 
                       </div>
                     </article>
@@ -51,10 +49,12 @@
 
 <div class="col-md-3">
   <div class="content-section sticky-element">
-    <h3>Szczegóły dostawy:</h3>
-    <p class='text-muted'>Producent: {{ producer.name }} zł.</p>
-    <p class='text-muted'>Utworzono: {{ supply.date_created }}.</p>
-    <a href="#" class="button">Usuń tę dostawę</a>
+    <a href="{% url 'supply-update-form' slug=producer.slug %}"><h3>Podsumowanie dostawy:</h3></a>
+    <ul class="list-group">
+    {% for item in supply_items %}
+      <li class="list-group-item list-group-item-light">{{ item.product.name }}: {{ item.quantity|format_decimal:3 }}</li>
+    {% endfor %}
+    </ul>
   </div>
 </div>
 
