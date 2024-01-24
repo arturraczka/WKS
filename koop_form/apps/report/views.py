@@ -76,7 +76,9 @@ class ProducerProductsReportView(TemplateView):
         context["producers"] = get_producers_list(Producer)
 
         context["product_names_list"] = self.product_names_list
-        context["product_ordered_quantities_list"] = self.product_ordered_quantities_list
+        context[
+            "product_ordered_quantities_list"
+        ] = self.product_ordered_quantities_list
         context["product_incomes_list"] = self.product_incomes_list
         context["supply_quantities_list"] = self.supply_quantities_list
         context["supply_incomes_list"] = self.supply_incomes_list
@@ -304,7 +306,15 @@ class ProducerProductsReportDownloadView(ProducerProductsReportView):
                 f'Kwota dostawy: {context["total_supply_income"]:.2f} zł',
             ]
         )
-        writer.writerow(["Nazwa produktu", "Zamówiona ilość", "Kwota z zamówienia", "Dostarczona ilość", "Kwota z dostawy"])
+        writer.writerow(
+            [
+                "Nazwa produktu",
+                "Zamówiona ilość",
+                "Kwota z zamówienia",
+                "Dostarczona ilość",
+                "Kwota z dostawy",
+            ]
+        )
         for name, quantity, income, supply_quantity, supply_income in zip(
             context["product_names_list"],
             context["product_ordered_quantities_list"],
@@ -345,7 +355,7 @@ class OrderBoxReportView(OrderBoxListView):
         try:
             context["fund"] = order.user.userprofile.fund
         except UserProfile.DoesNotExist:
-            context["fund"] = Decimal('1.3')
+            context["fund"] = Decimal("1.3")
         context["username"] = order.user.first_name + " " + order.user.last_name
 
         orderitems = OrderItem.objects.filter(order=order).select_related("product")
@@ -414,7 +424,12 @@ class UsersFinanceReportView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        users = get_user_model().objects.all().select_related("userprofile").order_by("userprofile__koop_id")
+        users = (
+            get_user_model()
+            .objects.all()
+            .select_related("userprofile")
+            .order_by("userprofile__koop_id")
+        )
 
         koop_id_list = []
         name_list = []
@@ -425,7 +440,7 @@ class UsersFinanceReportView(TemplateView):
             try:
                 koop_id_list.append(user.userprofile.koop_id)
             except UserProfile.DoesNotExist:
-                koop_id_list.append('brak')
+                koop_id_list.append("brak")
             name_list += (f"{user.first_name} {user.last_name}",)
             try:
                 orderitems = (
@@ -437,9 +452,11 @@ class UsersFinanceReportView(TemplateView):
                 order_cost = 0
             else:
                 try:
-                    order_cost = calculate_order_cost(orderitems) * user.userprofile.fund
+                    order_cost = (
+                        calculate_order_cost(orderitems) * user.userprofile.fund
+                    )
                 except UserProfile.DoesNotExist:
-                    order_cost = calculate_order_cost(orderitems) * Decimal('1.3')
+                    order_cost = calculate_order_cost(orderitems) * Decimal("1.3")
             order_cost_list.append(order_cost)
 
         context["koop_id_list"] = koop_id_list
@@ -474,9 +491,11 @@ class MassProducerBoxReportDownloadView(TemplateView):
             products_names.append(product.name)
             products_quantities.append(product.ordered_quantity)
             if product.quantity_in_stock:
-                products_quant_in_stock.append(product.quantity_in_stock + product.ordered_quantity)
+                products_quant_in_stock.append(
+                    product.quantity_in_stock + product.ordered_quantity
+                )
             else:
-                products_quant_in_stock.append(' ')
+                products_quant_in_stock.append(" ")
             products_producers.append(product.producer.short)
         context["products_producers"] = products_producers
         context["products_quantities"] = products_quantities
@@ -495,7 +514,9 @@ class MassProducerBoxReportDownloadView(TemplateView):
             headers=headers,
         )
         writer = csv.writer(response)
-        writer.writerow(["Producent", "Ilość łącznie", "W magazynie", "Produkt", "Lista skrzynek"])
+        writer.writerow(
+            ["Producent", "Ilość łącznie", "W magazynie", "Produkt", "Lista skrzynek"]
+        )
 
         for producer, quant, stock, product, boxlist in zip(
             context["products_producers"],
@@ -525,9 +546,9 @@ class UsersFinanceReportDownloadView(UsersFinanceReportView):
         writer = csv.writer(response)
         writer.writerow(["imię nazwisko", "koop ID", "kwota zamówienia"])
         for short, name, quantity in zip(
-                context["name_list"],
-                context["koop_id_list"],
-                context["order_cost_list"],
+            context["name_list"],
+            context["koop_id_list"],
+            context["order_cost_list"],
         ):
             writer.writerow([short, name, quantity])
 
@@ -552,19 +573,21 @@ class MassOrderBoxReportDownloadView(TemplateView):
         writer = csv.writer(response)
 
         previous_friday = calculate_previous_weekday()
-        orders_queryset = Order.objects.filter(date_created__gt=previous_friday).order_by("order_number")
+        orders_queryset = Order.objects.filter(
+            date_created__gt=previous_friday
+        ).order_by("order_number")
 
         for order in orders_queryset:
             try:
                 fund = order.user.userprofile.fund
             except UserProfile.DoesNotExist:
-                fund = Decimal('1.3')
+                fund = Decimal("1.3")
             username = order.user.first_name + " " + order.user.last_name
 
             orderitems = OrderItem.objects.filter(order=order).select_related("product")
 
             order_cost = calculate_order_cost(orderitems)
-            order_cost_with_fund = f'{order_cost * fund:.2f}'
+            order_cost_with_fund = f"{order_cost * fund:.2f}"
 
             producer_short = []
             orderitems_names = []
@@ -576,13 +599,15 @@ class MassOrderBoxReportDownloadView(TemplateView):
                 orderitems_names += (item.product.name,)
                 orderitems_quantity += (str(item.quantity).rstrip("0").rstrip("."),)
 
-            products = Product.objects.filter(id__in=product_ids).select_related("producer")
+            products = Product.objects.filter(id__in=product_ids).select_related(
+                "producer"
+            )
             for prod in products:
                 producer_short += (prod.producer.short,)
 
             writer.writerow(
                 [
-                    f'{username}; skrzynka {order.order_number}; do zapłaty: {order_cost_with_fund} zł; fundusz {fund}',
+                    f"{username}; skrzynka {order.order_number}; do zapłaty: {order_cost_with_fund} zł; fundusz {fund}",
                 ]
             )
             writer.writerow(["Producent", "Nazwa produktu", "Zamówiona ilość"])
@@ -594,20 +619,3 @@ class MassOrderBoxReportDownloadView(TemplateView):
                 writer.writerow([short, name, quantity])
 
         return response
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

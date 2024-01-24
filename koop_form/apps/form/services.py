@@ -63,8 +63,7 @@ def calculate_available_quantity(products):
                 "orderitems__quantity",
                 filter=Q(orderitems__item_ordered_date__gte=previous_friday),
             )
-        )
-        .annotate(
+        ).annotate(
             available_quantity=Case(
                 When(
                     ordered_quantity=None,
@@ -252,25 +251,29 @@ def filter_products_with_ordered_quantity_and_income2(product_model, producer_id
     previous_friday = calculate_previous_weekday()
     products = (
         product_model.objects.only(
-            "name",
-            "orderitems__quantity",
-            "supplyitems__quantity"
+            "name", "orderitems__quantity", "supplyitems__quantity"
         )
         .filter(producer=producer_id)
         .annotate(
             ordered_quantity=Sum(
                 Case(
-                    When(orderitems__item_ordered_date__gte=previous_friday, then=F('orderitems__quantity')),
+                    When(
+                        orderitems__item_ordered_date__gte=previous_friday,
+                        then=F("orderitems__quantity"),
+                    ),
                     default=Decimal(0),
                 )
             ),
             income=F("ordered_quantity") * F("price"),
             supply_quantity=Case(
-                When(supplyitems__date_created__gte=previous_friday, then=F('supplyitems__quantity')),
+                When(
+                    supplyitems__date_created__gte=previous_friday,
+                    then=F("supplyitems__quantity"),
+                ),
                 default=Decimal(0),
             ),
             supply_income=F("supply_quantity") * F("price"),
-            excess=F("supply_quantity") - F("ordered_quantity")
+            excess=F("supply_quantity") - F("ordered_quantity"),
         )
         .distinct()
         .order_by("name")

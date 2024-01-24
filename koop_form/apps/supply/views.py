@@ -110,9 +110,7 @@ class SupplyProductsFormView(FormView):
             elif instance.quantity is None:
                 pass
             else:
-                if validate_supplyitem_exists(
-                    instance.product, SupplyItem
-                ):
+                if validate_supplyitem_exists(instance.product, SupplyItem):
                     messages.warning(
                         self.request,
                         f"{instance.product.name}: Już dodałaś/eś ten produkt do dostawy.",
@@ -195,4 +193,6 @@ class SupplyUpdateFormView(FormView):
                 f"{instance.product.name}: Dostawa została zaktualizowana.",
             )
         return super().form_valid(form)
+
+
 # NOT IN USE ###########################################################

@@ -39,24 +39,25 @@ class TestProductModel(TestCase):
 
         return ordered_quantity
 
-    def test_reduce_order_quantity(self):
-        previous_friday = calculate_previous_weekday()
-        OrderItemFactory(product=self.product, quantity=5)
-        for _ in range(1, 8):
-            OrderItemFactory(product=self.product)
-
-        ordered_quantity = self.calculate_ordered_quantity(previous_friday)
-
-        product_db = Product.objects.get(id=self.product.id)
-        rand_quantity = random.randint(7, 12)
-        product_db.quantity_delivered_this_week = rand_quantity
-        product_db.save()
-
-        ordered_quantity_post_save = self.calculate_ordered_quantity(previous_friday)
-
-        assert product_db.quantity_delivered_this_week == -1
-        assert ordered_quantity > rand_quantity
-        assert ordered_quantity_post_save <= rand_quantity
+    # not in use at this moment ###########################################
+    # def test_reduce_order_quantity(self):
+    #     previous_friday = calculate_previous_weekday()
+    #     OrderItemFactory(product=self.product, quantity=5)
+    #     for _ in range(1, 8):
+    #         OrderItemFactory(product=self.product)
+    #
+    #     ordered_quantity = self.calculate_ordered_quantity(previous_friday)
+    #
+    #     product_db = Product.objects.get(id=self.product.id)
+    #     rand_quantity = random.randint(7, 12)
+    #     product_db.quantity_delivered_this_week = rand_quantity
+    #     product_db.save()
+    #
+    #     ordered_quantity_post_save = self.calculate_ordered_quantity(previous_friday)
+    #
+    #     assert product_db.quantity_delivered_this_week == -1
+    #     assert ordered_quantity > rand_quantity
+    #     assert ordered_quantity_post_save <= rand_quantity
 
     def test_signal_add_zero_as_weight_scheme(self):
         zero_weight_scheme = WeightScheme.objects.get(quantity=0)
@@ -122,20 +123,21 @@ class TestProducerModel(TestCase):
     def test_slug_creation(self):
         assert self.producer.slug == "wielka-korba-p13"
 
-    def test_set_products_quantity_to_0(self):
-        count_pre_save = OrderItem.objects.count()
-
-        self.producer.not_arrived = True
-        self.producer.save()
-
-        products_qs = Product.objects.filter(producer=self.producer)
-        count_post_save = OrderItem.objects.count()
-
-        assert self.producer.not_arrived is False
-        for product in products_qs:
-            assert product.quantity_delivered_this_week == -1
-        assert count_pre_save == 15
-        assert count_post_save == 0
+    # not in use at this moment ###########################################
+    # def test_set_products_quantity_to_0(self):
+    #     count_pre_save = OrderItem.objects.count()
+    #
+    #     self.producer.not_arrived = True
+    #     self.producer.save()
+    #
+    #     products_qs = Product.objects.filter(producer=self.producer)
+    #     count_post_save = OrderItem.objects.count()
+    #
+    #     assert self.producer.not_arrived is False
+    #     for product in products_qs:
+    #         assert product.quantity_delivered_this_week == -1
+    #     assert count_pre_save == 15
+    #     assert count_post_save == 0
 
     def test_switch_products_isactive_bool_value(self):
         self.producer.is_active = False

@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "apps.report",
     "apps.supply",
     "apps.templates",
+    "apps.static",
     "django_extensions",
     "import_export",
     "axes",

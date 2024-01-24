@@ -16,7 +16,8 @@ from apps.report.views import (
     UsersFinanceReportView,
     ProducerProductsListView,
     MassProducerBoxReportDownloadView,
-    UsersFinanceReportDownloadView, MassOrderBoxReportDownloadView,
+    UsersFinanceReportDownloadView,
+    MassOrderBoxReportDownloadView,
 )
 
 
@@ -107,4 +108,3 @@ urlpatterns = [
         name="mass-order-box-report-download",
     ),
 ]
-

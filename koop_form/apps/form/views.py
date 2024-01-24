@@ -38,7 +38,9 @@ from apps.form.services import (
     add_choices_to_forms,
     add_choices_to_form,
     get_users_last_order,
-    get_orderitems_query, add_weight_schemes_as_choices_to_forms, get_orderitems_query_2,
+    get_orderitems_query,
+    add_weight_schemes_as_choices_to_forms,
+    get_orderitems_query_2,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -72,10 +74,9 @@ class ProductsView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["products"] = (
-            Product.objects.filter(producer=context["producer"])
-            .filter(is_active=True)
-        )
+        context["products"] = Product.objects.filter(
+            producer=context["producer"]
+        ).filter(is_active=True)
         context["producers"] = get_producers_list(Producer)
         return context
 
@@ -194,7 +195,9 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         context["products_description"] = self.products_description
         context["paginated_products"] = self.paginated_products
         context["products"] = self.products_with_quantity
-        add_weight_schemes_as_choices_to_forms(context["form"], self.products_weight_schemes)
+        add_weight_schemes_as_choices_to_forms(
+            context["form"], self.products_weight_schemes
+        )
         return context
 
     def form_valid(self, form):
@@ -282,22 +285,20 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         try:
             user_fund = self.request.user.userprofile.fund
         except UserProfile.DoesNotExist:
-            user_fund = Decimal('1.3')
+            user_fund = Decimal("1.3")
         if user_fund is None:
-            user_fund = Decimal('1.3')
+            user_fund = Decimal("1.3")
         return user_fund
 
     def get_products_with_related(self):
-        products_ids = (
-            Product.objects.filter(orders=self.order)
-            .values_list("id", flat=True)
+        products_ids = Product.objects.filter(orders=self.order).values_list(
+            "id", flat=True
         )
-        products_with_related = (
-            Product.objects.filter(pk__in=list(products_ids))
-            .prefetch_related(
-                "weight_schemes",
-                "statuses",
-            )
+        products_with_related = Product.objects.filter(
+            pk__in=list(products_ids)
+        ).prefetch_related(
+            "weight_schemes",
+            "statuses",
         )
         self.products_with_quantity = calculate_available_quantity(
             products_with_related
@@ -317,7 +318,6 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
             self.products_weight_schemes.append(weight_schemes)
             self.available_quantities_list.append(product.available_quantity)
 
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         self.get_products_with_related()
@@ -332,7 +332,9 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
 
         context["products_description"] = self.products_description
         context["products_weight_schemes"] = self.products_weight_schemes
-        add_weight_schemes_as_choices_to_forms(context["form"], self.products_weight_schemes)
+        add_weight_schemes_as_choices_to_forms(
+            context["form"], self.products_weight_schemes
+        )
         context["available_quantities_list"] = self.available_quantities_list
 
         return context
@@ -440,9 +442,11 @@ def product_search_view(request):
     if form.is_valid():
         search_query = form.cleaned_data.get("search_query")
         if search_query:
-            queryset = Product.objects.filter(name__icontains=search_query).filter(
-                ~Q(quantity_in_stock=0)
-            ).order_by("-category", "price")
+            queryset = (
+                Product.objects.filter(name__icontains=search_query)
+                .filter(~Q(quantity_in_stock=0))
+                .order_by("-category", "price")
+            )
 
     order = get_users_last_order(Order, request.user)
     orderitems = get_orderitems_query(OrderItem, order.id)
@@ -460,5 +464,5 @@ def product_search_view(request):
 
 
 def main_page_redirect(request):
-    response = redirect('order-producers')
+    response = redirect("order-producers")
     return response

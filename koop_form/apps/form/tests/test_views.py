@@ -30,26 +30,26 @@ logger = logging.getLogger("django.server")
 
 @pytest.fixture()
 def producers():
-    ProducerFactory(name='Karol Jung', slug='karol-jung')
-    ProducerFactory(name='Adam Pritz', slug='adam-pritz')
+    ProducerFactory(name="Karol Jung", slug="karol-jung")
+    ProducerFactory(name="Adam Pritz", slug="adam-pritz")
     for _ in range(
-            0,
-            3,
+        0,
+        3,
     ):
         ProducerFactory(is_active=False)
 
 
 def factor_producers():
-    ProducerFactory(name='Karol Jung', slug='karol-jung')
-    ProducerFactory(name='Adam Pritz', slug='adam-pritz')
+    ProducerFactory(name="Karol Jung", slug="karol-jung")
+    ProducerFactory(name="Adam Pritz", slug="adam-pritz")
     for _ in range(
-            0,
-            3,
+        0,
+        3,
     ):
         ProducerFactory(is_active=False)
 
 
-producers_list = [['adam-pritz', 'Adam Pritz'], ['karol-jung', 'Karol Jung']]
+producers_list = [["adam-pritz", "Adam Pritz"], ["karol-jung", "Karol Jung"]]
 
 
 @pytest.mark.usefixtures("producers")
@@ -74,8 +74,8 @@ class TestProductsView(TestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.producer_used = Producer.objects.get(name='Karol Jung')
-        self.producer_dummy = Producer.objects.get(name='Adam Pritz')
+        self.producer_used = Producer.objects.get(name="Karol Jung")
+        self.producer_dummy = Producer.objects.get(name="Adam Pritz")
         for _ in range(0, 5):
             ProductFactory(producer=self.producer_used)
             ProductFactory(producer=self.producer_dummy)
@@ -103,8 +103,8 @@ class TestOrderProducersView(TestCase):
         self.user = UserFactory()
         self.client.force_login(self.user)
         factor_producers()
-        self.producer1 = Producer.objects.get(name='Karol Jung')
-        self.producer2 = Producer.objects.get(name='Adam Pritz')
+        self.producer1 = Producer.objects.get(name="Karol Jung")
+        self.producer2 = Producer.objects.get(name="Adam Pritz")
         self.order = OrderFactory(user=self.user)
         self.url = reverse("order-producers")
 
@@ -126,8 +126,8 @@ class TestOrderProducersView(TestCase):
 class TestOrderProductsFormView(TestCase):
     def setUp(self):
         factor_producers()
-        self.producer1 = Producer.objects.get(name='Karol Jung')
-        self.producer2 = Producer.objects.get(name='Adam Pritz')
+        self.producer1 = Producer.objects.get(name="Karol Jung")
+        self.producer2 = Producer.objects.get(name="Adam Pritz")
         self.url = reverse("order-products-form", kwargs={"slug": self.producer1.slug})
         self.user = UserFactory()
         self.client.force_login(self.user)
@@ -136,35 +136,39 @@ class TestOrderProductsFormView(TestCase):
             for val in [0.000, 0.500, 1.000, 2.000, 3.000, 4.000, 5.000]
         ]
         self.product0 = ProductFactory(
-            name='agawa',
+            name="agawa",
             producer=self.producer1,
             weight_schemes=self.weight_scheme_list,
             order_max_quantity=None,
-            quantity_in_stock=Decimal('6.5'),
+            quantity_in_stock=Decimal("6.5"),
             price=12,
-            description='test description 0'
+            description="test description 0",
         )
         self.product1 = ProductFactory(
-            name='aronia',
+            name="aronia",
             producer=self.producer1,
             weight_schemes=self.weight_scheme_list,
-            order_max_quantity=Decimal('9.7'),
+            order_max_quantity=Decimal("9.7"),
             price=3.5,
-            description='test description 1'
+            description="test description 1",
         )
         self.product2 = ProductFactory(
-            name='burak',
+            name="burak",
             producer=self.producer2,
             weight_schemes=self.weight_scheme_list,
-            quantity_in_stock=Decimal('6.5'),
-            price=6
+            quantity_in_stock=Decimal("6.5"),
+            price=6,
         )
         for _ in range(0, 3):
             ProductFactory(producer=self.producer1, is_active=False)
         self.order1 = OrderFactory(user=self.user)
         self.order2 = OrderFactory()
-        self.orderitem1 = OrderItemFactory(product=self.product1, order=self.order1, quantity=Decimal(0.5))
-        self.orderitem2 = OrderItemFactory(product=self.product2, order=self.order1, quantity=3)
+        self.orderitem1 = OrderItemFactory(
+            product=self.product1, order=self.order1, quantity=Decimal(0.5)
+        )
+        self.orderitem2 = OrderItemFactory(
+            product=self.product2, order=self.order1, quantity=3
+        )
         self.orderitem3 = OrderItemFactory(product=self.product1, quantity=1)
         self.orderitem4 = OrderItemFactory(product=self.product1)
         number = random.randint(8, 20)
@@ -186,8 +190,14 @@ class TestOrderProductsFormView(TestCase):
         assert list(context_data["orderitems"]) == [self.orderitem1, self.orderitem2]
         assert context_data["order_cost"] == Decimal(19.75)
         assert list(context_data["products"]) == [self.product0, self.product1]
-        assert context_data["products_description"] == ['test description 0', 'test description 1']
-        assert context_data["available_quantities_list"] == [Decimal('6.500'), Decimal('8.200')]
+        assert context_data["products_description"] == [
+            "test description 0",
+            "test description 1",
+        ]
+        assert context_data["available_quantities_list"] == [
+            Decimal("6.500"),
+            Decimal("8.200"),
+        ]
         assert response.status_code == 200
         assert context_data["order"] == self.order1
         assert sorted(list(context_data["producers"])) == producers_list
@@ -216,7 +226,9 @@ class TestOrderProductsFormView(TestCase):
 
     def test_max_quantity_validation(self):
         for _ in range(2):
-            OrderItemFactory(product=self.product0, quantity=Decimal('3.25'), order=OrderFactory())
+            OrderItemFactory(
+                product=self.product0, quantity=Decimal("3.25"), order=OrderFactory()
+            )
 
         form_data = {
             "form-TOTAL_FORMS": 1,
@@ -334,12 +346,12 @@ class TestOrderCreateView(TestCase):
 class TestOrderUpdateFormView(TestCase):
     def setUp(self):
         factor_producers()
-        self.producer1 = Producer.objects.get(name='Karol Jung')
-        self.producer2 = Producer.objects.get(name='Adam Pritz')
+        self.producer1 = Producer.objects.get(name="Karol Jung")
+        self.producer2 = Producer.objects.get(name="Adam Pritz")
 
         self.url = reverse("order-update-form")
         self.user = UserFactory()
-        self.profile = ProfileFactory(user=self.user, fund=Decimal('1.1'))
+        self.profile = ProfileFactory(user=self.user, fund=Decimal("1.1"))
         self.client.force_login(self.user)
 
         self.order1 = OrderFactory(user=self.user)
@@ -351,14 +363,20 @@ class TestOrderUpdateFormView(TestCase):
         order.date_created = past_date
         order.save()
 
-        self.product0 = ProductFactory(name='alfa', price=Decimal('6.5'))
-        self.product1 = ProductFactory(name='beta', price=Decimal('5'))
-        self.product2 = ProductFactory(name='gamma', price=Decimal('12.8'))
+        self.product0 = ProductFactory(name="alfa", price=Decimal("6.5"))
+        self.product1 = ProductFactory(name="beta", price=Decimal("5"))
+        self.product2 = ProductFactory(name="gamma", price=Decimal("12.8"))
         ProductFactory(), ProductFactory()
 
-        self.orderitem1 = OrderItemFactory(product=self.product0, order=self.order1, quantity=Decimal(0.5))
-        self.orderitem2 = OrderItemFactory(product=self.product1, order=self.order1, quantity=3)
-        self.orderitem3 = OrderItemFactory(product=self.product1, order=self.order2, quantity=7)
+        self.orderitem1 = OrderItemFactory(
+            product=self.product0, order=self.order1, quantity=Decimal(0.5)
+        )
+        self.orderitem2 = OrderItemFactory(
+            product=self.product1, order=self.order1, quantity=3
+        )
+        self.orderitem3 = OrderItemFactory(
+            product=self.product1, order=self.order2, quantity=7
+        )
         self.orderitem4 = OrderItemFactory(product=self.product1)
 
     def test_response_and_context(self):
@@ -367,10 +385,10 @@ class TestOrderUpdateFormView(TestCase):
 
         assert response.status_code == 200
         assert context["order"] == self.order1
-        assert context["fund"] == Decimal('1.1')
+        assert context["fund"] == Decimal("1.1")
         assert list(context["orderitems"]) == [self.orderitem1, self.orderitem2]
-        assert context["order_cost"] == Decimal('18.25')
-        assert context["order_cost_with_fund"] == Decimal('20.075')
+        assert context["order_cost"] == Decimal("18.25")
+        assert context["order_cost_with_fund"] == Decimal("20.075")
         assert list(context["products"]) == [self.product0, self.product1]
 
 

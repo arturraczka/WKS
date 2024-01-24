@@ -9,8 +9,10 @@ logger = logging.getLogger("django.server")
 
 
 class Command(BaseCommand):
-    help = ("sets Products of JEdynie (Producer id=6) order_deadline value to next Monday 20:00. "
-            "Run this command as cronjob, best before enabling users to create orders (Saturday morning).")
+    help = (
+        "sets Products of JEdynie (Producer id=6) order_deadline value to next Monday 20:00. "
+        "Run this command as cronjob, best before enabling users to create orders (Saturday morning)."
+    )
 
     def handle(self, *args, **options):
         previous_monday = calculate_previous_weekday(1, 20)
