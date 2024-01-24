@@ -1,11 +1,13 @@
-import os
-import environ
+from os import path
+from environ import Env
 
-env = environ.Env(DEBUG=(bool, False))
+# creates Env class instance with default DEBUG=False if there is no DEBUG var
+env = Env(DEBUG=(bool, False))
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# creates a base directory, path.dirname returns parent directory of a given file/path
+BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
 
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+env.read_env(path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = env("SECRET_KEY")
 
@@ -124,7 +126,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_ROOT = path.join(BASE_DIR, "staticfiles")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
