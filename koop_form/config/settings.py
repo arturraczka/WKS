@@ -233,5 +233,6 @@ AXES_FAILURE_LIMIT = 10
 
 AXES_COOLOFF_TIME = 1
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 
 # na ten moment walidacje idą jako INFO i są nierozróżnialne od prawidłowych requestów hmmmm
