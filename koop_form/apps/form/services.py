@@ -161,12 +161,12 @@ def create_order_data_list(products):
     return order_data_list
 
 
-def set_products_quantity_to_0(producer_instance):
-    """"""
-    product_qs = producer_instance.products.all()
-    for product in product_qs:
-        product.quantity_delivered_this_week = 0
-        product.save()
+# def set_products_quantity_to_0(producer_instance):
+#     """"""
+#     product_qs = producer_instance.products.all()
+#     for product in product_qs:
+#         product.quantity_delivered_this_week = 0
+#         product.save()
 
 
 def switch_products_isactive_bool_value(producer_instance):

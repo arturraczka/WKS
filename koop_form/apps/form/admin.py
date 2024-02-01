@@ -12,6 +12,7 @@ from apps.form.models import (
     OrderItem,
     product_weight_schemes,
 )
+from apps.form.services import calculate_previous_weekday
 
 
 class ProductWeightSchemeInLine(admin.TabularInline):
@@ -51,8 +52,22 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             product.order_deadline = instance.order_deadline
             product.save()
 
+    def perform_delete(self, instance):
+        products = instance.products.all()
+        for product in products:
+            orderitems = OrderItem.objects.filter(product=product, item_ordered_date__gt=calculate_previous_weekday())
+            for item in orderitems:
+                item.delete()
+
+    def not_arrived_deletes_related_orderitems(self, instance):
+        if instance.not_arrived:
+            self.perform_delete(instance)
+            instance.not_arrived = False
+
+
     def save_model(self, request, obj, form, change):
         self.set_order_deadline_to_related_products(obj)
+        self.not_arrived_deletes_related_orderitems(obj)
         super().save_model(request, obj, form, change)
 
 

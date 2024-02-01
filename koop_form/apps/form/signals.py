@@ -8,7 +8,7 @@ from apps.form.services import (
     reduce_order_quantity,
     calculate_order_number,
     recalculate_order_numbers,
-    set_products_quantity_to_0,
+    # set_products_quantity_to_0,
     switch_products_isactive_bool_value,
 )
 
@@ -60,11 +60,11 @@ def on_order_delete_trigger_recalculate_order_numbers(sender, instance, **kwargs
     recalculate_order_numbers(sender, instance.date_created)
 
 
-@receiver(post_save, sender=Producer)
-def check_before_set_products_quantity_to_0(sender, instance, **kwargs):
-    if instance.not_arrived:
-        set_products_quantity_to_0(instance)
-        instance.not_arrived = False
+# @receiver(post_save, sender=Producer)
+# def check_before_set_products_quantity_to_0(sender, instance, **kwargs):
+#     if instance.not_arrived:
+#         set_products_quantity_to_0(instance)
+#         instance.not_arrived = False
 
 
 @receiver(pre_save, sender=Producer)
