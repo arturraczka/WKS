@@ -45,6 +45,16 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "manager_phone",
     ]
 
+    def set_order_deadline_to_related_products(self, instance):
+        products = instance.products.all()
+        for product in products:
+            product.order_deadline = instance.order_deadline
+            product.save()
+
+    def save_model(self, request, obj, form, change):
+        self.set_order_deadline_to_related_products(obj)
+        super().save_model(request, obj, form, change)
+
 
 class ProductResource(resources.ModelResource):
     weight_schemes = fields.Field(

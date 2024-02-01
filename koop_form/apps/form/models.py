@@ -25,6 +25,7 @@ class Producer(models.Model):
     manager_name = models.CharField(blank=True, null=True)
     manager_email = models.EmailField(blank=True, null=True)
     manager_phone = models.PositiveIntegerField(blank=True, null=True)
+    order_deadline = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["order"]
