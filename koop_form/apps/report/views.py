@@ -134,12 +134,13 @@ class UsersReportView(TemplateView):
             .objects.filter(Q(orders__date_created__gte=self.previous_friday))
             .select_related("userprofile")
             .prefetch_related(prefetch)
+            .order_by('last_name')
         )
         return users_qs
 
     def get_additional_context(self):
         for user in self.get_users_queryset():
-            self.user_name_list.append(user.first_name + " " + user.last_name)
+            self.user_name_list.append(user.last_name + " " + user.first_name)
             self.user_order_number_list.append(user.order[0].order_number)
             self.user_pickup_day_list.append(user.order[0].pick_up_day)
             try:
