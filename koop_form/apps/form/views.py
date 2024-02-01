@@ -298,6 +298,8 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         ).prefetch_related(
             "weight_schemes",
             "statuses",
+        ).select_related(
+            "producer"
         )
         self.products_with_quantity = calculate_available_quantity(
             products_with_related

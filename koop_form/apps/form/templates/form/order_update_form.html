@@ -22,6 +22,7 @@
                         </div>
 
                         <div>
+                          <span class="mr-2">{{ product.producer.short }}</span>
                           <span class="text-muted">Status produktu: </span>
                           {% for status in product.statuses.all %}
                             <span class="text-muted"><strong>{{ status }},</strong></span>
