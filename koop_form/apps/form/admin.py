@@ -117,7 +117,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 class OrderItemAdmin(admin.ModelAdmin):
-    raw_id_fields = ("product",)
+    raw_id_fields = ("product", "order",)
     list_filter = [
         "order__user__last_name",
         "order__date_created",
@@ -133,6 +133,7 @@ class OrderItemAdmin(admin.ModelAdmin):
     ]
     search_fields = [
         "product__name",
+        "order__user__last_name",
     ]
 
     @admin.display(description="Order number")
