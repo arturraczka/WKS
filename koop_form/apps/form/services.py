@@ -26,6 +26,7 @@ def calculate_previous_weekday(day=4, hour=0):
     return previous_day
 
 
+# TODO this could be annotate() + aggregate()
 def calculate_order_cost(orderitems):
     """Returns sum of order_item.quantity times product.price for given QS of OrderItem model."""
     order_cost = 0
@@ -104,15 +105,15 @@ def recalculate_order_numbers(order_model, order_instance_date_created):
         order.save()
 
 
-def calculate_total_income(products):
-    total_income = 0
-    for product in products:
-        try:
-            total_income += product.income
-        except TypeError:
-            logger.error("Error in counting total income for an order.")
-            pass
-    return total_income
+# def calculate_total_income(products):
+#     total_income = 0
+#     for product in products:
+#         try:
+#             total_income += product.income
+#         except TypeError:
+#             logger.error("Error in counting total income for an order.")
+#             pass
+#     return total_income
 
 
 def reduce_order_quantity(orderitem_model, product_pk, delivered_quantity):
@@ -218,9 +219,9 @@ def add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes):
         form.fields["quantity"].choices = scheme
 
 
-def add_choices_to_forms(forms, products):
-    products_weight_schemes_list = get_products_weight_schemes_list(products)
-    add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes_list)
+# def add_choices_to_forms(forms, products):
+#     products_weight_schemes_list = get_products_weight_schemes_list(products)
+#     add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes_list)
 
 
 def add_choices_to_form(form, product):
@@ -229,25 +230,24 @@ def add_choices_to_form(form, product):
     form.fields["quantity"].choices = product_weight_schemes_list[0]
 
 
-def filter_products_with_ordered_quantity_and_income(product_model, producer_id):
-    previous_friday = calculate_previous_weekday()
+# def filter_products_with_ordered_quantity_and_income(product_model, producer_id):
+#     previous_friday = calculate_previous_weekday()
+#
+#     products = (
+#         product_model.objects.prefetch_related("orderitems")
+#         .only("name", "orderitems__quantity")
+#         .filter(producer=producer_id)
+#         .filter(Q(orderitems__item_ordered_date__gte=previous_friday))
+#         .annotate(
+#             ordered_quantity=Sum("orderitems__quantity"),
+#             income=F("ordered_quantity") * F("price"),
+#         )
+#         .order_by("name")
+#     )
+#     return products
 
-    products = (
-        product_model.objects.prefetch_related("orderitems")
-        .only("name", "orderitems__quantity")
-        .filter(producer=producer_id)
-        .filter(Q(orderitems__item_ordered_date__gte=previous_friday))
-        .annotate(
-            ordered_quantity=Sum("orderitems__quantity"),
-            income=F("ordered_quantity") * F("price"),
-        )
-        .order_by("name")
-    )
-    return products
 
-
-# TODO function to be renamed
-def filter_products_with_ordered_quantity_and_income2(product_model, producer_id):
+def filter_products_with_ordered_quantity_income_and_supply_income(product_model, producer_id):
     previous_friday = calculate_previous_weekday()
     products = (
         product_model.objects.only(
@@ -274,9 +274,11 @@ def filter_products_with_ordered_quantity_and_income2(product_model, producer_id
             ),
             supply_income=F("supply_quantity") * F("price"),
             excess=F("supply_quantity") - F("ordered_quantity"),
+            # total_income=Sum('income')
         )
         .distinct()
         .order_by("name")
+        # .iterator(chunk_size=1000)
     )
     return products
 

@@ -17,12 +17,10 @@ from apps.form.models import Producer, Order, OrderItem, Product
 from apps.form.services import (
     calculate_previous_weekday,
     calculate_order_cost,
-    calculate_total_income,
     create_order_data_list,
     staff_check,
     get_producers_list,
-    filter_products_with_ordered_quantity_and_income,
-    filter_products_with_ordered_quantity_and_income2,
+    filter_products_with_ordered_quantity_income_and_supply_income,
 )
 
 from apps.form.views import ProducersView
@@ -50,7 +48,7 @@ class ProducerProductsReportView(TemplateView):
 
     def get_producer_products(self):
         self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
-        self.products = filter_products_with_ordered_quantity_and_income2(
+        self.products = filter_products_with_ordered_quantity_income_and_supply_income(
             Product, self.producer.id
         )
 
@@ -179,17 +177,29 @@ class ProducersFinanceReportView(TemplateView):
 
         producers_names = []
         producers_incomes = []
+        producers_supply_incomes = []
         for producer in producers:
-            products = filter_products_with_ordered_quantity_and_income(
+            products = filter_products_with_ordered_quantity_income_and_supply_income(
                 Product, producer
             )
-            total_income = calculate_total_income(products)
+            # total_income = calculate_total_income(products)
+            aggregated_income = products.aggregate(total_income=Sum("income"), total_supply_income=Sum('supply_income'))
+            total_income = aggregated_income['total_income']
+            total_supply_income = aggregated_income['total_supply_income']
 
+            producers_names += (producer.short,)
             if total_income:
-                producers_names += (producer.short,)
                 producers_incomes += (f"{total_income:.2f}",)
+            else:
+                producers_incomes.append(Decimal('0'))
+
+            if total_supply_income:
+                producers_supply_incomes += (f"{total_supply_income:.2f}",)
+            else:
+                producers_supply_incomes.append(Decimal('0'))
 
         context["producers_incomes"] = producers_incomes
+        context["producers_supply_incomes"] = producers_supply_incomes
         context["producers_names"] = producers_names
 
         return context

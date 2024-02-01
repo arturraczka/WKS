@@ -27,8 +27,23 @@
             </div>
 
             <div class="col-md-2">
-                <span class="mr-2">Suma zamówień: </span>
+                <span class="mr-2">Kwoty zamówień: </span>
                 {% for income in producers_incomes %}
+                    <article class="media ">
+                      <div class="media-body">
+
+                        <div>
+                          <span class="mr-2">{{ income }} zł</span>
+                        </div>
+
+                      </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="col-md-2">
+                <span class="mr-2">Kwoty dostaw: </span>
+                {% for income in producers_supply_incomes %}
                     <article class="media ">
                       <div class="media-body">
 

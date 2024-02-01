@@ -35,7 +35,6 @@ from apps.form.services import (
     calculate_available_quantity,
     order_check,
     get_producers_list,
-    add_choices_to_forms,
     add_choices_to_form,
     get_users_last_order,
     get_orderitems_query,
