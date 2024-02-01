@@ -79,7 +79,6 @@ def calculate_available_quantity(products):
                 ),
             ),
         )
-        # .order_by("category", "name")
     )
     return products_with_available_quantity
 
@@ -103,17 +102,6 @@ def recalculate_order_numbers(order_model, order_instance_date_created):
     for order in orders_qs:
         order.order_number = F("order_number") - 1
         order.save()
-
-
-# def calculate_total_income(products):
-#     total_income = 0
-#     for product in products:
-#         try:
-#             total_income += product.income
-#         except TypeError:
-#             logger.error("Error in counting total income for an order.")
-#             pass
-#     return total_income
 
 
 def reduce_order_quantity(orderitem_model, product_pk, delivered_quantity):
@@ -159,14 +147,6 @@ def create_order_data_list(products):
             order_data += f"(skrz{orderitem.order.order_number}: {Decimal(orderitem.quantity).normalize()}) "
         order_data_list.append(order_data)
     return order_data_list
-
-
-# def set_products_quantity_to_0(producer_instance):
-#     """"""
-#     product_qs = producer_instance.products.all()
-#     for product in product_qs:
-#         product.quantity_delivered_this_week = 0
-#         product.save()
 
 
 def switch_products_isactive_bool_value(producer_instance):
@@ -219,32 +199,10 @@ def add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes):
         form.fields["quantity"].choices = scheme
 
 
-# def add_choices_to_forms(forms, products):
-#     products_weight_schemes_list = get_products_weight_schemes_list(products)
-#     add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes_list)
-
-
 def add_choices_to_form(form, product):
     """To OrderItem form instance adds choices for quantity field, based on targeted product's available weight_schemes."""
     product_weight_schemes_list = get_products_weight_schemes_list(product)
     form.fields["quantity"].choices = product_weight_schemes_list[0]
-
-
-# def filter_products_with_ordered_quantity_and_income(product_model, producer_id):
-#     previous_friday = calculate_previous_weekday()
-#
-#     products = (
-#         product_model.objects.prefetch_related("orderitems")
-#         .only("name", "orderitems__quantity")
-#         .filter(producer=producer_id)
-#         .filter(Q(orderitems__item_ordered_date__gte=previous_friday))
-#         .annotate(
-#             ordered_quantity=Sum("orderitems__quantity"),
-#             income=F("ordered_quantity") * F("price"),
-#         )
-#         .order_by("name")
-#     )
-#     return products
 
 
 def filter_products_with_ordered_quantity_income_and_supply_income(
