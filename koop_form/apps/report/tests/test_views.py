@@ -135,7 +135,7 @@ class TestUsersReportView(TestCase):
         context_data = response.context
 
         assert response.status_code == 200
-        assert context_data["user_name_list"] == ["Kamil K", "Marek M"]
+        assert context_data["user_name_list"] == ["K Kamil", "M Marek"]
         assert context_data["user_order_number_list"] == [1, 2]
         assert context_data["user_pickup_day_list"] == ["środa", "czwartek"]
         assert context_data["user_phone_number_list"] == [444555666, 777666555]
