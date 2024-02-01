@@ -276,12 +276,13 @@ class ProducersFinanceReportDownloadView(ProducersFinanceReportView):
             headers=headers,
         )
         writer = csv.writer(response)
-        writer.writerow(["Nazwa producenta", "Suma zamówień"])
-        for name, total in zip(
+        writer.writerow(["Nazwa producenta", "Kwoty zamówień", "Kwoty dostaw"])
+        for name, total_income, total_supply_income in zip(
             context["producers_names"],
             context["producers_incomes"],
+            context["producers_supply_incomes"],
         ):
-            writer.writerow([name, total])
+            writer.writerow([name, str(total_income).replace('.', ','), str(total_supply_income).replace('.', ',')])
 
         return response
 
