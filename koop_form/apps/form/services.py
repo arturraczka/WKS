@@ -247,7 +247,9 @@ def add_choices_to_form(form, product):
 #     return products
 
 
-def filter_products_with_ordered_quantity_income_and_supply_income(product_model, producer_id):
+def filter_products_with_ordered_quantity_income_and_supply_income(
+    product_model, producer_id
+):
     previous_friday = calculate_previous_weekday()
     products = (
         product_model.objects.only(

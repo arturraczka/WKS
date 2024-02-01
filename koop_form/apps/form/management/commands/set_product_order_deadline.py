@@ -16,7 +16,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         delta = timedelta(7)
-        products = Product.objects.filter(order_deadline__isnull=False).iterator(chunk_size=50)
+        products = Product.objects.filter(order_deadline__isnull=False).iterator(
+            chunk_size=50
+        )
 
         for product in products:
             product.order_deadline = F("order_deadline") + delta

@@ -134,7 +134,7 @@ class UsersReportView(TemplateView):
             .objects.filter(Q(orders__date_created__gte=self.previous_friday))
             .select_related("userprofile")
             .prefetch_related(prefetch)
-            .order_by('last_name')
+            .order_by("last_name")
         )
         return users_qs
 
@@ -184,20 +184,22 @@ class ProducersFinanceReportView(TemplateView):
                 Product, producer
             )
             # total_income = calculate_total_income(products)
-            aggregated_income = products.aggregate(total_income=Sum("income"), total_supply_income=Sum('supply_income'))
-            total_income = aggregated_income['total_income']
-            total_supply_income = aggregated_income['total_supply_income']
+            aggregated_income = products.aggregate(
+                total_income=Sum("income"), total_supply_income=Sum("supply_income")
+            )
+            total_income = aggregated_income["total_income"]
+            total_supply_income = aggregated_income["total_supply_income"]
 
             producers_names += (producer.short,)
             if total_income:
                 producers_incomes += (f"{total_income:.2f}",)
             else:
-                producers_incomes.append(Decimal('0'))
+                producers_incomes.append(Decimal("0"))
 
             if total_supply_income:
                 producers_supply_incomes += (f"{total_supply_income:.2f}",)
             else:
-                producers_supply_incomes.append(Decimal('0'))
+                producers_supply_incomes.append(Decimal("0"))
 
         context["producers_incomes"] = producers_incomes
         context["producers_supply_incomes"] = producers_supply_incomes
@@ -283,7 +285,13 @@ class ProducersFinanceReportDownloadView(ProducersFinanceReportView):
             context["producers_incomes"],
             context["producers_supply_incomes"],
         ):
-            writer.writerow([name, str(total_income).replace('.', ','), str(total_supply_income).replace('.', ',')])
+            writer.writerow(
+                [
+                    name,
+                    str(total_income).replace(".", ","),
+                    str(total_supply_income).replace(".", ","),
+                ]
+            )
 
         return response
 
@@ -310,12 +318,14 @@ class ProducerProductsReportDownloadView(ProducerProductsReportView):
         )
         writer.writerow(
             [
-                f'Kwota zamówienia: {context["total_income"]:.2f} zł',
+                f"Kwota zamówienia (zł):",
+                f'{context["total_income"]:.2f}'.replace(".", ","),
             ]
         )
         writer.writerow(
             [
-                f'Kwota dostawy: {context["total_supply_income"]:.2f} zł',
+                f"Kwota dostawy (zł):",
+                f'{context["total_supply_income"]:.2f}'.replace(".", ","),
             ]
         )
         writer.writerow(
@@ -325,17 +335,29 @@ class ProducerProductsReportDownloadView(ProducerProductsReportView):
                 "Kwota z zamówienia",
                 "Dostarczona ilość",
                 "Kwota z dostawy",
+                "Nadwyżka",
             ]
         )
-        for name, quantity, income, supply_quantity, supply_income in zip(
+        for name, quantity, income, supply_quantity, supply_income, excess in zip(
             context["product_names_list"],
             context["product_ordered_quantities_list"],
             context["product_incomes_list"],
             context["supply_quantities_list"],
             context["supply_incomes_list"],
+            context["excess"],
         ):
-            writer.writerow([name, quantity, income, supply_quantity, supply_income])
-
+            if not (quantity or supply_quantity):
+                continue
+            writer.writerow(
+                [
+                    name,
+                    str(quantity).replace(".", ","),
+                    str(income).replace(".", ","),
+                    str(supply_quantity).replace(".", ","),
+                    str(supply_income).replace(".", ","),
+                    str(excess).replace(".", ","),
+                ]
+            )
         return response
 
 
@@ -557,12 +579,12 @@ class UsersFinanceReportDownloadView(UsersFinanceReportView):
         )
         writer = csv.writer(response)
         writer.writerow(["imię nazwisko", "koop ID", "kwota zamówienia"])
-        for short, name, quantity in zip(
+        for name, koop_id, order_cost in zip(
             context["name_list"],
             context["koop_id_list"],
             context["order_cost_list"],
         ):
-            writer.writerow([short, name, quantity])
+            writer.writerow([name, koop_id, str(order_cost).replace(".", ",")])
 
         return response
 
