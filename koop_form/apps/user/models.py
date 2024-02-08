@@ -23,4 +23,4 @@ class UserProfile(models.Model):
     koop_id = models.PositiveIntegerField(null=False, unique=True)
 
     def __str__(self):
-        return f"profile: {self.user.username}"
+        return f"Profil: {self.user.first_name} {self.user.last_name}"
