@@ -5,53 +5,12 @@ from environ import Env
 env = Env(DEBUG=(bool, False))
 
 # creates a base directory, path.dirname returns parent directory of a given file/path
-BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
+BASE_DIR = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 
 env.read_env(path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = env("SECRET_KEY")
 
-DEBUG = env("DEBUG")
-
-if DEBUG:
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
-else:
-    ALLOWED_HOSTS = []
-
-INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "debug_toolbar",
-    "crispy_forms",
-    "crispy_bootstrap5",
-    "corsheaders",
-    "apps.form",
-    "apps.user",
-    "apps.report",
-    "apps.supply",
-    "apps.templates",
-    "apps.static",
-    "django_extensions",
-    "import_export",
-    "axes",
-]
-
-MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "axes.middleware.AxesMiddleware",  # should be the last middleware
-]
 
 AUTHENTICATION_BACKENDS = [
     # AxesStandaloneBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
@@ -85,9 +44,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    "default": env.db(
-        "DATABASE_URL",
-    ),
+    "default": env.db("DATABASE_URL"),
 }
 
 
@@ -134,12 +91,6 @@ STATIC_ROOT = path.join(BASE_DIR, "staticfiles")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "login"
-
-INTERNAL_IPS = [
-    # ...
-    "127.0.0.1",
-    # ...
-]
 
 LOGGING_FORMAT_VERBOSE = "%(levelname) %(asctime)s %(threadName) %(thread)d %(module) %(filename) %(lineno)d %(name) %(funcName) %(process)d %(message)"
 
@@ -220,7 +171,6 @@ LOGGING = {
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 465
 EMAIL_USE_TLS = False

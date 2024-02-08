@@ -2,12 +2,13 @@ import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.db.models import Sum, Prefetch, Value
 from django.contrib.messages import get_messages
 from django.db.models import Q
 from django.db.models import Case, When, F
 
-from config.settings import DEBUG
+
 
 logger = logging.getLogger("django.server")
 
@@ -267,7 +268,7 @@ def get_orderitems_query_2(orderitem_model, order_id):
 
 
 def check_if_form_is_open():
-    if DEBUG:
+    if settings.DEBUG:
         return True
     else:
         form_open = calculate_previous_weekday(3, 12)
