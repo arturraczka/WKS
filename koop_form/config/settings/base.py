@@ -11,7 +11,6 @@ env.read_env(path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = env("SECRET_KEY")
 
-
 AUTHENTICATION_BACKENDS = [
     # AxesStandaloneBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
     "axes.backends.AxesStandaloneBackend",
@@ -39,14 +38,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
     "default": env.db("DATABASE_URL"),
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -66,7 +63,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -77,7 +73,6 @@ TIME_ZONE = "Europe/Warsaw"
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -107,6 +102,10 @@ FORMATTERS = {
         "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
         "format": LOGGING_FORMAT_SIMPLE,
     },
+    "readable": {
+        "format": "%(asctime)s [%(levelname)s/%(name)s:%(lineno)d] " + "%(message)s",
+        "datefmt": "%d/%b/%Y %H:%M:%S",
+    },
 }
 
 HANDLERS = {
@@ -120,7 +119,7 @@ HANDLERS = {
         "filename": f"{BASE_DIR}/logs/wks_info.log",
         "mode": "a",
         "encoding": "utf-8",
-        "formatter": "json-verbose",
+        "formatter": "readable",
         "level": "INFO",
         "backupCount": 5,
         "maxBytes": 1024 * 1024 * 5,  # 5 MB
@@ -129,43 +128,42 @@ HANDLERS = {
         "class": "logging.handlers.RotatingFileHandler",
         "filename": f"{BASE_DIR}/logs/wks_error.log",
         "mode": "a",
-        "formatter": "json-verbose",
+        "formatter": "readable",
         "level": "WARNING",
         "backupCount": 5,
         "maxBytes": 1024 * 1024 * 5,  # 5 MB
     },
 }
 
-LOGGERS = (
-    {
-        "django": {
-            "handlers": ["console_handler", "info_handler"],
-            "level": "INFO",
-        },
-        "django.request": {
-            "handlers": ["error_handler"],
-            "level": "INFO",
-            "propagate": True,
-        },
-        "django.template": {
-            "handlers": ["error_handler"],
-            "level": "DEBUG",
-            "propagate": True,
-        },
-        "django.server": {
-            "handlers": ["error_handler"],
-            "level": "INFO",
-            "propagate": True,
-        },
+LOGGERS = {
+    "django": {
+        "handlers": ["console_handler", "info_handler"],
+        "level": "INFO",
     },
-)
+    "django.request": {
+        "handlers": ["error_handler"],
+        "level": "INFO",
+        "propagate": True,
+    },
+    "django.template": {
+        "handlers": ["error_handler"],
+        "level": "DEBUG",
+        "propagate": True,
+    },
+    "django.server": {
+        "handlers": ["error_handler"],
+        "level": "INFO",
+        "propagate": True,
+    },
+}
+
 
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,  # może być potrzeba zmienić na True, gdy w produkcji logger nie będzie działał
     "formatters": FORMATTERS,
     "handlers": HANDLERS,
-    "loggers": LOGGERS[0],
+    "loggers": LOGGERS,
 }
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
