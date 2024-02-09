@@ -111,7 +111,7 @@ FORMATTERS = {
 HANDLERS = {
     "console_handler": {
         "class": "logging.StreamHandler",
-        "formatter": "json-simple",
+        "formatter": "readable",
         "level": "DEBUG",
     },
     "info_handler": {

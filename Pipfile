@@ -19,8 +19,9 @@ crispy-bootstrap5 = "2023.10"
 django-axes = {version = "6.1.1", extras = ["ipware"]}
 django-stubs = {version = "4.2.6", extras = ["compatible-mypy"]}
 django-debug-toolbar = "*"
-psycopg2-binary = "*"
 gunicorn = "*"
+sentry-sdk = {extras = ["django"], version = "*"}
+psycopg = {extras = ["binary"], version = "*"}
 
 [dev-packages]
 pytest-django = "4.7.0"

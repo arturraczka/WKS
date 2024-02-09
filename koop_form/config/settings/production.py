@@ -1,4 +1,5 @@
 from .base import *
+import sentry_sdk
 
 DEBUG = False
 ALLOWED_HOSTS = ["koop-formularz.pl", "www.koop-formularz.pl", "64.226.70.181"]
@@ -36,6 +37,18 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "axes.middleware.AxesMiddleware",  # should be the last middleware
 ]
+
+sentry_sdk.init(
+    dsn="https://417ffc5c900466f9e4f901e43501e5ba@o4506717508730880.ingest.sentry.io/4506717510303744",
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to profile 100%
+    # of sampled transactions.
+    # We recommend adjusting this value in production.
+    profiles_sample_rate=1.0,
+    send_default_pii=True,
+)
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
