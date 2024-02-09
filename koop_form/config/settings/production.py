@@ -1,7 +1,7 @@
 from .base import *
 
 DEBUG = False
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["koop-formularz.pl", "www.koop-formularz.pl", "64.226.70.181"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
