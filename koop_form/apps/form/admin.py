@@ -91,6 +91,8 @@ class ProductResource(resources.ModelResource):
             "subcategory",
             "unit",
             "info",
+            "quantity_in_stock",
+            "is_active",
         )
 
 
