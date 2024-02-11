@@ -446,6 +446,7 @@ def product_search_view(request):
             queryset = (
                 Product.objects.filter(name__icontains=search_query)
                 .filter(~Q(quantity_in_stock=0))
+                .filter(is_active=True)
                 .order_by("-category", "price")
             )
 
