@@ -1,7 +1,6 @@
 from django.urls import path
 from django.contrib.auth.views import (
     LoginView,
-    LogoutView,
     PasswordChangeDoneView,
     PasswordChangeView,
     PasswordResetCompleteView,
@@ -9,6 +8,8 @@ from django.contrib.auth.views import (
     PasswordResetDoneView,
     PasswordResetView,
 )
+
+from apps.user.views import CustomLogoutView
 
 urlpatterns = [
     path(
@@ -18,7 +19,7 @@ urlpatterns = [
     ),
     path(
         "wylogowano/",
-        LogoutView.as_view(template_name="user/logout.html"),
+        CustomLogoutView.as_view(template_name="user/logout.html"),
         name="logout",
     ),
     path(
