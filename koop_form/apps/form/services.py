@@ -179,6 +179,15 @@ def get_producers_list(producer_model):
     return [[producer["slug"], producer["name"]] for producer in producers]
 
 
+def add_producer_list_to_context(context, producer_model):
+    context["producers"] = get_producers_list(producer_model)
+    producer_index = context["producers"].index([context["producer"].slug, context["producer"].name])
+    if producer_index != 0:
+        context["previous_producer"] = context["producers"][producer_index - 1][0]
+    if producer_index + 1 != len(context["producers"]):
+        context["next_producer"] = context["producers"][producer_index + 1][0]
+
+
 def get_products_weight_schemes_list(products_with_available_quantity):
     products_weight_schemes_list = []
     for product in products_with_available_quantity:

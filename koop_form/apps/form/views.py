@@ -39,7 +39,7 @@ from apps.form.services import (
     get_users_last_order,
     get_orderitems_query,
     add_weight_schemes_as_choices_to_forms,
-    get_orderitems_query_2,
+    get_orderitems_query_2, add_producer_list_to_context,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -72,11 +72,10 @@ class ProductsView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         context["products"] = Product.objects.filter(
             producer=context["producer"]
         ).filter(is_active=True)
-        context["producers"] = get_producers_list(Producer)
+        add_producer_list_to_context(context, Producer)
         return context
 
     def get_object(self, queryset=None):
