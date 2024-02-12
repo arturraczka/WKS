@@ -28,7 +28,7 @@ class Producer(models.Model):
     order_deadline = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        ordering = ["order"]
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
