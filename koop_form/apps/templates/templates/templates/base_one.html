@@ -22,10 +22,10 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarToggle">
                     <div class="navbar-nav">
-                        <a class="nav-item nav-link" href="{% url 'producers' %}">Producenci</a>
+                        <a class="nav-item nav-link" href="{% url 'products' slug='pierwszy' %}">Przegląd</a>
                         <a class="nav-item nav-link" href="{% url 'order-create' %}">Nowe zamówienie</a>
                         <a class="nav-item nav-link" href="{% url 'product-search' %}">Szukaj</a>
-                        <a class="nav-item nav-link" href="{% url 'order-producers' %}">Formularz</a>
+                        <a class="nav-item nav-link" href="{% url 'order-products-form' slug='pierwszy' %}">Formularz</a>
                     </div>
                     <!-- Navbar Right Side -->
                     <div class="navbar-nav navbar-right">

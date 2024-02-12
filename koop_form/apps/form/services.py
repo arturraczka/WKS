@@ -184,8 +184,12 @@ def add_producer_list_to_context(context, producer_model):
     producer_index = context["producers"].index([context["producer"].slug, context["producer"].name])
     if producer_index != 0:
         context["previous_producer"] = context["producers"][producer_index - 1][0]
+    else:
+        context["previous_producer"] = None
     if producer_index + 1 != len(context["producers"]):
         context["next_producer"] = context["producers"][producer_index + 1][0]
+    else:
+        context["next_producer"] = None
 
 
 def get_products_weight_schemes_list(products_with_available_quantity):

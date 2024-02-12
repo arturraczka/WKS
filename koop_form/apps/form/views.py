@@ -79,7 +79,10 @@ class ProductsView(DetailView):
         return context
 
     def get_object(self, queryset=None):
-        producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+        if self.kwargs["slug"] == 'pierwszy':
+            producer = Producer.objects.all().first()
+        else:
+            producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
         return producer
 
 
@@ -120,7 +123,10 @@ class OrderProductsFormView(FormOpenMixin, FormView):
 
     def get_order_and_producer(self):
         self.order = get_users_last_order(Order, self.request.user)
-        self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+        if self.kwargs["slug"] == 'pierwszy':
+            self.producer = Producer.objects.all().first()
+        else:
+            self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
 
     def get_products_queryset(self):
         self.products = (
@@ -186,8 +192,9 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         context["order"] = self.order
         context["orderitems"] = get_orderitems_query(OrderItem, self.order.id)
         context["order_cost"] = calculate_order_cost(context["orderitems"])
-        context["producers"] = get_producers_list(Producer)
+        # context["producers"] = get_producers_list(Producer)
         context["producer"] = self.producer
+        add_producer_list_to_context(context, Producer)
         context["management_form"] = context["form"].management_form
         context["available_quantities_list"] = self.available_quantities_list
         context["products_description"] = self.products_description
