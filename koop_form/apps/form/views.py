@@ -188,11 +188,9 @@ class OrderProductsFormView(FormOpenMixin, FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         context["order"] = self.order
         context["orderitems"] = get_orderitems_query(OrderItem, self.order.id)
         context["order_cost"] = calculate_order_cost(context["orderitems"])
-        # context["producers"] = get_producers_list(Producer)
         context["producer"] = self.producer
         add_producer_list_to_context(context, Producer)
         context["management_form"] = context["form"].management_form
@@ -225,7 +223,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
 
 
 @method_decorator(login_required, name="dispatch")
-class OrderCreateView(SuccessMessageMixin, CreateView):
+class OrderCreateView(FormOpenMixin, SuccessMessageMixin, CreateView):
     model = Order
     template_name = "form/order_create.html"
     form_class = CreateOrderForm
@@ -239,7 +237,7 @@ class OrderCreateView(SuccessMessageMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        producer = Producer.objects.all().order_by("order").first()
+        producer = Producer.objects.all().order_by("name").first()
         success_url = reverse("order-products-form", kwargs={"slug": producer.slug})
         return success_url
 
@@ -330,6 +328,7 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         self.get_products_with_related()
         self.extract_data_from_products()
 
+        context["user_name"] = f"{self.request.user.first_name} {self.request.user.last_name}"
         context["fund"] = self.get_user_fund()
         context["order"] = self.order
         context["orderitems"] = self.orderitems
@@ -373,7 +372,7 @@ class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
 
 
 @method_decorator(login_required, name="dispatch")
-class OrderDeleteView(UserPassesTestMixin, SuccessMessageMixin, DeleteView):
+class OrderDeleteView(FormOpenMixin, UserPassesTestMixin, SuccessMessageMixin, DeleteView):
     model = Order
     template_name = "form/order_delete.html"
     success_url = reverse_lazy("products", kwargs={'slug': 'pierwszy'})

@@ -7,6 +7,7 @@ class FormOpenMixin:
     Mixin to be used only with views inheriting POST method from other CBV/Mixins"""
 
     def post(self, request, *args, **kwargs):
+        self.object = None
         if check_if_form_is_open():
             return super().post(request, *args, **kwargs)
         else:

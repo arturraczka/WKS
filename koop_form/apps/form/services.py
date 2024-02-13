@@ -3,12 +3,10 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.conf import settings
-from django.db.models import Sum, Prefetch, Value
+from django.db.models import Sum
 from django.contrib.messages import get_messages
 from django.db.models import Q
 from django.db.models import Case, When, F
-
-
 
 logger = logging.getLogger("django.server")
 
@@ -288,8 +286,3 @@ def check_if_form_is_open():
         form_closed = form_open + timedelta(hours=56)
         today = datetime.now().astimezone()
         return form_open < today < form_closed
-        # if form_open < today < form_closed:
-        #     is_open = True
-        # else:
-        #     is_open = False
-        # return is_open
