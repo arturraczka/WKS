@@ -37,6 +37,11 @@ class Producer(models.Model):
         self.slug = slugify(self.name)
         super(Producer, self).save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        return reverse(
+            "products", kwargs={"slug": self.slug}
+        )
+
 
 class WeightScheme(models.Model):
     quantity = models.DecimalField(max_digits=6, decimal_places=3, unique=True)
@@ -133,10 +138,9 @@ class Order(models.Model):
         return f"{self.user.last_name}: {str(self.date_created)[:19]}"
 
     def get_absolute_url(self):
-        absolute_url = reverse(
+        return reverse(
             "order-detail", kwargs={"pk": self.pk, "user": self.user}
         )
-        return absolute_url
 
 
 class OrderItem(models.Model):

@@ -471,5 +471,6 @@ def product_search_view(request):
 
 
 def main_page_redirect(request):
-    response = redirect("order-producers")
+    obj = Producer.objects.all().first()
+    response = redirect(obj)
     return response

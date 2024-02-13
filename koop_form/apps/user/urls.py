@@ -14,7 +14,7 @@ from apps.user.views import CustomLogoutView
 urlpatterns = [
     path(
         "zaloguj/",
-        LoginView.as_view(template_name="user/login.html", next_page="order-create"),
+        LoginView.as_view(template_name="user/login.html", next_page="order-update-form"),
         name="login",
     ),
     path(
