@@ -376,7 +376,7 @@ class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
 class OrderDeleteView(UserPassesTestMixin, SuccessMessageMixin, DeleteView):
     model = Order
     template_name = "form/order_delete.html"
-    success_url = reverse_lazy("producers")
+    success_url = reverse_lazy("products", kwargs={'slug': 'pierwszy'})
     success_message = "Zamówienie zostało usunięte."
 
     def test_func(self):

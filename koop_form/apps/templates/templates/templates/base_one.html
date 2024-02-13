@@ -50,8 +50,13 @@
           {% endif %}
       <div class="row">
           {% block content %}{% endblock %}
+          {% block content-top %}{% endblock %}
+          {% block content-mid %}{% endblock %}
+          {% block content-bot %}{% endblock %}
           {% block sidebar %}{% endblock %}
-          {% block javascript %}{% endblock %}
+          {% block javascript %}
+          <script src="{% static 'form/js/display_messages.js' %}"></script>
+          {% endblock %}
       </div>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -1,6 +1,9 @@
 {% extends "form/base_order_sidebar.html" %}
+{% load static %}
 {% load custom_filters %}
+
 {% block content %}
+
 <div class="col-md-9">
     <h4>Składanie zamówienia. Wybrany producent:</h4>
     <h3><strong>{{ producer.name }}</strong></h3>
@@ -137,3 +140,8 @@
 </div>
 
 {% endblock content %}
+
+{% block javascript %}
+{{ block.super }}
+<script src="{% static 'form/js/go_to_producer.js' %}"></script>
+{% endblock javascript %}
