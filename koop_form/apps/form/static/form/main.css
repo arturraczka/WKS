@@ -203,3 +203,8 @@ a.article-title:hover {
     height:75px;
     margin-bottom: 10px;
 }
+
+.side-panel-scroll {
+    max-height: 90vh;
+    overflow-y: scroll;
+}
