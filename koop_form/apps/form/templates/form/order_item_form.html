@@ -8,7 +8,7 @@
 
             <article class="media fixed-height-div">
               <div class="media-body">
-
+                {% for product in products %}
                 <div>
                   <span class="article-title border-1">{{ product.name }}</span>
                   <span class="mr-2">{{ product.description }}</span>
@@ -30,7 +30,7 @@
                             <span> </span>
                         {% endif %}
                     </div>
-
+                {% endfor %}
               </div>
             </article>
 

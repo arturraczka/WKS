@@ -415,7 +415,7 @@ class OrderItemFormView(FormOpenMixin, FormView):
         context = super().get_context_data(**kwargs)
         self.get_additional_context()
 
-        context["product"] = get_object_or_404(self.product_with_quantity)
+        context["products"] = [get_object_or_404(self.product_with_quantity),]
         add_choices_to_form(context["form"], self.product_with_quantity)
         context["order"] = self.order
         context["orderitems"] = self.orderitems

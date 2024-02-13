@@ -1,6 +1,7 @@
-{% extends "templates/base_one.html" %}
+{% extends "form/base_order_sidebar.html" %}
 {% load static %}
 {% load custom_filters %}
+
 {% block content %}
     <div class="col-md-7">
         <h4>Przeglądanie produktów. Wybrany producent:</h4>
@@ -26,6 +27,11 @@
         </div>
 
 
+
+
+
+
+
         {% for product in products %}
           <div class="section-product">
 
@@ -43,6 +49,9 @@
         {% endfor %}
     </div>
 {% endblock content%}
+
+{% block sidebar %}
+{% endblock sidebar %}
 
 {% block javascript %}
 {{ block.super }}
