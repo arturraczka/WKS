@@ -18,19 +18,13 @@
     <button onclick="goToSelectedLink()">Idź</button>
 
     <div>
-    {% if previous_producer %}
-        <a class="btn btn-outline-secondary my-2" href="{% url 'order-products-form' slug=previous_producer %}">Poprzedni producent</a>
-    {% endif %}
-    {% if next_producer %}
-        <a class="btn btn-outline-secondary my-2" href="{% url 'order-products-form' slug=next_producer %}">Następny producent</a>
-    {% endif %}
+        {% if previous_producer %}
+            <a class="btn btn-outline-secondary my-2" href="{% url 'order-products-form' slug=previous_producer %}">Poprzedni producent</a>
+        {% endif %}
+        {% if next_producer %}
+            <a class="btn btn-outline-secondary my-2" href="{% url 'order-products-form' slug=next_producer %}">Następny producent</a>
+        {% endif %}
     </div>
-
-
-
-
-
-
 
     <div class="pagination">
         <span class="step-links margin-bottom">

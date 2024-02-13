@@ -3,51 +3,43 @@
 {% load custom_filters %}
 
 {% block content %}
-    <div class="col-md-7">
-        <h4>Przeglądanie produktów. Wybrany producent:</h4>
-        <h3><strong>{{ producer.name }}</strong></h3>
-        <p>{{ producer.description }}</p>
-        <label for="producers">Zmień producenta:</label>
-        <select name="producers" id="producers">
-          <option disabled selected value> -- wybierz -- </option>
-          {% for producer in producers %}
-              <option value="{% url 'products' slug=producer.0 %}">{{ producer.1 }}</option>
-          {% endfor %}
-        </select>
+<div class="col-md-7">
+    <h4>Przeglądanie produktów. Wybrany producent:</h4>
+    <h3><strong>{{ producer.name }}</strong></h3>
+    <p>{{ producer.description }}</p>
+    <label for="producers">Zmień producenta:</label>
+    <select name="producers" id="producers">
+      <option disabled selected value> -- wybierz -- </option>
+      {% for producer in producers %}
+          <option value="{% url 'products' slug=producer.0 %}">{{ producer.1 }}</option>
+      {% endfor %}
+    </select>
 
-        <button onclick="goToSelectedLink()">Idź</button>
+    <button onclick="goToSelectedLink()">Idź</button>
 
-        <div>
+    <div>
         {% if previous_producer %}
             <a class="btn btn-outline-secondary my-2" href="{% url 'products' slug=previous_producer %}">Poprzedni producent</a>
         {% endif %}
         {% if next_producer %}
             <a class="btn btn-outline-secondary my-2" href="{% url 'products' slug=next_producer %}">Następny producent</a>
         {% endif %}
+    </div>
+
+    {% for product in products %}
+      <div class="section-product">
+        <div>
+          <span class="border-1">{{ product.name }}</span>
+          <span class="mr-2"><strong>  {{ product.price }}</strong> zł za szt/kg</span>
+          <span class="mr-2"> | Kat: {{ product.category }}</span>
         </div>
 
-
-
-
-
-
-
-        {% for product in products %}
-          <div class="section-product">
-
-            <div>
-              <span class="border-1">{{ product.name }}</span>
-              <span class="mr-2"><strong>  {{ product.price }}</strong> zł za szt/kg</span>
-              <span class="mr-2"> | Kat: {{ product.category }}</span>
-            </div>
-
-            <div>
-              <span class="">{{ product.description }}</span>
-            </div>
-
-          </div>
-        {% endfor %}
-    </div>
+        <div>
+          <span class="">{{ product.description }}</span>
+        </div>
+      </div>
+    {% endfor %}
+</div>
 {% endblock content%}
 
 {% block sidebar %}
