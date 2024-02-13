@@ -2,8 +2,9 @@
 {% load custom_filters %}
 {% block content %}
 <div class="col-md-9">
-    <h3>Twoje zamówienie</h3>
-    <h5>Edytuj produkty w swoim zamówieniu:</h5>
+    <h3><strong>Zamówienie {{ user_name }}</strong></h3>
+    <h5>Edytuj produkty w swoim zamówieniu.</h5>
+    <h6>Jeśli chcesz usunąć produkt z zamówienia - z listy rozwijanej wybierz '0' i kliknij Zmień</h6>
 
     <div class="row">
         <div class="col-md-4">
@@ -47,7 +48,7 @@
                       <div class="border-bottom">
                         <div>
                           {{ form_instance }}
-                          <input type="submit" name="submit" value="Dodaj">
+                          <input type="submit" name="submit" value="Zmień">
                         </div>
                       </div>
                 {% endfor %}
