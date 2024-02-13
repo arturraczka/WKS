@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
-from datetime import timedelta
+from datetime import timedelta, datetime
 import logging
-from apps.form.models import Product
+from apps.form.models import Product, Producer
 from django.db.models import F
 
 
@@ -16,10 +16,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         delta = timedelta(7)
-        products = Product.objects.filter(order_deadline__isnull=False).iterator(
-            chunk_size=50
-        )
+        producers = Producer.objects.filter(order_deadline__isnull=False).filter(order_deadline__lt=datetime.now().astimezone())
+        products = Product.objects.filter(order_deadline__isnull=False).filter(order_deadline__lt=datetime.now().astimezone())
+
+        for producer in producers:
+            producer.order_deadline = F('order_deadline') + delta
+            producer.save()
 
         for product in products:
-            product.order_deadline = F("order_deadline") + delta
+            product.order_deadline = F('order_deadline') + delta
             product.save()
