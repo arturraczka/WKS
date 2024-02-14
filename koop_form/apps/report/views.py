@@ -465,16 +465,13 @@ class UsersFinanceReportView(TemplateView):
             .order_by("userprofile__koop_id")
         )
 
-        koop_id_list = []
         name_list = []
         order_cost_list = []
+        email_list = []
 
         # TODO przyda się logika, że jeśli user nic nie zamówił, to nie pojawi się w raporcie
         for user in users:
-            try:
-                koop_id_list.append(user.userprofile.koop_id)
-            except UserProfile.DoesNotExist:
-                koop_id_list.append("brak")
+            email_list.append(user.email)
             name_list += (f"{user.first_name} {user.last_name}",)
             try:
                 orderitems = (
@@ -493,7 +490,7 @@ class UsersFinanceReportView(TemplateView):
                     order_cost = calculate_order_cost(orderitems) * Decimal("1.3")
             order_cost_list.append(order_cost)
 
-        context["koop_id_list"] = koop_id_list
+        context["email_list"] = email_list
         context["name_list"] = name_list
         context["order_cost_list"] = order_cost_list
 
@@ -579,12 +576,12 @@ class UsersFinanceReportDownloadView(UsersFinanceReportView):
         )
         writer = csv.writer(response)
         writer.writerow(["imię nazwisko", "koop ID", "kwota zamówienia"])
-        for name, koop_id, order_cost in zip(
+        for name, email, order_cost in zip(
             context["name_list"],
-            context["koop_id_list"],
+            context["email_list"],
             context["order_cost_list"],
         ):
-            writer.writerow([name, koop_id, str(order_cost).replace(".", ",")])
+            writer.writerow([name, email, str(order_cost).replace(".", ",")])
 
         return response
 
