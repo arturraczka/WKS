@@ -260,6 +260,8 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         self.products_description = []
         self.products_weight_schemes = []
         self.available_quantities_list = []
+        self.product_price_list = []
+        self.amounts_list = []
 
     def get_success_url(self):
         return self.request.path
@@ -322,11 +324,15 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
                 )
             self.products_weight_schemes.append(weight_schemes)
             self.available_quantities_list.append(product.available_quantity)
+            self.product_price_list.append(product.price)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         self.get_products_with_related()
         self.extract_data_from_products()
+
+        for price, item in zip(self.product_price_list, self.orderitems):
+            self.amounts_list.append(price * item.quantity)
 
         context["user_name"] = f"{self.request.user.first_name} {self.request.user.last_name}"
         context["fund"] = self.get_user_fund()
@@ -335,6 +341,7 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         context["order_cost"] = calculate_order_cost(self.orderitems)
         context["order_cost_with_fund"] = context["order_cost"] * context["fund"]
         context["products"] = self.products_with_quantity
+        context["amounts_list"] = self.amounts_list
 
         context["products_description"] = self.products_description
         context["products_weight_schemes"] = self.products_weight_schemes

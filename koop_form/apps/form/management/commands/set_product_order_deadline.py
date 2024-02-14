@@ -10,7 +10,7 @@ logger = logging.getLogger("django.server")
 
 class Command(BaseCommand):
     help = (
-        "Increments order_deadline attribute of all Products having order_deadline by 7 days."
+        "Increments order_deadline attribute of all Products and Producers having order_deadline not null and being a past datetime, by 7 days."
         "Run this command as cronjob, best before enabling users to create orders (Saturday morning)."
     )
 

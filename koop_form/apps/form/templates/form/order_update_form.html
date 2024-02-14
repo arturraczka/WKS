@@ -1,7 +1,7 @@
 {% extends "templates/base_one.html" %}
 {% load custom_filters %}
 {% block content %}
-<div class="col-md-9">
+<div class="col-md-10">
     <h3><strong>Zamówienie {{ user_name }}</strong></h3>
     <h5>Edytuj produkty w swoim zamówieniu.</h5>
     <h6>Jeśli chcesz usunąć produkt z zamówienia - z listy rozwijanej wybierz '0' i kliknij Zmień</h6>
@@ -30,16 +30,6 @@
             {% endfor %}
         </div>
 
-        <div class="col-md-4">
-                {% for desc in products_description %}
-                      <div class="border-bottom">
-                        <div>
-                          <span class="mr-2">{{ desc }}</span>
-                        </div>
-                      </div>
-                {% endfor %}
-        </div>
-
         <div class="col-md-2">
             <form method="post">
                 {% csrf_token %}
@@ -55,12 +45,22 @@
             </form>
         </div>
 
-        <div class="col-md-2">
+        <div class="col-md-1">
+                {% for amount in amounts_list %}
+                      <div class="border-bottom">
+                        <div>
+                          <span class="mr-2">{{ amount|format_decimal:2 }} zł</span>
+                        </div>
+                      </div>
+                {% endfor %}
+        </div>
+
+        <div class="col-md-1">
             {% for quantity in available_quantities_list %}
                   <div class="border-bottom">
                     <div>
                         {% if quantity is not None %}
-                            <span class="mr-2"> Max: {{ quantity|format_decimal:3 }} (sztuk lub kg) </span>
+                            <span class="mr-2"> Max: {{ quantity|format_decimal:3 }}<br>[szt lub kg]</span>
                         {% else %}
                             <span> </span>
                         {% endif %}
@@ -68,16 +68,27 @@
                   </div>
             {% endfor %}
         </div>
+
+        <div class="col-md-4">
+                {% for desc in products_description %}
+                      <div class="border-bottom">
+                        <div>
+                          <span class="mr-2">{{ desc }}</span>
+                        </div>
+                      </div>
+                {% endfor %}
+        </div>
+
     </div>
 </div>
 
-<div class="col-md-3">
+<div class="col-md-2">
   <div class="content-section sticky-element">
-    <h3>Szczegóły zamówienia:</h3>
-    <p class='text-muted'>Wartość zamówienia: {{ order_cost|floatformat:"2" }} zł.</p>
-    <p class='text-muted'>Twój fundusz: {{ fund }}.</p>
-    <p class='text-muted'>Wartość zamówienia z funduszem: <strong>{{ order_cost_with_fund|floatformat:"2" }} zł.</strong></p>
-    <p class='text-muted'>Numer zamówienia/skrzynki: {{ order.order_number }}.</p>
+    <h3>Szczegóły:</h3>
+    <p class='text-muted'>Kwota zamówienia: <br> {{ order_cost|floatformat:"2" }} zł.</p>
+    <p class='text-muted'>Fundusz: {{ fund }}.</p>
+    <p class='text-muted'>Kwota z funduszem: <br> <strong>{{ order_cost_with_fund|floatformat:"2" }} zł.</strong></p>
+    <p class='text-muted'>Numer skrzynki: {{ order.order_number }}.</p>
     <p class='text-muted'>Dzień odbioru: {{ order.pick_up_day }}.</p>
     <a href="{% url 'order-update' pk=order.id %}" class="button">Zmień dzień odbioru</a>
     <a href="{% url 'order-delete' pk=order.id %}" class="button">Usuń to zamówienie</a>
