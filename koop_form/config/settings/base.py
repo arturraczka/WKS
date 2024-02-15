@@ -1,11 +1,13 @@
 from os import path
 from environ import Env
+from pathlib import Path
 
 # creates Env class instance with default DEBUG=False if there is no DEBUG var
 env = Env(DEBUG=(bool, False))
 
 # creates a base directory, path.dirname returns parent directory of a given file/path
-BASE_DIR = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+# BASE_DIR = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 env.read_env(path.join(BASE_DIR, ".env"))
 
@@ -78,7 +80,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "/static/"
-STATIC_ROOT = path.join(BASE_DIR, "staticfiles")
+# STATIC_ROOT = path.join(BASE_DIR, "staticfiles")
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
