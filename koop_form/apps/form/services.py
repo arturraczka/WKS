@@ -25,12 +25,11 @@ def calculate_previous_weekday(day=4, hour=0):
     return previous_day
 
 
-# TODO this could be annotate() + aggregate()
 def calculate_order_cost(orderitems):
     """Returns sum of order_item.quantity times product.price for given QS of OrderItem model."""
-    order_cost = 0
-    for item in orderitems:
-        order_cost += item.quantity * item.product.price
+    order_cost = orderitems.annotate(
+        item_cost=F('quantity') * F('product__price')
+    ).aggregate(order_cost=Sum('item_cost'))['order_cost']
     return order_cost
 
 
