@@ -80,7 +80,7 @@ class ProductsView(DetailView):
 
     def get_object(self, queryset=None):
         if self.kwargs["slug"] == 'pierwszy':
-            producer = Producer.objects.all().first()
+            producer = Producer.objects.filter(is_active=True).first()
         else:
             producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
         return producer
@@ -124,7 +124,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
     def get_order_and_producer(self):
         self.order = get_users_last_order(Order, self.request.user)
         if self.kwargs["slug"] == 'pierwszy':
-            self.producer = Producer.objects.all().first()
+            self.producer = Producer.objects.filter(is_active=True).first()
         else:
             self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
 
@@ -422,7 +422,7 @@ class OrderItemFormView(FormOpenMixin, FormView):
         self.get_additional_context()
 
         context["products"] = [get_object_or_404(self.product_with_quantity),]
-        add_choices_to_form(context["form"], self.product_with_quantity)
+        add_choices_to_form(context["form"], self.product_with_quantity.first())
         context["order"] = self.order
         context["orderitems"] = self.orderitems
         context["order_cost"] = calculate_order_cost(self.orderitems)
