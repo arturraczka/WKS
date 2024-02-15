@@ -16,6 +16,11 @@ class CreateSupplyForm(ModelForm):
             "producer": "Wybierz producenta:",
         }
 
+    def __init__(self, *args, **kwargs):
+        producers = kwargs.pop('producers')
+        super().__init__(*args, **kwargs)
+        self.fields['producer'].queryset = producers
+
 
 class CreateSupplyItemForm(ModelForm):
     supply = ModelChoiceField(required=False, queryset=Supply.objects.all())

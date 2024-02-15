@@ -36,6 +36,11 @@ class SupplyCreateView(SuccessMessageMixin, CreateView):
     form_class = CreateSupplyForm
     success_message = "Dostawa została utworzona. Dodaj produkty."
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['producers'] = Producer.objects.filter(is_active=True)
+        return kwargs
+
     def form_valid(self, form):
         if validate_supply_exists(Supply, form.instance.producer):
             messages.warning(
