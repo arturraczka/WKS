@@ -38,7 +38,7 @@ class SupplyCreateView(SuccessMessageMixin, CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['producers'] = Producer.objects.filter(is_active=True)
+        kwargs["producers"] = Producer.objects.filter(is_active=True)
         return kwargs
 
     def form_valid(self, form):

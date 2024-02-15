@@ -55,7 +55,9 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def perform_delete(self, instance):
         products = instance.products.all()
         for product in products:
-            orderitems = OrderItem.objects.filter(product=product, item_ordered_date__gt=calculate_previous_weekday())
+            orderitems = OrderItem.objects.filter(
+                product=product, item_ordered_date__gt=calculate_previous_weekday()
+            )
             for item in orderitems:
                 item.delete()
 
@@ -63,7 +65,6 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         if instance.not_arrived:
             self.perform_delete(instance)
             instance.not_arrived = False
-
 
     def save_model(self, request, obj, form, change):
         self.set_order_deadline_to_related_products(obj)
@@ -119,7 +120,10 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 class OrderItemAdmin(admin.ModelAdmin):
-    raw_id_fields = ("product", "order",)
+    raw_id_fields = (
+        "product",
+        "order",
+    )
     list_filter = [
         "order__user__last_name",
         "order__date_created",

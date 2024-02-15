@@ -39,7 +39,8 @@ from apps.form.services import (
     get_users_last_order,
     get_orderitems_query,
     add_weight_schemes_as_choices_to_forms,
-    get_orderitems_query_with_related_order, add_producer_list_to_context,
+    get_orderitems_query_with_related_order,
+    add_producer_list_to_context,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -79,7 +80,7 @@ class ProductsView(DetailView):
         return context
 
     def get_object(self, queryset=None):
-        if self.kwargs["slug"] == 'pierwszy':
+        if self.kwargs["slug"] == "pierwszy":
             producer = Producer.objects.filter(is_active=True).first()
         else:
             producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
@@ -123,7 +124,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
 
     def get_order_and_producer(self):
         self.order = get_users_last_order(Order, self.request.user)
-        if self.kwargs["slug"] == 'pierwszy':
+        if self.kwargs["slug"] == "pierwszy":
             self.producer = Producer.objects.filter(is_active=True).first()
         else:
             self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
@@ -268,7 +269,9 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
 
     def get_order_and_orderitems(self):
         self.order = get_users_last_order(Order, self.request.user)
-        self.orderitems = get_orderitems_query_with_related_order(OrderItem, self.order.id)
+        self.orderitems = get_orderitems_query_with_related_order(
+            OrderItem, self.order.id
+        )
 
     def get_form_class(self):
         self.get_order_and_orderitems()
@@ -299,13 +302,13 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         products_ids = Product.objects.filter(orders=self.order).values_list(
             "id", flat=True
         )
-        products_with_related = Product.objects.filter(
-            pk__in=list(products_ids)
-        ).prefetch_related(
-            "weight_schemes",
-            "statuses",
-        ).select_related(
-            "producer"
+        products_with_related = (
+            Product.objects.filter(pk__in=list(products_ids))
+            .prefetch_related(
+                "weight_schemes",
+                "statuses",
+            )
+            .select_related("producer")
         )
         self.products_with_quantity = calculate_available_quantity(
             products_with_related
@@ -334,7 +337,9 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         for price, item in zip(self.product_price_list, self.orderitems):
             self.amounts_list.append(price * item.quantity)
 
-        context["user_name"] = f"{self.request.user.first_name} {self.request.user.last_name}"
+        context[
+            "user_name"
+        ] = f"{self.request.user.first_name} {self.request.user.last_name}"
         context["fund"] = self.get_user_fund()
         context["order"] = self.order
         context["orderitems"] = self.orderitems
@@ -379,10 +384,12 @@ class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
 
 
 @method_decorator(login_required, name="dispatch")
-class OrderDeleteView(FormOpenMixin, UserPassesTestMixin, SuccessMessageMixin, DeleteView):
+class OrderDeleteView(
+    FormOpenMixin, UserPassesTestMixin, SuccessMessageMixin, DeleteView
+):
     model = Order
     template_name = "form/order_delete.html"
-    success_url = reverse_lazy("products", kwargs={'slug': 'pierwszy'})
+    success_url = reverse_lazy("products", kwargs={"slug": "pierwszy"})
     success_message = "Zamówienie zostało usunięte."
 
     def test_func(self):
@@ -421,7 +428,9 @@ class OrderItemFormView(FormOpenMixin, FormView):
         context = super().get_context_data(**kwargs)
         self.get_additional_context()
 
-        context["products"] = [get_object_or_404(self.product_with_quantity),]
+        context["products"] = [
+            get_object_or_404(self.product_with_quantity),
+        ]
         add_choices_to_form(context["form"], self.product_with_quantity.first())
         context["order"] = self.order
         context["orderitems"] = self.orderitems

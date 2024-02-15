@@ -16,13 +16,17 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         delta = timedelta(7)
-        producers = Producer.objects.filter(order_deadline__isnull=False).filter(order_deadline__lt=datetime.now().astimezone())
-        products = Product.objects.filter(order_deadline__isnull=False).filter(order_deadline__lt=datetime.now().astimezone())
+        producers = Producer.objects.filter(order_deadline__isnull=False).filter(
+            order_deadline__lt=datetime.now().astimezone()
+        )
+        products = Product.objects.filter(order_deadline__isnull=False).filter(
+            order_deadline__lt=datetime.now().astimezone()
+        )
 
         for producer in producers:
-            producer.order_deadline = F('order_deadline') + delta
+            producer.order_deadline = F("order_deadline") + delta
             producer.save()
 
         for product in products:
-            product.order_deadline = F('order_deadline') + delta
+            product.order_deadline = F("order_deadline") + delta
             product.save()

@@ -38,9 +38,7 @@ class Producer(models.Model):
         super(Producer, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse(
-            "products", kwargs={"slug": self.slug}
-        )
+        return reverse("products", kwargs={"slug": self.slug})
 
 
 class WeightScheme(models.Model):
@@ -138,9 +136,7 @@ class Order(models.Model):
         return f"{self.user.last_name}: {str(self.date_created)[:19]}"
 
     def get_absolute_url(self):
-        return reverse(
-            "order-detail", kwargs={"pk": self.pk, "user": self.user}
-        )
+        return reverse("order-detail", kwargs={"pk": self.pk, "user": self.user})
 
 
 class OrderItem(models.Model):

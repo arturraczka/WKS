@@ -5,7 +5,6 @@ from django.dispatch import receiver
 
 from apps.form.models import WeightScheme, Product, OrderItem, Order, Producer
 from apps.form.services import (
-    reduce_order_quantity,
     calculate_order_number,
     recalculate_order_numbers,
     # set_products_quantity_to_0,

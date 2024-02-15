@@ -12,14 +12,12 @@ from django.utils import timezone
 from apps.form.models import Order, OrderItem, Producer, Product
 from apps.form.services import (
     list_messages,
-    calculate_available_quantity,
 )
 from factories.model_factories import (
     ProducerFactory,
     UserFactory,
     WeightSchemeFactory,
     ProductFactory,
-    OrderWithProductFactory,
     OrderItemFactory,
     OrderFactory,
     ProfileFactory,

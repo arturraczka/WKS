@@ -28,8 +28,8 @@ def calculate_previous_weekday(day=4, hour=0):
 def calculate_order_cost(orderitems):
     """Returns sum of order_item.quantity times product.price for given QS of OrderItem model."""
     order_cost = orderitems.annotate(
-        item_cost=F('quantity') * F('product__price')
-    ).aggregate(order_cost=Sum('item_cost'))['order_cost']
+        item_cost=F("quantity") * F("product__price")
+    ).aggregate(order_cost=Sum("item_cost"))["order_cost"]
     if order_cost is None:
         return 0
     return order_cost
@@ -58,27 +58,25 @@ def calculate_available_quantity(products):
     Finally, annotates available_quantity: order_max_quantity minus ordered_quantity or quantity_in_stock.
     """
     previous_friday = calculate_previous_weekday()
-    products_with_available_quantity = (
-        products.annotate(
-            ordered_quantity=Sum(
-                "orderitems__quantity",
-                filter=Q(orderitems__item_ordered_date__gte=previous_friday),
-            )
-        ).annotate(
-            available_quantity=Case(
-                When(
-                    ordered_quantity=None,
-                    then=Case(
-                        When(order_max_quantity=None, then=F("quantity_in_stock")),
-                        default=F("order_max_quantity"),
-                    ),
-                ),
-                default=Case(
+    products_with_available_quantity = products.annotate(
+        ordered_quantity=Sum(
+            "orderitems__quantity",
+            filter=Q(orderitems__item_ordered_date__gte=previous_friday),
+        )
+    ).annotate(
+        available_quantity=Case(
+            When(
+                ordered_quantity=None,
+                then=Case(
                     When(order_max_quantity=None, then=F("quantity_in_stock")),
-                    default=F("order_max_quantity") - F("ordered_quantity"),
+                    default=F("order_max_quantity"),
                 ),
             ),
-        )
+            default=Case(
+                When(order_max_quantity=None, then=F("quantity_in_stock")),
+                default=F("order_max_quantity") - F("ordered_quantity"),
+            ),
+        ),
     )
     return products_with_available_quantity
 
@@ -161,7 +159,7 @@ def switch_products_isactive_bool_value(producer_instance):
 
 
 def get_quantity_choices():
-    """Generates choices for OrderItem quantity field. """
+    """Generates choices for OrderItem quantity field."""
     choices = [
         (Decimal("0.000"), "0"),
     ]
@@ -185,7 +183,9 @@ def get_producers_list(producer_model):
 def add_producer_list_to_context(context, producer_model):
     """Adds list of producers, next_producer and previous_producer to context[]. Used for navigation purposes."""
     context["producers"] = get_producers_list(producer_model)
-    producer_index = context["producers"].index([context["producer"].slug, context["producer"].name])
+    producer_index = context["producers"].index(
+        [context["producer"].slug, context["producer"].name]
+    )
     if producer_index != 0:
         context["previous_producer"] = context["producers"][producer_index - 1][0]
     else:
@@ -201,11 +201,15 @@ def get_product_weight_schemes_list(product):
     weight_schemes_quantity_list = []
     weight_schemes_set = product.weight_schemes.all()
     for weight_scheme in weight_schemes_set:
-        weight_schemes_quantity_list.append((
-            Decimal(weight_scheme.quantity),
-            f"{weight_scheme.quantity}".rstrip("0").rstrip("."),
-        ))
-    return [weight_schemes_quantity_list,]
+        weight_schemes_quantity_list.append(
+            (
+                Decimal(weight_scheme.quantity),
+                f"{weight_scheme.quantity}".rstrip("0").rstrip("."),
+            )
+        )
+    return [
+        weight_schemes_quantity_list,
+    ]
 
 
 def add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes):
@@ -265,7 +269,8 @@ def get_users_last_order(order_model, request_user):
 
 def get_orderitems_query(orderitem_model, order_id):
     """Returns OrderItems QS related to given Order instance fetched with related Product, ordered by product__name.
-    Limits resulting QS to fields: product_id, quantity, product__name and product__price."""
+    Limits resulting QS to fields: product_id, quantity, product__name and product__price.
+    """
     return (
         orderitem_model.objects.filter(order=order_id)
         .select_related("product")
@@ -276,7 +281,8 @@ def get_orderitems_query(orderitem_model, order_id):
 
 def get_orderitems_query_with_related_order(orderitem_model, order_id):
     """Returns OrderItems QS related to given Order instance fetched with related Product and Order, ordered by product__name.
-    Limits resulting QS to fields: product_id, quantity, product__name and product__price."""
+    Limits resulting QS to fields: product_id, quantity, product__name and product__price.
+    """
     return (
         orderitem_model.objects.filter(order=order_id)
         .select_related("product", "order")

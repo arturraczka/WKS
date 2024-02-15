@@ -318,13 +318,13 @@ class ProducerProductsReportDownloadView(ProducerProductsReportView):
         )
         writer.writerow(
             [
-                f"Kwota zamówienia (zł):",
+                "Kwota zamówienia (zł):",
                 f'{context["total_income"]:.2f}'.replace(".", ","),
             ]
         )
         writer.writerow(
             [
-                f"Kwota dostawy (zł):",
+                "Kwota dostawy (zł):",
                 f'{context["total_supply_income"]:.2f}'.replace(".", ","),
             ]
         )
@@ -537,7 +537,7 @@ class MassProducerBoxReportDownloadView(TemplateView):
 
     def render_to_response(self, context, **response_kwargs):
         headers = {
-            "Content-Disposition": f'attachment; filename="raport-paczkowanie.csv"'
+            "Content-Disposition": 'attachment; filename="raport-paczkowanie.csv"'
         }
 
         response = self.response_class(
@@ -567,7 +567,7 @@ class UsersFinanceReportDownloadView(UsersFinanceReportView):
 
     def render_to_response(self, context, **response_kwargs):
         headers = {
-            "Content-Disposition": f'attachment; filename="raport-finanse-kooperantów.csv"'
+            "Content-Disposition": 'attachment; filename="raport-finanse-kooperantów.csv"'
         }
 
         response = self.response_class(
@@ -594,7 +594,7 @@ class MassOrderBoxReportDownloadView(TemplateView):
 
     def render_to_response(self, context, **response_kwargs):
         headers = {
-            "Content-Disposition": f'attachment; filename="raport-zamowienia-skrzynki-wszystkie.csv"'
+            "Content-Disposition": 'attachment; filename="raport-zamowienia-skrzynki-wszystkie.csv"'
         }
 
         response = self.response_class(
