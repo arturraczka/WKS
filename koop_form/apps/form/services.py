@@ -30,6 +30,8 @@ def calculate_order_cost(orderitems):
     order_cost = orderitems.annotate(
         item_cost=F('quantity') * F('product__price')
     ).aggregate(order_cost=Sum('item_cost'))['order_cost']
+    if order_cost is None:
+        return 0
     return order_cost
 
 
@@ -97,12 +99,14 @@ def recalculate_order_numbers(order_model, order_instance_date_created):
     orders_qs = order_model.objects.filter(
         date_created__gt=order_instance_date_created
     ).order_by("date_created")
-    for order in orders_qs:
-        order.order_number = F("order_number") - 1
-        order.save()
+    orders_qs.update(order_number=F("order_number") - 1)
 
 
 def reduce_order_quantity(orderitem_model, product_pk, delivered_quantity):
+    """In a freezer right now. Client is not sure if this functionality is needed.
+    Given "this week's delivered quantity" of a product checks ordered quantity this week for that product.
+    If ordered quantity is higher than delivered quantity - deletes orders until delivered quantity >= ordered quantity"
+    """
     previous_friday = calculate_previous_weekday()
 
     delivered_quantity_lower_than_ordered_quantity = True
@@ -130,7 +134,9 @@ def reduce_order_quantity(orderitem_model, product_pk, delivered_quantity):
             delivered_quantity_lower_than_ordered_quantity = False
 
 
+# TODO obviously suboptimal function. But used only in a reporting phase, so terrible performance should be acceptable.
 def create_order_data_list(products):
+    """For each ordered product this week globally creates a formatted list of orders with order number and ordered quantity."""
     previous_friday = calculate_previous_weekday()
     order_data_list = []
 
@@ -148,14 +154,14 @@ def create_order_data_list(products):
 
 
 def switch_products_isactive_bool_value(producer_instance):
+    """For a given producer instances sync related products is_active with producer's is_active"""
     product_qs = producer_instance.products.all()
     operator = True if producer_instance.is_active else False
-    for product in product_qs:
-        product.is_active = operator
-        product.save()
+    product_qs.update(is_active=operator)
 
 
 def get_quantity_choices():
+    """Generates choices for OrderItem quantity field. """
     choices = [
         (Decimal("0.000"), "0"),
     ]
@@ -170,13 +176,14 @@ def get_quantity_choices():
     return sorted(choices)
 
 
-# TODO do testu samodzielnego, nie w widokach! - w widokach też :p
 def get_producers_list(producer_model):
+    """Builds a list of all active producers [slug, name] for a dropdown menu used in navigation between producers"""
     producers = producer_model.objects.filter(is_active=True).values("slug", "name")
     return [[producer["slug"], producer["name"]] for producer in producers]
 
 
 def add_producer_list_to_context(context, producer_model):
+    """Adds list of producers, next_producer and previous_producer to context[]. Used for navigation purposes."""
     context["producers"] = get_producers_list(producer_model)
     producer_index = context["producers"].index([context["producer"].slug, context["producer"].name])
     if producer_index != 0:
@@ -189,22 +196,18 @@ def add_producer_list_to_context(context, producer_model):
         context["next_producer"] = None
 
 
-def get_products_weight_schemes_list(products_with_available_quantity):
-    products_weight_schemes_list = []
-    for product in products_with_available_quantity:
-        weight_schemes_set = product.weight_schemes.all()
-        weight_schemes_quantity_list = [
-            (
-                Decimal(weight_scheme.quantity),
-                f"{weight_scheme.quantity}".rstrip("0").rstrip("."),
-            )
-            for weight_scheme in weight_schemes_set
-        ]
-        products_weight_schemes_list.append(weight_schemes_quantity_list)
-    return products_weight_schemes_list
+def get_product_weight_schemes_list(product):
+    """For a given product instance creates a list of tuples containing weight_scheme pairs. To be used as 'choices' in forms."""
+    weight_schemes_quantity_list = []
+    weight_schemes_set = product.weight_schemes.all()
+    for weight_scheme in weight_schemes_set:
+        weight_schemes_quantity_list.append((
+            Decimal(weight_scheme.quantity),
+            f"{weight_scheme.quantity}".rstrip("0").rstrip("."),
+        ))
+    return [weight_schemes_quantity_list,]
 
 
-# TODO zmienić nazwę na add_choices_to_forms - albo może nie
 def add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes):
     for form, scheme in zip(forms, products_weight_schemes):
         form.fields["quantity"].choices = scheme
@@ -212,13 +215,16 @@ def add_weight_schemes_as_choices_to_forms(forms, products_weight_schemes):
 
 def add_choices_to_form(form, product):
     """To OrderItem form instance adds choices for quantity field, based on targeted product's available weight_schemes."""
-    product_weight_schemes_list = get_products_weight_schemes_list(product)
+    product_weight_schemes_list = get_product_weight_schemes_list(product)
     form.fields["quantity"].choices = product_weight_schemes_list[0]
 
 
 def filter_products_with_ordered_quantity_income_and_supply_income(
     product_model, producer_id
 ):
+    """Returns a Product QS filtered for a given Producer instance, ordered by name, with annotated: ordered_quantity,
+    income, supply_quantity, supply_income and excess. Limits resulting QS to fields: name, orderitems__quantity and
+    supplyitems__quantity."""
     previous_friday = calculate_previous_weekday()
     products = (
         product_model.objects.only(
@@ -245,11 +251,9 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
             ),
             supply_income=F("supply_quantity") * F("price"),
             excess=F("supply_quantity") - F("ordered_quantity"),
-            # total_income=Sum('income')
         )
         .distinct()
         .order_by("name")
-        # .iterator(chunk_size=1000)
     )
     return products
 
@@ -260,6 +264,8 @@ def get_users_last_order(order_model, request_user):
 
 
 def get_orderitems_query(orderitem_model, order_id):
+    """Returns OrderItems QS related to given Order instance fetched with related Product, ordered by product__name.
+    Limits resulting QS to fields: product_id, quantity, product__name and product__price."""
     return (
         orderitem_model.objects.filter(order=order_id)
         .select_related("product")
@@ -268,7 +274,9 @@ def get_orderitems_query(orderitem_model, order_id):
     )
 
 
-def get_orderitems_query_2(orderitem_model, order_id):
+def get_orderitems_query_with_related_order(orderitem_model, order_id):
+    """Returns OrderItems QS related to given Order instance fetched with related Product and Order, ordered by product__name.
+    Limits resulting QS to fields: product_id, quantity, product__name and product__price."""
     return (
         orderitem_model.objects.filter(order=order_id)
         .select_related("product", "order")
@@ -278,6 +286,8 @@ def get_orderitems_query_2(orderitem_model, order_id):
 
 
 def check_if_form_is_open():
+    """Returns True if calling now() is between Friday 12:00 and Monday 20:00. Used as indicator to blocking POST
+    requests for Orders and OrderItems."""
     if settings.DEBUG:
         return True
     else:

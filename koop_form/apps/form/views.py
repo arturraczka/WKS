@@ -39,7 +39,7 @@ from apps.form.services import (
     get_users_last_order,
     get_orderitems_query,
     add_weight_schemes_as_choices_to_forms,
-    get_orderitems_query_2, add_producer_list_to_context,
+    get_orderitems_query_with_related_order, add_producer_list_to_context,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -268,7 +268,7 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
 
     def get_order_and_orderitems(self):
         self.order = get_users_last_order(Order, self.request.user)
-        self.orderitems = get_orderitems_query_2(OrderItem, self.order.id)
+        self.orderitems = get_orderitems_query_with_related_order(OrderItem, self.order.id)
 
     def get_form_class(self):
         self.get_order_and_orderitems()
