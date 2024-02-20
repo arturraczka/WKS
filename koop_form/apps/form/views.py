@@ -103,7 +103,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
     model = OrderItem
     template_name = "form/order_products_form.html"
     form_class = None
-    products_per_page = 50
+    products_per_page = 100
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -138,6 +138,9 @@ class OrderProductsFormView(FormOpenMixin, FormView):
             .prefetch_related(
                 "weight_schemes",
                 "statuses",
+            )
+            .select_related(
+                "producer"
             )
         )
 
@@ -213,7 +216,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
                 if not perform_create_orderitem_validations(
                     instance, self.request, Order, Product
                 ):
-                    return self.form_invalid(form)
+                    pass
                 else:
                     instance.save()
                     messages.success(
@@ -490,3 +493,27 @@ def main_page_redirect(request):
     obj = Producer.objects.all().first()
     response = redirect(obj)
     return response
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(
+    user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
+)
+class OrderProductsAllFormView(OrderProductsFormView):
+    template_name = "form/order_products_all_form.html"
+
+    def get_products_queryset(self):
+        self.products = (
+            Product.objects.filter(is_active=True)
+            # .filter(~Q(quantity_in_stock=0))
+            .order_by("producer__name", "name")
+            .prefetch_related(
+                "weight_schemes",
+                "statuses",
+            )
+            .select_related("producer")
+        )
+
+    def get_order_and_producer(self):
+        self.order = get_users_last_order(Order, self.request.user)
+        self.producer = Producer.objects.filter(is_active=True).first()

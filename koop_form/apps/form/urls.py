@@ -11,7 +11,7 @@ from apps.form.views import (
     OrderUpdateFormView,
     OrderItemFormView,
     product_search_view,
-    main_page_redirect,
+    main_page_redirect, OrderProductsAllFormView,
 )
 
 
@@ -54,5 +54,10 @@ urlpatterns = [
         "wyszukiwarka/produkt/<int:pk>",
         OrderItemFormView.as_view(),
         name="order-item-form",
+    ),
+    path(
+        "zamowienie/produkty/",
+        OrderProductsAllFormView.as_view(),
+        name="order-products-all-form",
     ),
 ]

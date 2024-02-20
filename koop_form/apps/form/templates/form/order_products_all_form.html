@@ -1,0 +1,54 @@
+{% extends "form/base_order_sidebar_products.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="col-md-9">
+    <h4>Składanie zamówienia. Pełna lista produktów:</h4>
+
+    <div class="pagination">
+        <span class="step-links margin-bottom">
+            {% if paginated_products.has_previous %}
+                <a class="btn btn-outline-secondary my-2" href="?page=1">&laquo; pierwsza</a>
+                <a class="btn btn-outline-secondary my-2" href="?page={{ paginated_products.previous_page_number }}">&lsaquo; wcześniejsza</a>
+            {% endif %}
+
+            <span class="current">
+                Strona {{ paginated_products.number }} z {{ paginated_products.paginator.num_pages }}.
+            </span>
+
+            {% if paginated_products.has_next %}
+                <a class="btn btn-outline-secondary my-2" href="?page={{ paginated_products.next_page_number }}">następna &rsaquo;</a>
+                <a class="btn btn-outline-secondary my-2" href="?page={{ paginated_products.paginator.num_pages }}">ostatnia &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+
+{% block products %}
+{{ block.super }}
+{% endblock products %}
+
+    <div class="pagination">
+        <span class="step-links margin-bottom margin-top-fix-60">
+            {% if paginated_products.has_previous %}
+                <a class="btn btn-outline-secondary my-2" href="?page=1">&laquo; pierwsza</a>
+                <a class="btn btn-outline-secondary my-2" href="?page={{ paginated_products.previous_page_number }}">&lsaquo; wcześniejsza</a>
+            {% endif %}
+
+            <span class="current">
+                Strona {{ paginated_products.number }} z {{ paginated_products.paginator.num_pages }}.
+            </span>
+
+            {% if paginated_products.has_next %}
+                <a class="btn btn-outline-secondary my-2" href="?page={{ paginated_products.next_page_number }}">następna &rsaquo;</a>
+                <a class="btn btn-outline-secondary my-2" href="?page={{ paginated_products.paginator.num_pages }}">ostatnia &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+{{ block.super }}
+<script src="{% static 'form/js/go_to_producer.js' %}"></script>
+{% endblock javascript %}
