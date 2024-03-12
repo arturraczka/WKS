@@ -47,11 +47,11 @@ def assign_order_number(sender, instance, **kwargs):
         instance.order_number = calculate_order_number(sender)
 
 
-@receiver(post_save, sender=OrderItem)
-def delete_instance_if_quantity_eq_0(sender, instance, **kwargs):
-    if instance.quantity == 0:
-        orderitem_db = sender.objects.get(id=instance.id)
-        orderitem_db.delete()
+# @receiver(post_save, sender=OrderItem)
+# def delete_instance_if_quantity_eq_0(sender, instance, **kwargs):
+#     if instance.quantity == 0:
+#         orderitem_db = sender.objects.get(id=instance.id)
+#         orderitem_db.delete()
 
 
 @receiver(pre_delete, sender=Order)

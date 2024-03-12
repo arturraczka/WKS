@@ -1,8 +1,6 @@
 from django.contrib import admin
-
-# from import_export.admin import ImportExportModelAdmin
-# from import_export import resources, fields, widgets
-
+from apps.form.models import Product
+from apps.form.services import alter_product_stock, reduce_product_stock
 from apps.supply.models import (
     Supply,
     SupplyItem,
@@ -36,6 +34,17 @@ class SupplyItemAdmin(admin.ModelAdmin):
     @admin.display(description="Producer short")
     def producer_short(self, obj):
         return f"{obj.product.producer.short}"
+
+    def save_model(self, request, obj, form, change):
+        if change:
+            alter_product_stock(Product, obj.product.id, obj.quantity, obj.id, SupplyItem, negative=True)
+        else:
+            reduce_product_stock(Product, obj.product.id, obj.quantity, negative=True)
+        super().save_model(request, obj, form, change)
+
+    def delete_model(self, request, obj):
+        reduce_product_stock(Product, obj.product.id, obj.quantity)
+        super().delete_model(request, obj)
 
 
 admin.site.register(Supply, SupplyAdmin)

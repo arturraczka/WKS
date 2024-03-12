@@ -353,15 +353,24 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
 
     def form_valid(self, form):
         formset = form.save(commit=False)
+
         for instance in formset:
+            if instance.quantity == 0:
+                orderitem_db = OrderItem.objects.get(id=instance.id)
+                reduce_product_stock(Product, orderitem_db.product.id, orderitem_db.quantity, negative=True)
+                orderitem_db.delete()
+                continue
+
             if not perform_update_orderitem_validations(instance, self.request):
                 continue
+
             alter_product_stock(Product, instance.product.id, instance.quantity, instance.id, OrderItem)
             instance.save()
             messages.success(
                 self.request,
                 f"{instance.product.name}: Zamówienie zostało zaktualizowane.",
             )
+
         return super().form_valid(form)
 
 

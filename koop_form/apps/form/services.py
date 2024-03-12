@@ -274,21 +274,22 @@ def check_if_form_is_open():
         return form_open < today < form_closed
 
 
-def reduce_product_stock(product_model, product_id, orderitem_quantity, negative=False):
-    """Reduces Product.quantity_in_stock according to OrderItem.quantity being saved.
+def reduce_product_stock(product_model, product_id, quantity, negative=False):
+    """Reduces Product.quantity_in_stock according to OrderItem or SupplyItem quantity being saved.
     If negative=True, increases instead of reducing. """
     product_instance = product_model.objects.filter(id=product_id)
     if negative:
-        product_instance.update(quantity_in_stock=F('quantity_in_stock') + orderitem_quantity)
-    else:
-        product_instance.update(quantity_in_stock=F('quantity_in_stock') - orderitem_quantity)
+        quantity = - quantity
+    product_instance.update(quantity_in_stock=F('quantity_in_stock') - quantity)
 
 
-def alter_product_stock(product_model, product_id, new_quantity, orderitem_id, orderitem_model):
-    """Used in Views updating OrderItems. Increases or decreases Product.quantity_in_stock according to
-    OrderItem.quantity changes """
-    orderitem_instance = orderitem_model.objects.get(id=orderitem_id)
-    old_quantity = orderitem_instance.quantity
-    quantity_difference = new_quantity - old_quantity
+def alter_product_stock(product_model, product_id, new_quantity, model_id, model, negative=False):
+    """Increases or decreases Product.quantity_in_stock according to OrderItem or SupplyItem quantity changes.
+    If negative=True, reverses the action."""
+    model_instance = model.objects.get(id=model_id)
     product_instance = product_model.objects.filter(id=product_id)
+    old_quantity = model_instance.quantity
+    quantity_difference = new_quantity - old_quantity
+    if negative:
+        quantity_difference = - quantity_difference
     product_instance.update(quantity_in_stock=F('quantity_in_stock') - quantity_difference)
