@@ -12,7 +12,7 @@ from apps.form.models import (
     OrderItem,
     product_weight_schemes,
 )
-from apps.form.services import calculate_previous_weekday
+from apps.form.services import calculate_previous_weekday, reduce_product_stock, alter_product_stock
 
 
 class ProductWeightSchemeInLine(admin.TabularInline):
@@ -157,6 +157,17 @@ class OrderItemAdmin(admin.ModelAdmin):
     @admin.display(description="Producer short")
     def producer_short(self, obj):
         return f"{obj.product.producer.short}"
+
+    def save_model(self, request, obj, form, change):
+        if change:
+            alter_product_stock(Product, obj.product.id, obj.quantity, obj.id, OrderItem)
+        else:
+            reduce_product_stock(Product, obj.product.id, obj.quantity)
+        super().save_model(request, obj, form, change)
+
+    def delete_model(self, request, obj):
+        reduce_product_stock(Product, obj.product.id, obj.quantity, negative=True)
+        super().delete_model(request, obj)
 
 
 class SupplyAdmin(admin.ModelAdmin):
