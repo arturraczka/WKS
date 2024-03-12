@@ -355,7 +355,7 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         formset = form.save(commit=False)
         for instance in formset:
             if not perform_update_orderitem_validations(instance, self.request):
-                return self.form_invalid(form)
+                continue
             alter_product_stock(Product, instance.product.id, instance.quantity, instance.id, OrderItem)
             instance.save()
             messages.success(
