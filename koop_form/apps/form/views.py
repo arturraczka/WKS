@@ -39,7 +39,7 @@ from apps.form.services import (
     get_orderitems_query,
     add_weight_schemes_as_choices_to_forms,
     get_orderitems_query_with_related_order,
-    add_producer_list_to_context,
+    add_producer_list_to_context, reduce_product_stock, alter_product_stock,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -215,6 +215,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
                         self.request,
                         f"{instance.product.name}: Produkt został dodany do zamówienia.",
                     )
+                    reduce_product_stock(Product, instance.product.id, instance.quantity)
         return super().form_valid(form)
 
 
@@ -355,6 +356,7 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         for instance in formset:
             if not perform_update_orderitem_validations(instance, self.request):
                 return self.form_invalid(form)
+            alter_product_stock(Product, instance.product.id, instance.quantity, instance.id, OrderItem)
             instance.save()
             messages.success(
                 self.request,
@@ -444,6 +446,7 @@ class OrderItemFormView(FormOpenMixin, FormView):
                     self.request,
                     f"{saved_form.product.name}: Produkt został dodany do zamówienia.",
                 )
+                reduce_product_stock(Product, saved_form.product.id, saved_form.quantity)
         return super().form_valid(saved_form)
 
 
