@@ -24,8 +24,8 @@
                 </div>
 
                     <div class="article-metadata">
-                        {% if product.available_quantity is not None %}
-                            <span class="mr-2"> Maksymalnie możesz zamówić: {{ product.available_quantity|format_decimal:3 }} (sztuk lub kg) </span>
+                        {% if product.quantity_in_stock is not None %}
+                            <span class="mr-2"> Maksymalnie możesz zamówić: {{ product.quantity_in_stock|format_decimal:3 }} (sztuk lub kg) </span>
                         {% else %}
                             <span> </span>
                         {% endif %}

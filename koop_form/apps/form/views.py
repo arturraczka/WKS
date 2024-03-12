@@ -32,7 +32,6 @@ from apps.form.forms import (
 )
 from apps.form.services import (
     calculate_order_cost,
-    calculate_available_quantity,
     order_check,
     get_producers_list,
     add_choices_to_form,
@@ -111,7 +110,6 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         self.producer = None
         self.products = None
         self.paginated_products = None
-        self.products_with_quantity = None
         self.initial_data = []
         self.available_quantities_list = []
         self.products_description = []
@@ -149,13 +147,8 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         products_paginator = Paginator(self.products, self.products_per_page)
         self.paginated_products = products_paginator.get_page(page_number)
 
-    def get_available_quantities(self):
-        self.products_with_quantity = calculate_available_quantity(
-            self.paginated_products.object_list
-        )
-
     def extract_data_from_products(self):
-        for product in self.products_with_quantity:
+        for product in self.paginated_products:
             self.product_count += 1
             self.initial_data.append({"product": product.id, "order": self.order})
             self.products_description.append(product.description)
@@ -168,13 +161,12 @@ class OrderProductsFormView(FormOpenMixin, FormView):
                     )
                 )
             self.products_weight_schemes.append(weight_schemes)
-            self.available_quantities_list.append(product.available_quantity)
+            self.available_quantities_list.append(product.quantity_in_stock)
 
     def get_view_data(self):
         self.get_order_and_producer()
         self.get_products_queryset()
         self.paginate_products()
-        self.get_available_quantities()
         self.extract_data_from_products()
 
     def get_form_class(self):
@@ -201,7 +193,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         context["available_quantities_list"] = self.available_quantities_list
         context["products_description"] = self.products_description
         context["paginated_products"] = self.paginated_products
-        context["products"] = self.products_with_quantity
+        context["products"] = self.paginated_products
         add_weight_schemes_as_choices_to_forms(
             context["form"], self.products_weight_schemes
         )
@@ -259,7 +251,7 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         super().__init__(*args, **kwargs)
         self.order = None
         self.producer = None
-        self.products_with_quantity = None
+        self.products_with_related = None
         self.orderitems = None
         self.products_description = []
         self.products_weight_schemes = []
@@ -305,20 +297,18 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         products_ids = Product.objects.filter(orders=self.order).values_list(
             "id", flat=True
         )
-        products_with_related = (
+        self.products_with_related = (
             Product.objects.filter(pk__in=list(products_ids))
             .prefetch_related(
                 "weight_schemes",
                 "statuses",
             )
             .select_related("producer")
+            .order_by("name")
         )
-        self.products_with_quantity = calculate_available_quantity(
-            products_with_related
-        ).order_by("name")
 
     def extract_data_from_products(self):
-        for product in self.products_with_quantity:
+        for product in self.products_with_related:
             self.products_description.append(product.description)
             weight_schemes = []
             for scheme in product.weight_schemes.all():
@@ -329,7 +319,7 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
                     )
                 )
             self.products_weight_schemes.append(weight_schemes)
-            self.available_quantities_list.append(product.available_quantity)
+            self.available_quantities_list.append(product.quantity_in_stock)
             self.product_price_list.append(product.price)
 
     def get_context_data(self, **kwargs):
@@ -348,7 +338,7 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         context["orderitems"] = self.orderitems
         context["order_cost"] = calculate_order_cost(self.orderitems)
         context["order_cost_with_fund"] = context["order_cost"] * context["fund"]
-        context["products"] = self.products_with_quantity
+        context["products"] = self.products_with_related
         context["amounts_list"] = self.amounts_list
 
         context["products_description"] = self.products_description
@@ -414,17 +404,16 @@ class OrderItemFormView(FormOpenMixin, FormView):
         super().__init__(*args, **kwargs)
         self.order = None
         self.orderitems = None
-        self.product_with_quantity = None
+        self.product = None
 
     def get_initial(self):
         self.order = get_users_last_order(Order, self.request.user)
         return {"product": self.kwargs["pk"], "order": self.order}
 
     def get_additional_context(self):
-        product = Product.objects.filter(id=self.kwargs["pk"]).filter(
+        self.product = Product.objects.filter(id=self.kwargs["pk"]).filter(
             ~Q(quantity_in_stock=0)
         )
-        self.product_with_quantity = calculate_available_quantity(product)
         self.orderitems = get_orderitems_query(OrderItem, self.order.id)
 
     def get_context_data(self, **kwargs):
@@ -432,9 +421,9 @@ class OrderItemFormView(FormOpenMixin, FormView):
         self.get_additional_context()
 
         context["products"] = [
-            get_object_or_404(self.product_with_quantity),
+            get_object_or_404(self.product),
         ]
-        add_choices_to_form(context["form"], self.product_with_quantity.first())
+        add_choices_to_form(context["form"], self.product.first())
         context["order"] = self.order
         context["orderitems"] = self.orderitems
         context["order_cost"] = calculate_order_cost(self.orderitems)

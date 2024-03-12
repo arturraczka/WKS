@@ -52,35 +52,6 @@ def list_messages(response):
     return messages
 
 
-def calculate_available_quantity(products):
-    """First, calculates previous friday.
-    Next, to products queryset annotates ordered_quantity - sum of quantities ordered this week.
-    Finally, annotates available_quantity: order_max_quantity minus ordered_quantity or quantity_in_stock.
-    """
-    previous_friday = calculate_previous_weekday()
-    products_with_available_quantity = products.annotate(
-        ordered_quantity=Sum(
-            "orderitems__quantity",
-            filter=Q(orderitems__item_ordered_date__gte=previous_friday),
-        )
-    ).annotate(
-        available_quantity=Case(
-            When(
-                ordered_quantity=None,
-                then=Case(
-                    When(order_max_quantity=None, then=F("quantity_in_stock")),
-                    default=F("order_max_quantity"),
-                ),
-            ),
-            default=Case(
-                When(order_max_quantity=None, then=F("quantity_in_stock")),
-                default=F("order_max_quantity") - F("ordered_quantity"),
-            ),
-        ),
-    )
-    return products_with_available_quantity
-
-
 def calculate_order_number(order_model):
     """Returns order number as a sum of orders from this week + 1. Used for newly created Order instances."""
     previous_friday = calculate_previous_weekday()

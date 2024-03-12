@@ -92,9 +92,9 @@ class Product(models.Model):
     statuses = models.ManyToManyField(Status, related_name="products", blank=True)
     category = models.CharField()  # possible CHOICES
     subcategory = models.CharField(null=True, blank=True)
-    # ordinal_num = models.IntegerField(unique=True)  # to think about it
     unit = models.CharField(choices=unit_choices)
     info = models.TextField(max_length=255, null=True, blank=True)
+    is_stocked = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["name"]
