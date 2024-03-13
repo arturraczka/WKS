@@ -9,19 +9,22 @@
             <article class="media fixed-height-div">
               <div class="media-body">
                 {% for product in products %}
-                <div>
-                  <span class="article-title border-1">{{ product.name }}</span>
-                  <span class="mr-2">{{ product.description }}</span>
-                </div>
+                    <div>
+                        <span><strong>{{ product }}</strong></span>
+                    </div>
 
-                <div>
-                  <span class="mr-2"><strong>{{ product.price }}</strong> zł za szt/kg</span>
+                    <div>
+                      <span class="mr-2">{{ product.price }} zł za szt/kg</span>
+                      <span class="mr-2"> | Kat: {{ product.category }}, {{ product.subcategory }} |</span>
+                      <span class="text-muted">Status: </span>
+                      {% for status in product.statuses.all %}
+                        <span class="text-muted"><strong>{{ status }},</strong></span>
+                      {% endfor %}
+                    </div>
 
-                  <span class="text-muted"> | Status produktu: </span>
-                  {% for status in product.statuses.all %}
-                    <span class="text-muted"><strong>{{ status.status_type }},</strong></span>
-                  {% endfor %}
-                </div>
+                    <div>
+                        <span class="mr-2">Opis: {{ product.description }}</span>
+                    </div>
 
                     <div class="article-metadata">
                         {% if product.quantity_in_stock is not None %}
