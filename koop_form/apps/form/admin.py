@@ -45,6 +45,7 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "manager_email",
         "manager_phone",
     ]
+    list_editable = ["is_active"]
 
     def set_order_deadline_to_related_products(self, instance):
         products = instance.products.all()
@@ -101,7 +102,8 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [ProductResource]
     list_filter = ["producer__name"]
     inlines = (ProductWeightSchemeInLine,)
-    list_display = ["name", "producer", "category", "is_active"]
+    list_display = ["name", "price", "producer", "category", "quantity_in_stock", "is_active"]
+    list_editable = ["price", "is_active", "quantity_in_stock"]
     search_fields = [
         "name",
     ]
@@ -137,6 +139,7 @@ class OrderItemAdmin(admin.ModelAdmin):
         "quantity",
         "item_ordered_date",
     ]
+    list_editable = ["quantity"]
     search_fields = [
         "product__name",
         "order__user__last_name",
