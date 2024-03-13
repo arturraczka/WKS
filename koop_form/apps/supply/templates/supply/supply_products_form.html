@@ -1,5 +1,7 @@
 {% extends "templates/base_one.html" %}
 {% load custom_filters %}
+{% load widget_tweaks %}
+
 {% block content %}
 <div class="col-md-9">
 
@@ -32,7 +34,7 @@
                     <article class="media fixed-height-small">
                       <div class="media-body">
                         <div class="article-metadata">
-                          {{ form_instance }}
+                          {{ form_instance.as_table }}
                           <input type="submit" name="submit" value="Dodaj">
                         </div>
 

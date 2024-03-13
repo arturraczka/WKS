@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "django_extensions",
     "import_export",
     "axes",
+    "widget_tweaks",
 ]
 
 MIDDLEWARE = [
