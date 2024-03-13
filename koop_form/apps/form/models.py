@@ -62,6 +62,13 @@ class Status(models.Model):
         return self.status_type
 
 
+class Category(models.Model):
+    name = models.CharField(max_length=24, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Product(models.Model):
     unit_choices = [
         ("S", "S"),
@@ -71,8 +78,8 @@ class Product(models.Model):
     producer = models.ForeignKey(
         Producer, on_delete=models.CASCADE, related_name="products"
     )
-    name = models.CharField()
-    description = models.TextField(max_length=1000, null=True, blank=True)
+    name = models.CharField(max_length=100)
+    description = models.TextField(max_length=250, null=True, blank=True)
 
     order_max_quantity = models.DecimalField(
         max_digits=9, decimal_places=3, blank=True, null=True
@@ -90,7 +97,7 @@ class Product(models.Model):
     )
     is_active = models.BooleanField(default=True)
     statuses = models.ManyToManyField(Status, related_name="products", blank=True)
-    category = models.CharField()  # possible CHOICES
+    category = models.ForeignKey(Category, related_name="products", on_delete=models.PROTECT, null=True)
     subcategory = models.CharField(null=True, blank=True)
     unit = models.CharField(choices=unit_choices)
     info = models.TextField(max_length=255, null=True, blank=True)

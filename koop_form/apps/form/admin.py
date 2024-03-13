@@ -10,7 +10,7 @@ from apps.form.models import (
     Product,
     Order,
     OrderItem,
-    product_weight_schemes,
+    product_weight_schemes, Category,
 )
 from apps.form.services import calculate_previous_weekday, reduce_product_stock, alter_product_stock
 
@@ -170,9 +170,14 @@ class OrderItemAdmin(admin.ModelAdmin):
         super().delete_model(request, obj)
 
 
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ["name", "id"]
+
+
 admin.site.register(Producer, ProducerAdmin)
 admin.site.register(WeightScheme)
 admin.site.register(Status)
+admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(OrderItem, OrderItemAdmin)
