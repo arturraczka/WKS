@@ -1,7 +1,8 @@
-{% extends "templates/base_one.html" %}
+{% extends "supply/base_supply_sidebar.html" %}
 {% load crispy_forms_tags %}
+
 {% block content %}
-<div class="col-md-10">
+<div class="col-md-9">
     <div class="col-md-4">
         <div class="content-section">
             <form method="post">
@@ -17,44 +18,4 @@
         </div>
     </div>
 </div>
-<div class="col-md-2">
-  <div class="content-section sticky-element">
-    <h3>Wybierz raport:</h3>
-    <ul class="list-group">
-      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'producer-products-list' %}">Producenci Produkty</a></li>
-        <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'producer-box-list' %}">Producenci Skrzynki</a></li>
-        <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'producers-finance' %}">Producenci Finanse</a></li>
-        <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'order-box-list' %}">Zamówienia Skrzynki</a></li>
-        <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'users-report' %}">Kooperanci Lista</a></li>
-      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'users-finance-report' %}">Kooperanci Finanse</a></li>
-      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'supply-create' %}">Nowa dostawa</a></li>
-    </ul>
-  </div>
-</div>
-
-
-<script>
-        // messages.js
-    function showMessages() {
-        const messages = document.querySelectorAll('.alert');
-        messages.forEach((message) => {
-            message.style.opacity = 1;
-            message.style.visibility = 'visible';
-
-            setTimeout(() => {
-                message.style.opacity = 0;
-                message.style.visibility = 'hidden';
-
-                // Remove the message from the DOM after fading out
-                setTimeout(() => {
-                    message.remove();
-                }, 10); // Adjust the duration for fading out (0.5s in this example)
-            }, 12000); // Hide the message after 15 seconds (15000 milliseconds)
-        });
-    }
-
-    // Call the showMessages function when the page loads
-    document.addEventListener('DOMContentLoaded', showMessages);
-</script>
-
 {% endblock content%}

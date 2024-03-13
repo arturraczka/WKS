@@ -52,7 +52,9 @@
           {% endif %}
       <div class="row">
           {% block content %}{% endblock %}
+          <div class="col-md-3">
           {% block sidebar %}{% endblock %}
+          </div>
           {% block javascript %}
           <script src="{% static 'form/js/display_messages.js' %}"></script>
           {% endblock %}

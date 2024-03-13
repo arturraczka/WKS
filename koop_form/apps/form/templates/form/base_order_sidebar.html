@@ -5,7 +5,6 @@
 {% endblock content %}
 
 {% block sidebar %}
-<div class="col-md-3">
   <div class="content-section sticky-element side-panel-scroll">
     <a href="{% url 'order-update-form' %}"><h3>Twoje zamówienie:</h3></a>
     <p class='text-muted'>Wartość zamówienia: {{ order_cost|floatformat:"2" }} zł.</p>
@@ -16,5 +15,4 @@
     {% endfor %}
     </ul>
   </div>
-</div>
 {% endblock sidebar %}

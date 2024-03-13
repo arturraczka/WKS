@@ -1,14 +1,12 @@
-{% extends "templates/base_one.html" %}
+{% extends "supply/base_supply_sidebar.html" %}
 {% load custom_filters %}
+
 {% block content %}
 <div class="col-md-9">
-
     <h3>Dostawa od {{ producer.short }}</h3>
     <h5>Edytuj dostarczone produktuy:</h5>
-
     <div class="row">
         <div class="col-md-5 position-fix-2">
-
                 {% for product in products %}
                     <article class="media fixed-height-small">
                       <div class="media-body">
@@ -17,90 +15,36 @@
                           <span class="article-title border-1">{{ product.name }}</span>
                         </div>
 
-
                       </div>
                     </article>
                 {% endfor %}
-
         </div>
 
         <div class="col-md-5 position-fix">
-
             <form method="post">
                 {% csrf_token %}
                 {{ form.management_form }}
-
                 {% for form_instance in form %}
                     <article class="media fixed-height-small">
+
                       <div class="media-body">
                         <div class="article-metadata">
                           {{ form_instance }}
                           <input type="submit" name="submit" value="Dodaj">
                         </div>
-
                       </div>
+
                     </article>
                 {% endfor %}
-
             </form>
         </div>
-
-
     </div>
 </div>
 
-<div class="col-md-3">
-  <div class="content-section sticky-element">
+<div class="content-section sticky-element">
     <h3>Szczegóły dostawy:</h3>
     <p class='text-muted'>Producent: {{ producer.name }} zł.</p>
     <p class='text-muted'>Utworzono: {{ supply.date_created }}.</p>
     <a href="#" class="button">Usuń tę dostawę</a>
-  </div>
 </div>
-
-<script>
-    window.addEventListener('scroll', () => {
-        const stickyElement = document.querySelector('.sticky-element');
-        const content = document.querySelector('.content');
-        const container = document.querySelector('.container');
-
-        const containerRect = container.getBoundingClientRect();
-        const contentRect = content.getBoundingClientRect();
-
-        const isSticky = containerRect.top <= 0 && contentRect.bottom >= window.innerHeight;
-
-        if (isSticky) {
-            stickyElement.style.width = `${containerRect.width}px`;
-            stickyElement.style.left = `${containerRect.left}px`;
-        } else {
-            stickyElement.style.width = 'auto';
-            stickyElement.style.left = 'auto';
-        }
-    });
-</script>
-
-<script>
-        // messages.js
-    function showMessages() {
-        const messages = document.querySelectorAll('.alert');
-        messages.forEach((message) => {
-            message.style.opacity = 1;
-            message.style.visibility = 'visible';
-
-            setTimeout(() => {
-                message.style.opacity = 0;
-                message.style.visibility = 'hidden';
-
-                // Remove the message from the DOM after fading out
-                setTimeout(() => {
-                    message.remove();
-                }, 10); // Adjust the duration for fading out (0.5s in this example)
-            }, 18000); // Hide the message after 18 seconds (18000 milliseconds)
-        });
-    }
-
-    // Call the showMessages function when the page loads
-    document.addEventListener('DOMContentLoaded', showMessages);
-</script>
-
 {% endblock content%}
