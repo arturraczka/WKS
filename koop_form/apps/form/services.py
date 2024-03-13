@@ -117,7 +117,7 @@ def create_order_data_list(products):
         )
         order_data = ""
         for orderitem in orderitems_qs:
-            order_data += f"(skrz{orderitem.order.order_number}: {Decimal(orderitem.quantity).normalize()}) "
+            order_data += f"(skrz{orderitem.order.order_number}: {Decimal(orderitem.quantity).normalize() + Decimal(0)}) "  # adding Decimal(0) escapes scientific notation formatting
         order_data_list.append(order_data)
     return order_data_list
 
