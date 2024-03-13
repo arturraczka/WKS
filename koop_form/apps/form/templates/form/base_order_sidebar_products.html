@@ -9,16 +9,13 @@
                 {% for product in products %}
                       <div class="border-bottom">
                         <div>
-                          <span class="border-1">{{ product }}</span>
+                          <span>{{ product }}</span>
                         </div>
 
                         <div>
-                          <span class="mr-2"><strong>{{ product.price }}</strong> zł za szt/kg</span>
-                          <span class="mr-2"> | Kat: {{ product.category }}</span>
-                        </div>
-
-                        <div>
-                          <span class="text-muted">Status produktu: </span>
+                          <span class="mr-2">{{ product.price }} zł za szt/kg</span>
+                          <span class="mr-2"> | Kat: {{ product.category }}, {{ product.subcategory }} |</span>
+                          <span class="text-muted">Status: </span>
                           {% for status in product.statuses.all %}
                             <span class="text-muted"><strong>{{ status }},</strong></span>
                           {% endfor %}
