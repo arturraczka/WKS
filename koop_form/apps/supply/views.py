@@ -22,7 +22,7 @@ from apps.supply.forms import (
     UpdateSupplyItemForm,
 )
 from apps.form.services import (
-    staff_check, alter_product_stock,
+    staff_check, alter_product_stock, reduce_product_stock,
 )
 
 
@@ -125,7 +125,7 @@ class SupplyProductsFormView(FormView):
                     )
 
                 else:
-                    alter_product_stock(Product, instance.product.id, instance.quantity, instance.id, SupplyItem, negative=True)
+                    reduce_product_stock(Product, instance.product.id, instance.quantity, negative=True)
                     instance.save()
                     messages.success(
                         self.request,
@@ -135,7 +135,6 @@ class SupplyProductsFormView(FormView):
         return super().form_valid(form)
 
 
-# NOT IN USE ##################################################################
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class SupplyUpdateFormView(FormView):
     model = SupplyItem
@@ -195,11 +194,13 @@ class SupplyUpdateFormView(FormView):
     def form_valid(self, form):
         formset = form.save(commit=False)
         for instance in formset:
-            # TODO dodać alter_product_stock() tak jak w SupplyItemAdminie
-            # TODO tak naprawdę można przekopiować logikę z OrderUpdateFormView
+            if instance.quantity == 0:
+                supplyitem_db = SupplyItem.objects.get(id=instance.id)
+                reduce_product_stock(Product, supplyitem_db.product.id, supplyitem_db.quantity)
+                supplyitem_db.delete()
+                continue
 
-            # if not perform_update_orderitem_validations(instance, self.request):
-            #     return self.form_invalid(form)
+            alter_product_stock(Product, instance.product.id, instance.quantity, instance.id, SupplyItem, negative=True)
             instance.save()
             messages.success(
                 self.request,
@@ -208,4 +209,31 @@ class SupplyUpdateFormView(FormView):
         return super().form_valid(form)
 
 
-# NOT IN USE ###########################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
