@@ -8,7 +8,7 @@ from django.utils.decorators import method_decorator
 from django.forms import modelformset_factory
 from django.views.generic import (
     CreateView,
-    FormView,
+    FormView, TemplateView,
 )
 
 from apps.form.models import Producer, Product
@@ -22,7 +22,7 @@ from apps.supply.forms import (
     UpdateSupplyItemForm,
 )
 from apps.form.services import (
-    staff_check, alter_product_stock, reduce_product_stock,
+    staff_check, alter_product_stock, reduce_product_stock, calculate_previous_weekday,
 )
 
 
@@ -209,31 +209,13 @@ class SupplyUpdateFormView(FormView):
         return super().form_valid(form)
 
 
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class SupplyListView(TemplateView):
+    template_name = "supply/supply_list.html"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        previous_friday = calculate_previous_weekday()
+        supply_list = Supply.objects.filter(date_created__gte=previous_friday)
+        context["supply_list"] = supply_list
+        return context

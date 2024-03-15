@@ -367,9 +367,9 @@ class OrderBoxListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
+        previous_friday = calculate_previous_weekday()
         orders = Order.objects.filter(
-            date_created__gte=calculate_previous_weekday()
+            date_created__gte=previous_friday
         ).order_by("date_created")
 
         context["orders"] = orders
