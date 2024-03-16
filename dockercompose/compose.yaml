@@ -45,7 +45,7 @@ configs:
   init_empty_config:
     file: ./init_empty_config
   env:
-    file: ./.myenv
+    file: ./.myenv_example
   allowhosts:
     file: ./local_hosts
 networks:
