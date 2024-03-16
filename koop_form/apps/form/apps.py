@@ -11,11 +11,5 @@ class FormConfig(AppConfig):
     def ready(self):
         from . import signals
         print(">>>>>>>>>>>>> Form app start")
-       # self._test_migrate()
-
-
-
-    def _test_migrate(self):
-        call_command("migrate")
 
 
