@@ -3,9 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Static directory
-staticfiles/
-
 # C extensions
 *.so
 
@@ -116,9 +113,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-.myenv
-.privatemakefileenvs
 
+.privatemakefileenvs
 
 # Spyder project settings
 .spyderproject
@@ -147,4 +143,3 @@ cython_debug/
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Python
 
 db_dump*
-/dockercompose_prod

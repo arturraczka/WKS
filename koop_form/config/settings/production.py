@@ -2,7 +2,7 @@ from .base import *
 import sentry_sdk
 
 DEBUG = False
-ALLOWED_HOSTS = ["koop-formularz.pl", "www.koop-formularz.pl", "64.226.70.181"]
+ALLOWED_HOSTS = get_allowed_hosts(ALLOWED_HOSTS_CONFIG_PATH,["koop-formularz.pl", "www.koop-formularz.pl", "64.226.70.181"])
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -25,7 +25,6 @@ INSTALLED_APPS = [
     "axes",
     "widget_tweaks",
 ]
-
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

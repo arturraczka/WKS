@@ -1,3 +1,4 @@
+from crispy_forms.helper import FormHelper
 from django.forms import (
     ModelForm,
     HiddenInput,
@@ -67,3 +68,10 @@ class SearchForm(Form):
         min_length=3,
         required=False,
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        # self.helper.tag=None
+        # self.helper.wrapper_class=None
+

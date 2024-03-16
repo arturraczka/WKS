@@ -1,0 +1,53 @@
+name: koop_form
+services:
+  frontend:
+    image: koop_form:0.1.0a1
+    environment:
+      ENV_CONFIG_PATH: /env
+      ALLOWED_HOSTS_CONFIG_PATH: /allowhosts
+    configs:
+      - env
+      - allowhosts
+    volumes:
+      - static-volume:/app/koop_form/staticfiles
+    networks:
+      - back-tier
+
+  nginx:
+    image: nginx:1.25
+    ports:
+      - "80:80"  # Expose port 80 of the container to port 80 on the host
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf  # Mount your Nginx configuration file
+      - static-volume:/app/koop_form/staticfiles
+    depends_on:
+      - frontend  # Ensure frontend service starts before Nginx
+    networks:
+      - back-tier
+
+  backend:
+    image: postgres:14
+    environment:
+      POSTGRES_PASSWORD: password
+    configs:
+      - source: init_empty_config
+        target: /docker-entrypoint-initdb.d/empty.sql
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - back-tier
+
+volumes:
+  db-data: {}
+  static-volume: {}
+
+configs:
+  init_empty_config:
+    file: ./init_empty_config
+  env:
+    file: ./.myenv
+  allowhosts:
+    file: ./local_hosts
+networks:
+  # The presence of these objects is sufficient to define them
+  back-tier: {}
