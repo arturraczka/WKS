@@ -39,7 +39,7 @@ from apps.form.services import (
     get_orderitems_query,
     add_weight_schemes_as_choices_to_forms,
     get_orderitems_query_with_related_order,
-    add_producer_list_to_context, reduce_product_stock, alter_product_stock,
+    add_producer_list_to_context, reduce_product_stock, alter_product_stock, calculate_order_number,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -231,11 +231,11 @@ class OrderCreateView(FormOpenMixin, SuccessMessageMixin, CreateView):
             return self.form_invalid(form)
 
         form.instance.user = self.request.user
+        form.instance.order_number = calculate_order_number(Order)
         return super().form_valid(form)
 
     def get_success_url(self):
-        producer = Producer.objects.all().order_by("name").first()
-        success_url = reverse("order-products-form", kwargs={"slug": producer.slug})
+        success_url = reverse("order-products-all-form")
         return success_url
 
 
@@ -491,7 +491,7 @@ def product_search_view(request):
 
 
 def main_page_redirect(request):
-    obj = Producer.objects.all().first()
+    obj = Producer.objects.filter(is_active=True).first()
     response = redirect(obj)
     return response
 

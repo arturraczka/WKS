@@ -11,7 +11,8 @@ from apps.form.views import (
     OrderUpdateFormView,
     OrderItemFormView,
     product_search_view,
-    main_page_redirect, OrderProductsAllFormView,
+    main_page_redirect,
+    OrderProductsAllFormView,
 )
 
 

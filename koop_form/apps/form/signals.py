@@ -41,10 +41,10 @@ def add_zero_as_weight_scheme(sender, instance, **kwargs):
 #             instance.quantity_delivered_this_week = -1
 
 
-@receiver(pre_save, sender=Order)
-def assign_order_number(sender, instance, **kwargs):
-    if instance.order_number is None:
-        instance.order_number = calculate_order_number(sender)
+# @receiver(pre_save, sender=Order)
+# def assign_order_number(sender, instance, **kwargs):
+#     if instance.order_number is None:
+#         instance.order_number = calculate_order_number(sender)
 
 
 # @receiver(post_save, sender=OrderItem)
