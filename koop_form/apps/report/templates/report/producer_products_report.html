@@ -109,18 +109,11 @@
                     </article>
                 {% endfor %}
             </div>
-
         </div>
-
     </div>
-
-    <script>
-        function goToSelectedLink() {
-            var select = document.getElementById("producers");
-            var selectedOption = select.options[select.selectedIndex].value;
-            if (selectedOption) {
-                window.location.href = selectedOption;
-            }
-        }
-    </script>
 {% endblock content%}
+
+{% block javascript %}
+{{ block.super }}
+<script src="{% static 'form/js/go_to_producer.js' %}"></script>
+{% endblock javascript %}
