@@ -3,7 +3,7 @@ from django.urls import path
 from apps.supply.views import (
     SupplyCreateView,
     SupplyProductsFormView,
-    SupplyUpdateFormView, SupplyListView,
+    SupplyUpdateFormView, SupplyListView, SupplyDeleteView,
 )
 
 
@@ -27,5 +27,10 @@ urlpatterns = [
         "lista/",
         SupplyListView.as_view(),
         name="supply-list",
+    ),
+    path(
+        "usun/<str:slug>/",
+        SupplyDeleteView.as_view(),
+        name="supply-delete",
     ),
 ]

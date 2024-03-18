@@ -4,11 +4,12 @@ from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.contrib.auth.decorators import user_passes_test
+from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.forms import modelformset_factory
 from django.views.generic import (
     CreateView,
-    FormView, TemplateView,
+    FormView, TemplateView, DeleteView,
 )
 
 from apps.form.models import Producer, Product
@@ -218,4 +219,30 @@ class SupplyListView(TemplateView):
         previous_friday = calculate_previous_weekday()
         supply_list = Supply.objects.filter(date_created__gte=previous_friday)
         context["supply_list"] = supply_list
+        return context
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class SupplyDeleteView(SuccessMessageMixin, DeleteView):
+    model = Supply
+    template_name = "supply/supply_delete.html"
+    success_message = "Zamówienie zostało usunięte."
+    success_url = reverse_lazy("supply-list")
+
+    def __init__(self):
+        self.producer = None
+
+    def get_object(self, queryset=None):
+        self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+        supply = (
+            Supply.objects.filter(producer=self.producer)
+            .order_by("-date_created")
+            .first()
+        )
+        return supply
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["slug"] = self.kwargs["slug"]
+        context["producer"] = self.producer.short
         return context
