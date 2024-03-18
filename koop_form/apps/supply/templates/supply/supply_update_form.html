@@ -51,6 +51,6 @@
     <h3>Szczegóły dostawy:</h3>
     <p class='text-muted'>Producent: {{ producer.name }}</p>
     <p class='text-muted'>Utworzono: {{ supply.date_created }}.</p>
-    <a href="#" class="button">Usuń tę dostawę</a>
+    <a href="{% url 'supply-delete' slug=producer.slug %}" class="button">Usuń tę dostawę</a>
 </div>
 {% endblock sidebar %}

@@ -1,15 +1,23 @@
 {% extends "templates/base_one.html" %}
+{% load crispy_forms_tags %}
 
 {% block content %}
-
-    <h2>Usuń zamówienie na ten tydzień</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form }}
-        <input type="submit" value="Usuń">
-    </form>
-    <form action='{% url "order-update-form" %}'>
-        <input type="submit" value="Anuluj" />
-    </form>
-
-{% endblock content %}
+<div class="col-md-9">
+    <div class="mx-a col-md-4">
+        <div class="content-section">
+            <form method="post" >
+                {% csrf_token %}
+                <fieldset class="form-group">
+                    <h4 class="border-bottom mb-3">Usuń swoje zamówienie</h4>
+                    <p>Produkty z zamówienia zostaną usunięte</p>
+                    {{ form|crispy }}
+                </fieldset>
+                <div>
+                    <button class="btn btn-outline-secondary" type="submit">Usuń</button>
+                    <a class="align-right btn btn-outline-secondary" href="{% url 'order-update-form' %}">Anuluj</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content%}

@@ -184,7 +184,7 @@ a.article-title:hover {
     margin-top: 5px;
     border-bottom: 1px;
     display:block;
-    height:100px;
+    height:60px;
 }
 
 .producer {
@@ -207,4 +207,12 @@ a.article-title:hover {
 .side-panel-scroll {
     max-height: 90vh;
     overflow-y: scroll;
+}
+
+.align-right {
+    float: right;
+}
+
+.mx-a {
+    margin: auto;
 }
