@@ -180,11 +180,17 @@ a.article-title:hover {
     height: 100px;
 }
 
+.form-border-bottom {
+    margin-top: 5px;
+    display:block;
+    height:60px;
+}
+
 .border-bottom {
     margin-top: 5px;
     border-bottom: 1px;
     display:block;
-    height:60px;
+    height:100px;
 }
 
 .producer {

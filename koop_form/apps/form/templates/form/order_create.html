@@ -7,7 +7,8 @@
         <form method="post">
             {% csrf_token %}
             <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Stwórz zamówienie na najbliższy tydzień</legend>
+                <h4 class="form-border-bottom mb-4">Stwórz zamówienie na najbliższy tydzień</h4>
+                <hr>
                 {{ form|crispy }}
             </fieldset>
             <div class="form-group">
