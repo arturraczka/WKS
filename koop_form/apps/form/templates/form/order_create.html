@@ -4,17 +4,13 @@
 
 <div class="mx-a col-md-4">
     <div class="content-section">
-        <form method="post">
-            {% csrf_token %}
-            <fieldset class="form-group">
-                <h4 class="form-border-bottom mb-4">Stwórz zamówienie na najbliższy tydzień</h4>
-                <hr>
-                {{ form|crispy }}
-            </fieldset>
-            <div class="form-group">
-                <button class="btn btn-outline-secondary" type="submit">Utwórz zamówienie</button>
-            </div>
-        </form>
+        {% if update %}
+            <h4 class="form-border-bottom mb-4">Edytuj dzień odbioru zamówienia</h4>
+        {% else %}
+            <h4 class="form-border-bottom mb-4">Stwórz zamówienie na najbliższy tydzień</h4>
+        {% endif %}
+        <hr>
+        {% crispy form %}
     </div>
 </div>
 

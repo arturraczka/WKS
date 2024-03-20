@@ -28,7 +28,7 @@ from apps.form.forms import (
     CreateOrderItemFormSet,
     UpdateOrderItemForm,
     UpdateOrderItemFormSet,
-    SearchForm,
+    SearchForm, DeleteOrderForm,
 )
 from apps.form.services import (
     calculate_order_cost,
@@ -238,6 +238,11 @@ class OrderCreateView(FormOpenMixin, SuccessMessageMixin, CreateView):
         success_url = reverse("order-products-all-form")
         return success_url
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['update'] = False
+        return context
+
 
 @method_decorator(login_required, name="dispatch")
 @method_decorator(
@@ -377,8 +382,8 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
 @method_decorator(login_required, name="dispatch")
 class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = Order
-    fields = ["pick_up_day"]
     template_name = "form/order_create.html"
+    form_class = CreateOrderForm
     success_url = reverse_lazy("order-update-form")
     success_message = "Dzień odbioru zamówienia został zmieniony."
 
@@ -386,12 +391,23 @@ class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
         order = get_object_or_404(Order, id=self.kwargs["pk"])
         return self.request.user == order.user
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({"update": True})
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['update'] = True
+        return context
+
 
 @method_decorator(login_required, name="dispatch")
 class OrderDeleteView(
     FormOpenMixin, UserPassesTestMixin, SuccessMessageMixin, DeleteView
 ):
     model = Order
+    form_class = DeleteOrderForm
     template_name = "form/order_delete.html"
     success_url = reverse_lazy("products", kwargs={"slug": "pierwszy"})
     success_message = "Zamówienie zostało usunięte."

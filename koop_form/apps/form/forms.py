@@ -6,11 +6,43 @@ from django.forms import (
     BaseModelFormSet,
     ModelChoiceField,
 )
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
 
 from apps.form.models import OrderItem, Order
 
 
+class DeleteOrderForm(ModelForm):
+    form_html = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.include_media = True
+        self.helper.form_class = ''
+        self.helper.tag = None
+        self.helper.wrapper_class = None
+        self.helper.add_input(Submit('submit', 'Usuń'))
+
+    class Meta:
+        model = Order
+        fields = []
+
+
 class CreateOrderForm(ModelForm):
+    def __init__(self, update=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.update = update
+        self.helper = FormHelper(self)
+        self.helper.include_media = True
+        self.helper.form_class = ''
+        self.helper.tag = None
+        self.helper.wrapper_class = None
+        if self.update:
+            self.helper.add_input(Submit('submit', 'Zmień dzień odbioru'))
+        else:
+            self.helper.add_input(Submit('submit', 'Utwórz zamówienie'))
+
     class Meta:
         model = Order
         fields = ["pick_up_day"]
