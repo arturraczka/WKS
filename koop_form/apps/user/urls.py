@@ -9,12 +9,12 @@ from django.contrib.auth.views import (
     PasswordResetView,
 )
 
-from apps.user.views import CustomLogoutView
+from apps.user.views import CustomLogoutView, CustomLoginView, CustomPasswordResetView, CustomPasswordResetConfirmView
 
 urlpatterns = [
     path(
         "zaloguj/",
-        LoginView.as_view(
+        CustomLoginView.as_view(
             template_name="user/login.html", next_page="order-update-form"
         ),
         name="login",
@@ -36,7 +36,7 @@ urlpatterns = [
     ),
     path(
         "reset-hasla/",
-        PasswordResetView.as_view(template_name="user/password-reset-request.html"),
+        CustomPasswordResetView.as_view(template_name="user/password-reset-request.html"),
         name="password_reset_request",
     ),
     path(
@@ -46,7 +46,7 @@ urlpatterns = [
     ),
     path(
         "reset-hasla/potwierdzenie/<uidb64>/<token>/",
-        PasswordResetConfirmView.as_view(
+        CustomPasswordResetConfirmView.as_view(
             template_name="user/password-reset-confirm.html"
         ),
         name="password_reset_confirm",
