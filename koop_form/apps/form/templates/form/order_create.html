@@ -1,7 +1,7 @@
 {% extends "templates/base_one.html" %}
 {% load crispy_forms_tags %}
-{% block content %}
 
+{% block content %}
 <div class="mx-a col-md-4">
     <div class="content-section">
         {% if update %}
@@ -13,5 +13,4 @@
         {% crispy form %}
     </div>
 </div>
-
 {% endblock content%}
