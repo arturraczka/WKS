@@ -2,6 +2,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.contrib.auth.decorators import user_passes_test
 from django.urls import reverse_lazy
@@ -242,7 +243,7 @@ class SupplyListView(TemplateView):
 class SupplyDeleteView(SuccessMessageMixin, DeleteView):
     model = Supply
     template_name = "supply/supply_delete.html"
-    success_message = "Zamówienie zostało usunięte."
+    success_message = "Dostawa została usunięte."
     success_url = reverse_lazy("supply-list")
 
     def __init__(self):
@@ -262,3 +263,10 @@ class SupplyDeleteView(SuccessMessageMixin, DeleteView):
         context["slug"] = self.kwargs["slug"]
         context["producer"] = self.producer.short
         return context
+
+    def form_valid(self, form):
+        success_url = self.get_success_url()
+        for item in self.object.supplyitems.all():
+            reduce_product_stock(Product, item.product.id, item.quantity)
+        self.object.delete()
+        return HttpResponseRedirect(success_url)

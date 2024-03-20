@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Q
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
@@ -426,6 +427,13 @@ class OrderDeleteView(
     def test_func(self):
         order = get_object_or_404(Order, id=self.kwargs["pk"])
         return self.request.user == order.user
+
+    def form_valid(self, form):
+        success_url = self.get_success_url()
+        for item in self.object.orderitems.all():
+            reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
+        self.object.delete()
+        return HttpResponseRedirect(success_url)
 
 
 @method_decorator(login_required, name="dispatch")

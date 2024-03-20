@@ -65,9 +65,11 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 product=product, item_ordered_date__gt=calculate_previous_weekday()
             )
             for item in orderitems:
+                reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
                 item.delete()
 
     def not_arrived_deletes_related_orderitems(self, instance):
+        """If Producer.not_arrived equal True, then proceeds to remove """
         if instance.not_arrived:
             self.perform_delete(instance)
             instance.not_arrived = False
@@ -132,6 +134,17 @@ class OrderAdmin(admin.ModelAdmin):
     def user_last_name(self, obj):
         return f"{obj.user.last_name}"
 
+    def delete_model(self, request, obj):
+        for item in obj.orderitems.all():
+            reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
+        obj.delete()
+
+    def delete_queryset(self, request, queryset):
+        for order in queryset:
+            for item in order.orderitems.all():
+                reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
+        queryset.delete()
+
 
 class OrderItemAdmin(admin.ModelAdmin):
     raw_id_fields = (
@@ -185,6 +198,11 @@ class OrderItemAdmin(admin.ModelAdmin):
     def delete_model(self, request, obj):
         reduce_product_stock(Product, obj.product.id, obj.quantity, negative=True)
         super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        for item in queryset:
+            reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
+        queryset.delete()
 
 
 class CategoryAdmin(admin.ModelAdmin):

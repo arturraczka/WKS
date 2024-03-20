@@ -20,6 +20,17 @@ class SupplyAdmin(admin.ModelAdmin):
     def created_by(self, obj):
         return f"{obj.user.last_name}"
 
+    def delete_model(self, request, obj):
+        for item in obj.supplyitems.all():
+            reduce_product_stock(Product, item.product.id, item.quantity)
+        obj.delete()
+
+    def delete_queryset(self, request, queryset):
+        for supply in queryset:
+            for item in supply.supplyitems.all():
+                reduce_product_stock(Product, item.product.id, item.quantity)
+        queryset.delete()
+
 
 class SupplyItemAdmin(admin.ModelAdmin):
     raw_id_fields = ("product",)
@@ -47,6 +58,11 @@ class SupplyItemAdmin(admin.ModelAdmin):
     def delete_model(self, request, obj):
         reduce_product_stock(Product, obj.product.id, obj.quantity)
         super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        for item in queryset:
+            reduce_product_stock(Product, item.product.id, item.quantity)
+        queryset.delete()
 
 
 admin.site.register(Supply, SupplyAdmin)
