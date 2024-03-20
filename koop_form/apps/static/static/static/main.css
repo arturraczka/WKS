@@ -88,22 +88,20 @@ a.article-title:hover {
   font-size: 2.5rem;
 }
 
-/* Style for success messages */
 .alert-success {
-    background-color: #4CAF50; /* Green background color */
-    color: white; /* White text color */
+    background-color: #4CAF50;
+    color: white;
 }
 
-/* Style for error messages */
 .alert-error {
-    background-color: #FF5733; /* Red background color */
-    color: white; /* White text color */
+    background-color: #FF5733;
+    color: white;
 }
 
-/* Style for warning messages */
+
 .alert-warning {
-    background-color: #FF8000; /* Yellow background color */
-    color: white; /* White text color */
+    background-color: #FF8000;
+    color: white;
 }
 
 /* order widget */
@@ -115,23 +113,19 @@ a.article-title:hover {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Define styles for the button */
+/* overwritting bootstrap button classes */
 .btn-primary {
   display: inline-block;
-  padding: 7px 15px; /* Adjust padding to your liking */
-  background-color: #5f788a; /* Button background color */
-  color: #fff; /* Button text color */
-  text-decoration: none; /* Remove underline */
-  border: none; /* Remove border */
-  border-radius: 5px; /* Add rounded corners */
-  cursor: pointer; /* Show pointer cursor on hover */
+  padding: 7px 15px;
+  background-color: #5f788a;
+  color: #fff;
+  border: none;
   margin-bottom: 10px;
 }
 
-/* Style the button on hover */
 .btn-primary:hover {
-  color: #cbd5db; /* Change background color on hover */
-  text-decoration: none;
+  color: #cbd5db;
+  background-color: #5f788a;
 }
 
 /* Custom CSS to widen the container */
@@ -221,4 +215,8 @@ a.article-title:hover {
 
 .mx-a {
     margin: auto;
+}
+
+.margin-top-negative {
+    margin-top: -64px;
 }
