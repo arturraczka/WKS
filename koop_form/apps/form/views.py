@@ -28,7 +28,8 @@ from apps.form.forms import (
     CreateOrderItemFormSet,
     UpdateOrderItemForm,
     UpdateOrderItemFormSet,
-    SearchForm, DeleteOrderForm,
+    SearchForm,
+    DeleteOrderForm,
 )
 from apps.form.services import (
     calculate_order_cost,
@@ -39,7 +40,10 @@ from apps.form.services import (
     get_orderitems_query,
     add_weight_schemes_as_choices_to_forms,
     get_orderitems_query_with_related_order,
-    add_producer_list_to_context, reduce_product_stock, alter_product_stock, calculate_order_number,
+    add_producer_list_to_context,
+    reduce_product_stock,
+    alter_product_stock,
+    calculate_order_number,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -137,9 +141,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
                 "weight_schemes",
                 "statuses",
             )
-            .select_related(
-                "producer"
-            )
+            .select_related("producer")
         )
 
     def paginate_products(self):
@@ -215,7 +217,9 @@ class OrderProductsFormView(FormOpenMixin, FormView):
                         self.request,
                         f"{instance.product.name}: Produkt został dodany do zamówienia.",
                     )
-                    reduce_product_stock(Product, instance.product.id, instance.quantity)
+                    reduce_product_stock(
+                        Product, instance.product.id, instance.quantity
+                    )
         return super().form_valid(form)
 
 
@@ -240,7 +244,7 @@ class OrderCreateView(FormOpenMixin, SuccessMessageMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['update'] = False
+        context["update"] = False
         return context
 
 
@@ -362,14 +366,21 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         for instance in formset:
             if instance.quantity == 0:
                 orderitem_db = OrderItem.objects.get(id=instance.id)
-                reduce_product_stock(Product, orderitem_db.product.id, orderitem_db.quantity, negative=True)
+                reduce_product_stock(
+                    Product,
+                    orderitem_db.product.id,
+                    orderitem_db.quantity,
+                    negative=True,
+                )
                 orderitem_db.delete()
                 continue
 
             if not perform_update_orderitem_validations(instance, self.request):
                 continue
 
-            alter_product_stock(Product, instance.product.id, instance.quantity, instance.id, OrderItem)
+            alter_product_stock(
+                Product, instance.product.id, instance.quantity, instance.id, OrderItem
+            )
             instance.save()
             messages.success(
                 self.request,
@@ -398,7 +409,7 @@ class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['update'] = True
+        context["update"] = True
         return context
 
 
@@ -471,7 +482,9 @@ class OrderItemFormView(FormOpenMixin, FormView):
                     self.request,
                     f"{saved_form.product.name}: Produkt został dodany do zamówienia.",
                 )
-                reduce_product_stock(Product, saved_form.product.id, saved_form.quantity)
+                reduce_product_stock(
+                    Product, saved_form.product.id, saved_form.quantity
+                )
         return super().form_valid(saved_form)
 
 

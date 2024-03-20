@@ -19,10 +19,10 @@ class DeleteOrderForm(ModelForm):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.include_media = True
-        self.helper.form_class = ''
+        self.helper.form_class = ""
         self.helper.tag = None
         self.helper.wrapper_class = None
-        self.helper.add_input(Submit('submit', 'Usuń'))
+        self.helper.add_input(Submit("submit", "Usuń"))
 
     class Meta:
         model = Order
@@ -35,13 +35,13 @@ class CreateOrderForm(ModelForm):
         self.update = update
         self.helper = FormHelper(self)
         self.helper.include_media = True
-        self.helper.form_class = ''
+        self.helper.form_class = ""
         self.helper.tag = None
         self.helper.wrapper_class = None
         if self.update:
-            self.helper.add_input(Submit('submit', 'Zmień dzień odbioru'))
+            self.helper.add_input(Submit("submit", "Zmień dzień odbioru"))
         else:
-            self.helper.add_input(Submit('submit', 'Utwórz zamówienie'))
+            self.helper.add_input(Submit("submit", "Utwórz zamówienie"))
 
     class Meta:
         model = Order

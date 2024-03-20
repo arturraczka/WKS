@@ -1,6 +1,15 @@
-from django.contrib.auth.views import LogoutView, LoginView, PasswordResetView, PasswordResetConfirmView
+from django.contrib.auth.views import (
+    LogoutView,
+    LoginView,
+    PasswordResetView,
+    PasswordResetConfirmView,
+)
 
-from apps.user.forms import CustomLoginForm, CustomPasswordResetForm, CustomSetPasswordForm
+from apps.user.forms import (
+    CustomLoginForm,
+    CustomPasswordResetForm,
+    CustomSetPasswordForm,
+)
 
 
 class CustomLogoutView(LogoutView):

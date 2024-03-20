@@ -276,14 +276,16 @@ def check_if_form_is_open():
 
 def reduce_product_stock(product_model, product_id, quantity, negative=False):
     """Reduces Product.quantity_in_stock according to OrderItem or SupplyItem quantity being saved.
-    If negative=True, increases instead of reducing. """
+    If negative=True, increases instead of reducing."""
     product_instance = product_model.objects.filter(id=product_id)
     if negative:
-        quantity = - quantity
-    product_instance.update(quantity_in_stock=F('quantity_in_stock') - quantity)
+        quantity = -quantity
+    product_instance.update(quantity_in_stock=F("quantity_in_stock") - quantity)
 
 
-def alter_product_stock(product_model, product_id, new_quantity, model_id, model, negative=False):
+def alter_product_stock(
+    product_model, product_id, new_quantity, model_id, model, negative=False
+):
     """Increases or decreases Product.quantity_in_stock according to OrderItem or SupplyItem quantity changes.
     If negative=True, reverses the action."""
     model_instance = model.objects.get(id=model_id)
@@ -291,5 +293,7 @@ def alter_product_stock(product_model, product_id, new_quantity, model_id, model
     old_quantity = model_instance.quantity
     quantity_difference = new_quantity - old_quantity
     if negative:
-        quantity_difference = - quantity_difference
-    product_instance.update(quantity_in_stock=F('quantity_in_stock') - quantity_difference)
+        quantity_difference = -quantity_difference
+    product_instance.update(
+        quantity_in_stock=F("quantity_in_stock") - quantity_difference
+    )

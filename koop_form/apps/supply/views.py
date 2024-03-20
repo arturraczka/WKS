@@ -9,7 +9,9 @@ from django.utils.decorators import method_decorator
 from django.forms import modelformset_factory
 from django.views.generic import (
     CreateView,
-    FormView, TemplateView, DeleteView,
+    FormView,
+    TemplateView,
+    DeleteView,
 )
 
 from apps.form.models import Producer, Product
@@ -23,7 +25,10 @@ from apps.supply.forms import (
     UpdateSupplyItemForm,
 )
 from apps.form.services import (
-    staff_check, alter_product_stock, reduce_product_stock, calculate_previous_weekday,
+    staff_check,
+    alter_product_stock,
+    reduce_product_stock,
+    calculate_previous_weekday,
 )
 
 
@@ -126,7 +131,9 @@ class SupplyProductsFormView(FormView):
                     )
 
                 else:
-                    reduce_product_stock(Product, instance.product.id, instance.quantity, negative=True)
+                    reduce_product_stock(
+                        Product, instance.product.id, instance.quantity, negative=True
+                    )
                     instance.save()
                     messages.success(
                         self.request,
@@ -197,11 +204,20 @@ class SupplyUpdateFormView(FormView):
         for instance in formset:
             if instance.quantity == 0:
                 supplyitem_db = SupplyItem.objects.get(id=instance.id)
-                reduce_product_stock(Product, supplyitem_db.product.id, supplyitem_db.quantity)
+                reduce_product_stock(
+                    Product, supplyitem_db.product.id, supplyitem_db.quantity
+                )
                 supplyitem_db.delete()
                 continue
 
-            alter_product_stock(Product, instance.product.id, instance.quantity, instance.id, SupplyItem, negative=True)
+            alter_product_stock(
+                Product,
+                instance.product.id,
+                instance.quantity,
+                instance.id,
+                SupplyItem,
+                negative=True,
+            )
             instance.save()
             messages.success(
                 self.request,

@@ -10,9 +10,14 @@ from apps.form.models import (
     Product,
     Order,
     OrderItem,
-    product_weight_schemes, Category,
+    product_weight_schemes,
+    Category,
 )
-from apps.form.services import calculate_previous_weekday, reduce_product_stock, alter_product_stock
+from apps.form.services import (
+    calculate_previous_weekday,
+    reduce_product_stock,
+    alter_product_stock,
+)
 
 
 class ProductWeightSchemeInLine(admin.TabularInline):
@@ -102,7 +107,14 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [ProductResource]
     list_filter = ["producer__name"]
     inlines = (ProductWeightSchemeInLine,)
-    list_display = ["name", "price", "producer", "category", "quantity_in_stock", "is_active"]
+    list_display = [
+        "name",
+        "price",
+        "producer",
+        "category",
+        "quantity_in_stock",
+        "is_active",
+    ]
     list_editable = ["price", "is_active", "quantity_in_stock"]
     search_fields = [
         "name",
@@ -163,7 +175,9 @@ class OrderItemAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if change:
-            alter_product_stock(Product, obj.product.id, obj.quantity, obj.id, OrderItem)
+            alter_product_stock(
+                Product, obj.product.id, obj.quantity, obj.id, OrderItem
+            )
         else:
             reduce_product_stock(Product, obj.product.id, obj.quantity)
         super().save_model(request, obj, form, change)

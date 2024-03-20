@@ -97,7 +97,9 @@ class Product(models.Model):
     )
     is_active = models.BooleanField(default=True)
     statuses = models.ManyToManyField(Status, related_name="products", blank=True)
-    category = models.ForeignKey(Category, related_name="products", on_delete=models.PROTECT, null=True)
+    category = models.ForeignKey(
+        Category, related_name="products", on_delete=models.PROTECT, null=True
+    )
     subcategory = models.CharField(null=True, blank=True)
     unit = models.CharField(choices=unit_choices)
     info = models.TextField(max_length=255, null=True, blank=True)

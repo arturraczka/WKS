@@ -3,7 +3,9 @@ from django.urls import path
 from apps.supply.views import (
     SupplyCreateView,
     SupplyProductsFormView,
-    SupplyUpdateFormView, SupplyListView, SupplyDeleteView,
+    SupplyUpdateFormView,
+    SupplyListView,
+    SupplyDeleteView,
 )
 
 

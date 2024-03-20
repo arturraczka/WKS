@@ -37,7 +37,9 @@ class SupplyItemAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if change:
-            alter_product_stock(Product, obj.product.id, obj.quantity, obj.id, SupplyItem, negative=True)
+            alter_product_stock(
+                Product, obj.product.id, obj.quantity, obj.id, SupplyItem, negative=True
+            )
         else:
             reduce_product_stock(Product, obj.product.id, obj.quantity, negative=True)
         super().save_model(request, obj, form, change)

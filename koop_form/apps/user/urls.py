@@ -9,7 +9,12 @@ from django.contrib.auth.views import (
     PasswordResetView,
 )
 
-from apps.user.views import CustomLogoutView, CustomLoginView, CustomPasswordResetView, CustomPasswordResetConfirmView
+from apps.user.views import (
+    CustomLogoutView,
+    CustomLoginView,
+    CustomPasswordResetView,
+    CustomPasswordResetConfirmView,
+)
 
 urlpatterns = [
     path(
@@ -36,7 +41,9 @@ urlpatterns = [
     ),
     path(
         "reset-hasla/",
-        CustomPasswordResetView.as_view(template_name="user/password-reset-request.html"),
+        CustomPasswordResetView.as_view(
+            template_name="user/password-reset-request.html"
+        ),
         name="password_reset_request",
     ),
     path(

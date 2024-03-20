@@ -368,9 +368,9 @@ class OrderBoxListView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         previous_friday = calculate_previous_weekday()
-        orders = Order.objects.filter(
-            date_created__gte=previous_friday
-        ).order_by("date_created")
+        orders = Order.objects.filter(date_created__gte=previous_friday).order_by(
+            "date_created"
+        )
 
         context["orders"] = orders
 
@@ -392,7 +392,11 @@ class OrderBoxReportView(OrderBoxListView):
             context["fund"] = Decimal("1.3")
         context["username"] = order.user.first_name + " " + order.user.last_name
 
-        orderitems = OrderItem.objects.filter(order=order).select_related("product").order_by("product__producer__short", "product__name")
+        orderitems = (
+            OrderItem.objects.filter(order=order)
+            .select_related("product")
+            .order_by("product__producer__short", "product__name")
+        )
 
         context["order_cost"] = calculate_order_cost(orderitems)
         context[
@@ -409,7 +413,11 @@ class OrderBoxReportView(OrderBoxListView):
             orderitems_names += (item.product.name,)
             orderitems_quantity += (str(item.quantity).rstrip("0").rstrip("."),)
 
-        products = Product.objects.filter(id__in=product_ids).select_related("producer").order_by("producer__short", "name")
+        products = (
+            Product.objects.filter(id__in=product_ids)
+            .select_related("producer")
+            .order_by("producer__short", "name")
+        )
         for prod in products:
             producer_short += (prod.producer.short,)
 
