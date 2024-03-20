@@ -23,7 +23,7 @@ from apps.supply.forms import (
     CreateSupplyItemFormSet,
     CreateSupplyItemForm,
     UpdateSupplyItemFormSet,
-    UpdateSupplyItemForm,
+    UpdateSupplyItemForm, DeleteSupplyForm,
 )
 from apps.form.services import (
     staff_check,
@@ -243,6 +243,7 @@ class SupplyListView(TemplateView):
 class SupplyDeleteView(SuccessMessageMixin, DeleteView):
     model = Supply
     template_name = "supply/supply_delete.html"
+    form_class = DeleteSupplyForm
     success_message = "Dostawa została usunięte."
     success_url = reverse_lazy("supply-list")
 

@@ -2,23 +2,13 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<div class="col-md-9">
-    <div class="mx-a col-md-4">
-        <div class="content-section">
-            <form method="post" >
-                {% csrf_token %}
-                <fieldset class="form-group">
-                    <h4 class="form-border-bottom mb-3">Usuń dostawę {{ producer }}</h4>
-                    <hr>
-                    <p>Produkty z dostawy zostaną usunięte</p>
-                    {{ form|crispy }}
-                </fieldset>
-                <div>
-                    <button class="btn btn-outline-secondary" type="submit">Usuń</button>
-                    <a class="align-right btn btn-outline-secondary" href="{% url 'supply-update-form' slug=slug %}">Anuluj</a>
-                </div>
-            </form>
-        </div>
+<div class="mx-a col-md-4">
+    <div class="content-section">
+        <h4 class="form-border-bottom mb-4">Usuń dostawę {{ producer }}</h4>
+        <hr>
+        <p>Produkty z dostawy zostaną usunięte</p>
+        {% crispy form %}
+        <a class="align-right btn btn-primary margin-top-negative" href="{% url 'supply-update-form' slug=slug %}">Anuluj</a>
     </div>
 </div>
 {% endblock content%}
