@@ -42,11 +42,13 @@ class ProducerProductsReportView(TemplateView):
         self.product_incomes_list = []
         self.total_income = 0
 
-    def get_producer_products(self):
+    def get_producer(self):
         self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+
+    def get_products(self):
         self.products = filter_products_with_ordered_quantity_income_and_supply_income(
             Product, self.producer.id
-        ).exclude(Q(income=0) & Q(supply_income=0))
+        ).exclude(Q(income=0))
 
     def get_product_names_quantities_incomes(self):
         for product in self.products:
@@ -58,7 +60,8 @@ class ProducerProductsReportView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        self.get_producer_products()
+        self.get_producer()
+        self.get_products()
         self.get_product_names_quantities_incomes()
         context["producer"] = self.producer
         context["producers"] = get_producers_list(Producer)
@@ -82,6 +85,11 @@ class ProducerProductsSuppliesReportView(ProducerProductsReportView):
         self.supply_incomes_list = []
         self.total_supply_income = 0
         self.product_excess_list = []
+
+    def get_products(self):
+        self.products = filter_products_with_ordered_quantity_income_and_supply_income(
+            Product, self.producer.id
+        ).exclude(Q(income=0) & Q(supply_income=0))
 
     def get_product_names_quantities_incomes(self):
         for product in self.products:
