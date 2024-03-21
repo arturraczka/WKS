@@ -470,26 +470,46 @@ class UsersFinanceReportView(TemplateView):
             get_user_model()
             .objects.all()
             .select_related("userprofile")
-            .order_by("userprofile__koop_id")
+            .order_by("last_name")
         )
 
         name_list = []
         order_cost_list = []
         email_list = []
+        order_number_list = []
 
-        # TODO przyda się logika, że jeśli user nic nie zamówił, to nie pojawi się w raporcie
+        # # user który nic nie zamówił pojawia się w raporcie
+        # for user in users:
+        #     email_list.append(user.email)
+        #     name_list += (f"{user.first_name} {user.last_name}",)
+        #     try:
+        #         orderitems = (
+        #             Order.objects.filter(date_created__gte=calculate_previous_weekday())
+        #             .get(user=user)
+        #             .orderitems.select_related("product")
+        #         )
+        #     except ObjectDoesNotExist:
+        #         order_cost = 0
+        #     else:
+        #         try:
+        #             order_cost = (
+        #                 calculate_order_cost(orderitems) * user.userprofile.fund
+        #             )
+        #         except UserProfile.DoesNotExist:
+        #             order_cost = calculate_order_cost(orderitems) * Decimal("1.3")
+        #     order_cost_list.append(order_cost)
+
+        # user który nic nie zamówił nie pojawia się w raporcie
         for user in users:
-            email_list.append(user.email)
-            name_list += (f"{user.first_name} {user.last_name}",)
             try:
-                orderitems = (
+                order = (
                     Order.objects.filter(date_created__gte=calculate_previous_weekday())
                     .get(user=user)
-                    .orderitems.select_related("product")
                 )
             except ObjectDoesNotExist:
-                order_cost = 0
+                continue
             else:
+                orderitems = order.orderitems.select_related("product")
                 try:
                     order_cost = (
                         calculate_order_cost(orderitems) * user.userprofile.fund
@@ -497,10 +517,14 @@ class UsersFinanceReportView(TemplateView):
                 except UserProfile.DoesNotExist:
                     order_cost = calculate_order_cost(orderitems) * Decimal("1.3")
             order_cost_list.append(order_cost)
+            email_list.append(user.email)
+            name_list += (f"{user.last_name} {user.first_name}",)
+            order_number_list.append(order.order_number)
 
         context["email_list"] = email_list
         context["name_list"] = name_list
         context["order_cost_list"] = order_cost_list
+        context["order_number_list"] = order_number_list
 
         return context
 
