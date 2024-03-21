@@ -16,7 +16,7 @@ from apps.form.models import (
 from apps.form.services import (
     calculate_previous_weekday,
     reduce_product_stock,
-    alter_product_stock,
+    alter_product_stock, calculate_order_number,
 )
 
 
@@ -144,6 +144,11 @@ class OrderAdmin(admin.ModelAdmin):
             for item in order.orderitems.all():
                 reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
         queryset.delete()
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.order_number = calculate_order_number(Order)
+        super().save_model(request, obj, form, change)
 
 
 class OrderItemAdmin(admin.ModelAdmin):
