@@ -155,6 +155,7 @@ class OrderItemAdmin(admin.ModelAdmin):
         "order__user__last_name",
         "order__date_created",
         "order__order_number",
+        "product__producer",
     ]
     list_display = [
         "producer_short",
