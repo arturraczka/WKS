@@ -5,8 +5,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.db.models import Sum
 from django.contrib.messages import get_messages
-from django.db.models import Q
-from django.db.models import Case, When, F
+from django.db.models import Case, When, F, Q
 
 logger = logging.getLogger("django.server")
 

@@ -30,8 +30,8 @@ logger = logging.getLogger("django.server")
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerProductsSuppliesReportView(TemplateView):
-    template_name = "report/producer_products_supplies_report.html"
+class ProducerProductsReportView(TemplateView):
+    template_name = "report/producer_products_report.html"
 
     def __init__(self, **kwargs):
         super().__init__()
@@ -40,17 +40,48 @@ class ProducerProductsSuppliesReportView(TemplateView):
         self.product_names_list = []
         self.product_ordered_quantities_list = []
         self.product_incomes_list = []
-        self.supply_quantities_list = []
-        self.supply_incomes_list = []
         self.total_income = 0
-        self.total_supply_income = 0
-        self.product_excess_list = []
 
     def get_producer_products(self):
         self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
         self.products = filter_products_with_ordered_quantity_income_and_supply_income(
             Product, self.producer.id
-        )
+        ).exclude(Q(income=0) & Q(supply_income=0))
+
+    def get_product_names_quantities_incomes(self):
+        for product in self.products:
+            self.total_income += product.income
+            self.product_names_list += (product.name,)
+            self.product_ordered_quantities_list.append(product.ordered_quantity)
+            self.product_incomes_list += (f"{Decimal(product.income):.2f}",)
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        self.get_producer_products()
+        self.get_product_names_quantities_incomes()
+        context["producer"] = self.producer
+        context["producers"] = get_producers_list(Producer)
+
+        context["product_names_list"] = self.product_names_list
+        context[
+            "product_ordered_quantities_list"
+        ] = self.product_ordered_quantities_list
+        context["product_incomes_list"] = self.product_incomes_list
+        context["total_income"] = self.total_income
+        return context
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class ProducerProductsSuppliesReportView(ProducerProductsReportView):
+    template_name = "report/producer_products_supplies_report.html"
+
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.supply_quantities_list = []
+        self.supply_incomes_list = []
+        self.total_supply_income = 0
+        self.product_excess_list = []
 
     def get_product_names_quantities_incomes(self):
         for product in self.products:
@@ -67,22 +98,9 @@ class ProducerProductsSuppliesReportView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        self.get_producer_products()
-        self.get_product_names_quantities_incomes()
-        context["producer"] = self.producer
-        context["producers"] = get_producers_list(Producer)
-
-        context["product_names_list"] = self.product_names_list
-        context[
-            "product_ordered_quantities_list"
-        ] = self.product_ordered_quantities_list
-        context["product_incomes_list"] = self.product_incomes_list
         context["supply_quantities_list"] = self.supply_quantities_list
         context["supply_incomes_list"] = self.supply_incomes_list
-
         context["excess"] = self.product_excess_list
-        context["total_income"] = self.total_income
         context["total_supply_income"] = self.total_supply_income
         return context
 
@@ -682,8 +700,3 @@ class MassOrderBoxReportDownloadView(TemplateView):
                 writer.writerow([short, name, quantity])
 
         return response
-
-
-@method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerProductsReportView(TemplateView):
-    template_name = "report/producer_products_report.html"
