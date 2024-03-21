@@ -1,3 +1,4 @@
+from crispy_forms.bootstrap import StrictButton
 from django.forms import (
     ModelForm,
     HiddenInput,
@@ -7,7 +8,7 @@ from django.forms import (
     ModelChoiceField,
 )
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit
+from crispy_forms.layout import Submit, Layout, Field
 
 from apps.form.models import OrderItem, Order
 
@@ -58,13 +59,25 @@ class CreateOrderItemForm(ModelForm):
         model = OrderItem
         fields = ["product", "quantity", "order"]
         labels = {
-            "quantity": "szt/kg",
+            "quantity": "",
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["order"].widget = HiddenInput()
         self.fields["product"].widget = HiddenInput()
+        self.helper = FormHelper(self)
+        self.helper.include_media = True
+        self.helper.tag = None
+        self.helper.wrapper_class = None
+        self.helper.layout = Layout(
+            Field('quantity', css_class='field-max-width'),
+        )
+
+        # # this makes formset work:
+        self.helper.form_tag = False
+        # self.helper.add_input(Submit("submit", "Dodaj"))
+        ##
 
 
 class CreateOrderItemFormSet(BaseModelFormSet):

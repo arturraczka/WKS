@@ -128,6 +128,11 @@ a.article-title:hover {
   background-color: #5f788a;
 }
 
+.btn-margin-fix {
+    margin-bottom: 0px;
+    margin-top: -8px;
+}
+
 /* Custom CSS to widen the container */
 .custom-container {
     min-width: 800px;
@@ -219,4 +224,29 @@ a.article-title:hover {
 
 .margin-top-negative {
     margin-top: -64px;
+}
+
+td {
+    padding: 8px;
+    border: 1px solid #000;
+}
+
+td:nth-child(1) {
+    width: 470px;
+}
+
+td:nth-child(2) {
+    width: 300px;
+}
+
+td:nth-child(3) {
+    width: 110px;
+}
+
+td:nth-child(4) {
+    width: 450px;
+}
+
+.field-max-width {
+    max-width: 100px;
 }
