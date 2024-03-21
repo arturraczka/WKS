@@ -7,5 +7,5 @@ if [ -z "$1" ]; then
     exit 1
 else
     echo "pg_dump provided path: $1"
-    docker exec -i koop_form-backend-1 psql -U postgres -d koop_db < $1
+    docker exec -i koop_form-database-1 psql -U postgres -d koop_db < $1
 fi

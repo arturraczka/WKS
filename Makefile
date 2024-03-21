@@ -36,10 +36,10 @@ compose-run-stop:
 
 compose-run-migrate:
 	sleep 10
-	docker exec -i koop_form-frontend-1 python koop_form/manage.py migrate
+	docker exec -i koop_form-webapp-1 python koop_form/manage.py migrate
 
 compose-run-create-superusper:
-	docker exec -it koop_form-frontend-1 python koop_form/manage.py createsuperuser
+	docker exec -it koop_form-webapp-1 python koop_form/manage.py createsuperuser
 
 compose-run-restore-database:
 	./dockercompose/restore_database.sh ./koop_form/db_dump_test
