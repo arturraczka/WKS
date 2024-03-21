@@ -1,7 +1,4 @@
 from django.apps import AppConfig
-from django.core.management import call_command
-
-
 
 
 class FormConfig(AppConfig):
@@ -10,6 +7,3 @@ class FormConfig(AppConfig):
 
     def ready(self):
         from . import signals
-        print(">>>>>>>>>>>>> Form app start")
-
-
