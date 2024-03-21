@@ -194,14 +194,11 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         context["producer"] = self.producer
         add_producer_list_to_context(context, Producer)
         context["management_form"] = context["form"].management_form
-        context["available_quantities_list"] = self.available_quantities_list  # available_quantities_list
-        context["products_description"] = self.products_description  # products_description
         context["paginated_products"] = self.paginated_products
-        context["products"] = self.paginated_products  # products
         add_weight_schemes_as_choices_to_forms(
             context["form"], self.products_weight_schemes
-        )  # form
-        context["zipped"] = zip(context["products"], context["form"], context["available_quantities_list"], context["products_description"])
+        )
+        context["zipped"] = zip(self.paginated_products, context["form"], self.available_quantities_list, self.products_description)
         return context
 
     def form_valid(self, form):
