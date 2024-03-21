@@ -14,23 +14,34 @@ from apps.report.views import (
     OrderBoxReportView,
     OrderBoxReportDownloadView,
     UsersFinanceReportView,
-    ProducerProductsListView,
+    ProducerProductsSuppliesListView,
     MassProducerBoxReportDownloadView,
     UsersFinanceReportDownloadView,
-    MassOrderBoxReportDownloadView,
+    MassOrderBoxReportDownloadView, ProducerProductsReportView, ProducerProductsReportDownloadView,
+    ProducerProductsListView,
 )
 
 
 urlpatterns = [
     path(
         "producenci-produkty-dostawy/",
-        ProducerProductsListView.as_view(),
+        ProducerProductsSuppliesListView.as_view(),
         name="producer-products-supplies-list",
+    ),
+    path(
+        "producenci-produkty/",
+        ProducerProductsListView.as_view(),
+        name="producer-products-list",
     ),
     path(
         "producenci-produkty-dostawy/<str:slug>/",
         ProducerProductsSuppliesReportView.as_view(),
         name="producer-products-supplies-report",
+    ),
+    path(
+        "producenci-produkty/<str:slug>/",
+        ProducerProductsReportView.as_view(),
+        name="producer-products-report",
     ),
     path(
         "producenci-skrzynki/",
@@ -68,9 +79,14 @@ urlpatterns = [
         name="producers-finance-report-download",
     ),
     path(
-        "pobierz/producenci-produkty/<str:slug>/",
+        "pobierz/producenci-produkty-dostawy/<str:slug>/",
         ProducerProductsSuppliesReportDownloadView.as_view(),
         name="producer-products-supplies-report-download",
+    ),
+    path(
+        "pobierz/producenci-produkty/<str:slug>/",
+        ProducerProductsReportDownloadView.as_view(),
+        name="producer-products-report-download",
     ),
     path(
         "zamowienia-skrzynki/",

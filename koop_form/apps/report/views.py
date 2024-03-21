@@ -177,12 +177,17 @@ class UsersReportView(TemplateView):
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
+class ProducerProductsSuppliesListView(ProducersView):
+    template_name = "report/producer_products_supplies_list.html"
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducerProductsListView(ProducersView):
     template_name = "report/producer_products_list.html"
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerBoxListView(ProducerProductsListView):
+class ProducerBoxListView(ProducerProductsSuppliesListView):
     template_name = "report/producer_box_list.html"
 
 
@@ -699,4 +704,54 @@ class MassOrderBoxReportDownloadView(TemplateView):
             ):
                 writer.writerow([short, name, quantity])
 
+        return response
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class ProducerProductsReportDownloadView(ProducerProductsSuppliesReportView):
+    response_class = HttpResponse
+    content_type = "text/csv"
+
+    def render_to_response(self, context, **response_kwargs):
+        headers = {
+            "Content-Disposition": f'attachment; filename="raport-producent-produkty: {context["producer"].short}.csv"'
+        }
+
+        response = self.response_class(
+            content_type=self.content_type,
+            headers=headers,
+        )
+        writer = csv.writer(response)
+        writer.writerow(
+            [
+                context["producer"].name,
+            ]
+        )
+        writer.writerow(
+            [
+                "Kwota zamówienia (zł):",
+                f'{context["total_income"]:.2f}'.replace(".", ","),
+            ]
+        )
+        writer.writerow(
+            [
+                "Nazwa produktu",
+                "Zamówiona ilość",
+                "Kwota z zamówienia",
+            ]
+        )
+        for name, quantity, income in zip(
+            context["product_names_list"],
+            context["product_ordered_quantities_list"],
+            context["product_incomes_list"],
+        ):
+            if not quantity:
+                continue
+            writer.writerow(
+                [
+                    name,
+                    str(quantity).replace(".", ","),
+                    str(income).replace(".", ","),
+                ]
+            )
         return response
