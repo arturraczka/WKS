@@ -1,7 +1,7 @@
 from django.urls import path
 
 from apps.report.views import (
-    ProducerProductsReportView,
+    ProducerProductsSuppliesReportView,
     ProducerBoxReportView,
     UsersReportView,
     ProducerBoxListView,
@@ -9,7 +9,7 @@ from apps.report.views import (
     ProducerBoxReportDownloadView,
     UsersReportDownloadView,
     ProducersFinanceReportDownloadView,
-    ProducerProductsReportDownloadView,
+    ProducerProductsSuppliesReportDownloadView,
     OrderBoxListView,
     OrderBoxReportView,
     OrderBoxReportDownloadView,
@@ -23,14 +23,14 @@ from apps.report.views import (
 
 urlpatterns = [
     path(
-        "producenci-produkty/",
+        "producenci-produkty-dostawy/",
         ProducerProductsListView.as_view(),
-        name="producer-products-list",
+        name="producer-products-supplies-list",
     ),
     path(
-        "producenci-produkty/<str:slug>/",
-        ProducerProductsReportView.as_view(),
-        name="producer-products-report",
+        "producenci-produkty-dostawy/<str:slug>/",
+        ProducerProductsSuppliesReportView.as_view(),
+        name="producer-products-supplies-report",
     ),
     path(
         "producenci-skrzynki/",
@@ -69,8 +69,8 @@ urlpatterns = [
     ),
     path(
         "pobierz/producenci-produkty/<str:slug>/",
-        ProducerProductsReportDownloadView.as_view(),
-        name="producer-products-report-download",
+        ProducerProductsSuppliesReportDownloadView.as_view(),
+        name="producer-products-supplies-report-download",
     ),
     path(
         "zamowienia-skrzynki/",

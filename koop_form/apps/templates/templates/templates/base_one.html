@@ -34,7 +34,7 @@
                         <a class="nav-item nav-link" href="{% url 'login' %}">Zaloguj</a>
                         <a class="nav-item nav-link " href="{% url 'logout' %}">Wyloguj</a>
                         {% if user.is_staff %}
-                            <a class="nav-item nav-link " href="{% url 'producer-products-list' %}">Raporty</a>
+                            <a class="nav-item nav-link " href="{% url 'producer-products-supplies-list' %}">Raporty</a>
                             <a class="nav-item nav-link " href="{% url 'supply-create' %}">Dostawy</a>
                         {% endif %}
                     </div>

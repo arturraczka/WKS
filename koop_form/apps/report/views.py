@@ -30,8 +30,8 @@ logger = logging.getLogger("django.server")
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerProductsReportView(TemplateView):
-    template_name = "report/producer_products_report.html"
+class ProducerProductsSuppliesReportView(TemplateView):
+    template_name = "report/producer_products_supplies_report.html"
 
     def __init__(self, **kwargs):
         super().__init__()
@@ -297,7 +297,7 @@ class ProducersFinanceReportDownloadView(ProducersFinanceReportView):
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerProductsReportDownloadView(ProducerProductsReportView):
+class ProducerProductsSuppliesReportDownloadView(ProducerProductsSuppliesReportView):
     response_class = HttpResponse
     content_type = "text/csv"
 
@@ -682,3 +682,8 @@ class MassOrderBoxReportDownloadView(TemplateView):
                 writer.writerow([short, name, quantity])
 
         return response
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class ProducerProductsReportView(TemplateView):
+    template_name = "report/producer_products_report.html"
