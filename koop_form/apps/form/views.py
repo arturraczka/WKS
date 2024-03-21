@@ -143,6 +143,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
                 "statuses",
             )
             .select_related("producer")
+            .select_related("category")
         )
 
     def paginate_products(self):
@@ -550,7 +551,7 @@ class OrderProductsAllFormView(OrderProductsFormView):
                 "weight_schemes",
                 "statuses",
             )
-            .select_related("producer")
+            .select_related("producer", "category")
         )
 
     def get_order_and_producer(self):

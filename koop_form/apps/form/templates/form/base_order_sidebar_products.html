@@ -18,15 +18,19 @@
 
                     <div>
                       <span class="mr-2">{{ product.price }} zł za szt/kg</span>
-                      <span class="mr-2"> | Kat: {{ product.category }}, {{ product.subcategory }} |</span>
-                      <span class="text-muted">Status: </span>
-                      {% for status in product.statuses.all %}
-                        <span class="text-muted"><strong>{{ status }},</strong></span>
-                      {% endfor %}
+                      <span class="mr-2"> | Kat: {{ product.category }}, {{ product.subcategory }}</span>
+                      {% if product.statuses.all %}
+                          <span class="text-muted">Status: </span>
+                          {% for status in product.statuses.all %}
+                            <span class="text-muted"><strong>{{ status }},</strong></span>
+                          {% endfor %}
+                      {% endif %}
                     </div>
                 </td>
                 <td>
                     {% crispy form %}
+                </td>
+                <td>
                     <input class="btn btn-primary btn-margin-fix" type="submit" name="submit" value="Dodaj">
                 </td>
                 <td>

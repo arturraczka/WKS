@@ -70,14 +70,11 @@ class CreateOrderItemForm(ModelForm):
         self.helper.include_media = True
         self.helper.tag = None
         self.helper.wrapper_class = None
-        # self.helper.layout = Layout(
-        #     Field('quantity', css_class='field-max-width'),
-        # )
 
         # # this makes formset work:
         self.helper.form_tag = False
         # self.helper.add_input(Submit("submit", "Dodaj"))
-        ##
+        # # wywalenie add_input i dodanie submitu do templatki
 
 
 class CreateOrderItemFormSet(BaseModelFormSet):

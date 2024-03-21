@@ -129,8 +129,8 @@ a.article-title:hover {
 }
 
 .btn-margin-fix {
-    margin-bottom: 0px;
-    margin-top: -8px;
+    margin-top: -6px;
+    padding-bottom: 6px;
 }
 
 /* Custom CSS to widen the container */
@@ -228,25 +228,37 @@ a.article-title:hover {
 
 td {
     padding: 8px;
-    border: 1px solid #000;
+    border: 1px solid #bbb;
 }
 
 td:nth-child(1) {
-    width: 470px;
+    width: 440px;
 }
 
 td:nth-child(2) {
-    width: 300px;
+    width: 90px;
 }
 
 td:nth-child(3) {
-    width: 110px;
+    width: 90px;
 }
 
 td:nth-child(4) {
+    width: 100px;
+}
+
+td:nth-child(5) {
     width: 450px;
 }
 
 .field-max-width {
     max-width: 100px;
+}
+
+table tr:nth-child(even) {
+  background-color: #f4f4f4;
+}
+
+table tr:nth-child(odd) {
+  background-color: #eee;
 }
