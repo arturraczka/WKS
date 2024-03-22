@@ -13,17 +13,19 @@ logger = logging.getLogger("django.server")
 
 class Supply(models.Model):
     product = models.ManyToManyField(
-        Product, through="SupplyItem", related_name="supplies", blank=True
+        Product, through="SupplyItem", related_name="supplies", blank=True, verbose_name="produkt"
     )
     user = models.ForeignKey(
-        ModelUser, on_delete=models.CASCADE, related_name="supplies"
+        ModelUser, on_delete=models.CASCADE, related_name="supplies", verbose_name="użytkownik"
     )
     producer = models.ForeignKey(
-        Producer, on_delete=models.CASCADE, related_name="supplies"
+        Producer, on_delete=models.CASCADE, related_name="supplies", verbose_name="producent"
     )
-    date_created = models.DateTimeField(auto_now_add=True)
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name="utworzono")
 
     class Meta:
+        verbose_name = "Dostawa"
+        verbose_name_plural = "Dostawy"
         ordering = ["producer__short", "-date_created"]
         indexes = [
             models.Index(fields=["date_created"]),
@@ -38,15 +40,18 @@ class Supply(models.Model):
 
 class SupplyItem(models.Model):
     product = models.ForeignKey(
-        Product, on_delete=models.CASCADE, related_name="supplyitems"
+        Product, on_delete=models.CASCADE, related_name="supplyitems", verbose_name="produkt"
     )
     supply = models.ForeignKey(
-        Supply, on_delete=models.CASCADE, related_name="supplyitems"
+        Supply, on_delete=models.CASCADE, related_name="supplyitems",
+        verbose_name="dostawa"
     )
-    quantity = models.DecimalField(max_digits=6, decimal_places=3)
-    date_created = models.DateTimeField(auto_now_add=True)
+    quantity = models.DecimalField(max_digits=6, decimal_places=3, verbose_name="ilość")
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name="utworzono")
 
     class Meta:
+        verbose_name = "Produkt w dostawie"
+        verbose_name_plural = "Produkty w dostawie"
         ordering = ["supply", "-date_created"]
 
     def __str__(self):

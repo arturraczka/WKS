@@ -25,6 +25,11 @@ class ProductWeightSchemeInLine(admin.TabularInline):
     extra = 1
 
 
+class OrderItemInLine(admin.TabularInline):
+    model = OrderItem
+    extra = 1
+
+
 class ProducerResource(resources.ModelResource):
     class Meta:
         model = Producer
@@ -129,6 +134,7 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = [
         "user__last_name",
     ]
+    inlines = (OrderItemInLine,)
 
     @admin.display(description="User last name")
     def user_last_name(self, obj):
