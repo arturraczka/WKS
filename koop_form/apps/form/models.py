@@ -121,7 +121,7 @@ class Product(models.Model):
         ordering = ["name"]
 
     def __str__(self):
-        return f"{self.name} {self.producer.short}"
+        return f"{self.name}"
 
 
 class product_weight_schemes(models.Model):
