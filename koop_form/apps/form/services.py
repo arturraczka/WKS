@@ -194,18 +194,18 @@ def add_choices_to_form(form, product):
 
 
 def filter_products_with_ordered_quantity_income_and_supply_income(
-    product_model, producer_id
+    product_model, producer_id, filter_producer=True
 ):
     """Returns a Product QS filtered for a given Producer instance, ordered by name, with annotated: ordered_quantity,
     income, supply_quantity, supply_income and excess. Limits resulting QS to fields: name, orderitems__quantity and
     supplyitems__quantity."""
     previous_friday = calculate_previous_weekday()
-    products = (
-        product_model.objects.only(
-            "name", "orderitems__quantity", "supplyitems__quantity"
-        )
-        .filter(producer=producer_id)
-        .annotate(
+    products = product_model.objects.only("name", "orderitems__quantity", "supplyitems__quantity")
+
+    if filter_producer:
+        products = products.filter(producer=producer_id)
+
+    annotated_products = products.annotate(
             ordered_quantity=Sum(
                 Case(
                     When(
@@ -225,11 +225,9 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
             ),
             supply_income=F("supply_quantity") * F("price"),
             excess=F("supply_quantity") - F("ordered_quantity"),
-        )
-        .distinct()
-        .order_by("name")
-    )
-    return products
+        ).distinct().order_by("name")
+
+    return annotated_products
 
 
 def get_users_last_order(order_model, request_user):
