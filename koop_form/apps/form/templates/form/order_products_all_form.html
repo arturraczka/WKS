@@ -9,8 +9,11 @@
     <div class="pagination">
         <span class="step-links margin-bottom">
             {% if paginated_products.has_previous %}
-                <a class="btn btn-outline-secondary my-2" href="?page=1">&laquo; pierwsza</a>
-                <a class="btn btn-outline-secondary my-2" href="?page={{ paginated_products.previous_page_number }}">&lsaquo; wcześniejsza</a>
+                <a class="btn btn-primary my-2" href="?page=1">&laquo; pierwsza</a>
+                <a class="btn btn-primary my-2" href="?page={{ paginated_products.previous_page_number }}">&lsaquo; wcześniejsza</a>
+            {% else %}
+                <a class="btn btn-inactive my-2">&laquo; pierwsza</a>
+                <a class="btn btn-inactive my-2">&lsaquo; wcześniejsza</a>
             {% endif %}
 
             <span class="current">
@@ -18,8 +21,8 @@
             </span>
 
             {% if paginated_products.has_next %}
-                <a class="btn btn-outline-secondary my-2" href="?page={{ paginated_products.next_page_number }}">następna &rsaquo;</a>
-                <a class="btn btn-outline-secondary my-2" href="?page={{ paginated_products.paginator.num_pages }}">ostatnia &raquo;</a>
+                <a class="btn btn-primary my-2" href="?page={{ paginated_products.next_page_number }}">następna &rsaquo;</a>
+                <a class="btn btn-primary my-2" href="?page={{ paginated_products.paginator.num_pages }}">ostatnia &raquo;</a>
             {% endif %}
         </span>
     </div>
