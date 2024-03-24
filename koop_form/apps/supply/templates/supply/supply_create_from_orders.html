@@ -1,0 +1,12 @@
+{% extends "supply/base_supply_sidebar.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="mx-a col-md-4">
+    <div class="content-section">
+        <h4 class="form-border-bottom mb-4">Stwórz dostawę na podstawie zamówień</h4>
+        <hr>
+        {% crispy form %}
+    </div>
+</div>
+{% endblock content%}
