@@ -294,6 +294,6 @@ class SupplyFromOrdersCreateView(SupplyCreateView):
         products = filter_products_with_ordered_quantity_income_and_supply_income(
             Product, form.instance.producer.id).filter(ordered_quantity__gt=0)
         for product in products:
-            if not product.is_stocked:
+            if product.is_stocked:
                 SupplyItem.objects.create(supply=supply, product=product, quantity=product.ordered_quantity)
         return HttpResponseRedirect(reverse_lazy("supply-update-form", kwargs={"slug": producer.slug}))
