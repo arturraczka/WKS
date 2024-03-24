@@ -29,7 +29,7 @@ from apps.form.services import (
     staff_check,
     alter_product_stock,
     reduce_product_stock,
-    calculate_previous_weekday,
+    calculate_previous_weekday, filter_products_with_ordered_quantity_income_and_supply_income,
 )
 
 
@@ -271,3 +271,29 @@ class SupplyDeleteView(SuccessMessageMixin, DeleteView):
             reduce_product_stock(Product, item.product.id, item.quantity)
         self.object.delete()
         return HttpResponseRedirect(success_url)
+
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class SupplyFromOrdersCreateView(SupplyCreateView):
+    success_message = "Dostawa została utworzona."
+    template_name = "supply/supply_create_from_orders.html"
+
+    def form_valid(self, form):
+        if validate_supply_exists(Supply, form.instance.producer):
+            messages.warning(
+                self.request,
+                f"{form.instance.producer}: Ten producent ma już dostawę na ten tydzień.",
+            )
+            return self.form_invalid(form)
+        form.instance.user = self.request.user
+        self.object = form.save()
+
+        supply = Supply.objects.get(id=self.object.id)
+        producer = Producer.objects.get(id=form.instance.producer.id)
+        products = filter_products_with_ordered_quantity_income_and_supply_income(
+            Product, form.instance.producer.id).filter(ordered_quantity__gt=0)
+        for product in products:
+            if product.is_stocked:
+                SupplyItem.objects.create(supply=supply, product=product, quantity=product.ordered_quantity)
+        return HttpResponseRedirect(reverse_lazy("supply-update-form", kwargs={"slug": producer.slug}))

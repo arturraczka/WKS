@@ -5,7 +5,7 @@ from apps.supply.views import (
     SupplyProductsFormView,
     SupplyUpdateFormView,
     SupplyListView,
-    SupplyDeleteView,
+    SupplyDeleteView, SupplyFromOrdersCreateView,
 )
 
 
@@ -34,5 +34,10 @@ urlpatterns = [
         "usun/<str:slug>/",
         SupplyDeleteView.as_view(),
         name="supply-delete",
+    ),
+    path(
+        "nowa-z-zamowienia/",
+        SupplyFromOrdersCreateView.as_view(),
+        name="supply-create-from-orders",
     ),
 ]
