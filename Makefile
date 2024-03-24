@@ -1,11 +1,11 @@
 DOCKERFILE = Dockerfile
 IMAGE_NAME=koop_form
-APP_VERSION=0.1.0a1
+APP_VERSION=0.1.0a3
 IMAGE_ENVS_FILE=env
 ENVS_FILE=./.myenv
 IMAGE_ALLOW_HOSTS_FILE=local_hosts
 ALLOW_HOSTS_FILE=./local_hosts
-include .privatemakefileenvs
+#include .privatemakefileenvs
 
 # Build the Docker image
 build-image:
@@ -29,7 +29,7 @@ run-only-docker:
 
 #could be docker-compose instead of docker compose
 compose-run-start:
-	docker compose -f ./dockercompose/compose.yaml up -d
+	DOCKER_COMPOSE_COMMAND="docker compose" dockercompose/compose-run.sh dockercompose/compose.yaml
 
 compose-run-stop:
 	docker compose -f ./dockercompose/compose.yaml down

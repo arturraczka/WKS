@@ -2,6 +2,7 @@ from .base import *
 
 DEBUG = True
 ALLOWED_HOSTS = get_allowed_hosts(ALLOWED_HOSTS_CONFIG_PATH,["localhost", "127.0.0.1", "mylocal"])
+CSRF_TRUSTED_ORIGINS = [ f"https://*.{host}" for host in ALLOWED_HOSTS ]
 
 INSTALLED_APPS = [
     "django.contrib.admin",

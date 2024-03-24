@@ -3,7 +3,7 @@ import sentry_sdk
 
 DEBUG = False
 ALLOWED_HOSTS = get_allowed_hosts(ALLOWED_HOSTS_CONFIG_PATH,["koop-formularz.pl", "www.koop-formularz.pl", "64.226.70.181"])
-
+CSRF_TRUSTED_ORIGINS = [ f"https://*.{host}" for host in ALLOWED_HOSTS ]
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
