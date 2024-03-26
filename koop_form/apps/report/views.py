@@ -779,7 +779,7 @@ class ProductsExcessReportView(TemplateView):
     def get_products(self):
         self.products = filter_products_with_ordered_quantity_income_and_supply_income(
             Product, producer_id=None, filter_producer=False
-        ).exclude(Q(excess=0))
+        ).exclude(Q(excess=0)).filter(is_stocked=False)
 
     def get_product_names_and_excess(self):
         for product in self.products:
