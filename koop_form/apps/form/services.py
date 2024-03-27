@@ -132,14 +132,25 @@ def get_quantity_choices():
     """Generates choices for OrderItem quantity field."""
     choices = [
         (Decimal("0.000"), "0"),
+        (Decimal("100"), "100"),
+        (Decimal("25"), "25"),
+        (Decimal("35"), "35"),
+        (Decimal("45"), "45"),
     ]
 
-    for x in range(1, 10):
+    for x in range(1, 10):  # od 1 do 9
         choices.append((Decimal(f"0.0{x}0"), f"0.0{x}"))
-        choices.append((Decimal(f"0.{x}00"), f"0.{x}"))
+        choices.append((Decimal(f"1.{x}00"), f"1.{x}"))
+        choices.append((Decimal(f"2.{x}00"), f"2.{x}"))
         choices.append((Decimal(f"{x}.000"), f"{x}"))
-        choices.append((Decimal(f"{x}.500"), f"{x}.5"))
+        choices.append((Decimal(f"1{x}.000"), f"1{x}"))
         choices.append((Decimal(f"{x}0.000"), f"{x}0"))
+
+    for x in range(3, 10):  # od 3 do 9
+        choices.append((Decimal(f"{x}.5"), f"{x}.5"))
+
+    for x in range(10, 100):  # od 10 do 99
+        choices.append((Decimal(f"0.{x}0"), f"0.{x}"))
 
     return sorted(choices)
 
