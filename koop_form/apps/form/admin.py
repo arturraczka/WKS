@@ -107,6 +107,7 @@ class ProductResource(resources.ModelResource):
             "info",
             "quantity_in_stock",
             "is_active",
+            "is_stocked",
         )
 
 
