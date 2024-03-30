@@ -120,12 +120,12 @@ def create_order_data_list(products):
         order_data_list.append(order_data)
     return order_data_list
 
-
-def switch_products_isactive_bool_value(producer_instance):
-    """For a given producer instances sync related products is_active with producer's is_active"""
-    product_qs = producer_instance.products.all()
-    operator = True if producer_instance.is_active else False
-    product_qs.update(is_active=operator)
+# NOT IN USE
+# def switch_products_isactive_bool_value(producer_instance):
+#     """For a given producer instances sync related products is_active with producer's is_active"""
+#     product_qs = producer_instance.products.all()
+#     operator = True if producer_instance.is_active else False
+#     product_qs.update(is_active=operator)
 
 
 def get_quantity_choices():
@@ -271,7 +271,7 @@ def get_orderitems_query_with_related_order(orderitem_model, order_id):
 
 
 def check_if_form_is_open():
-    """Returns True if calling now() is between Friday 12:00 and Monday 20:00. Used as indicator to blocking POST
+    """Returns True if calling now() is between Saturday 12:00 and Monday 20:00. Used as indicator to blocking POST
     requests for Orders and OrderItems."""
     if settings.DEBUG:
         return True
