@@ -13,7 +13,7 @@ class FormOpenMixin:
         else:
             messages.warning(
                 self.request,
-                "Nie możesz już składać zamówień. Formularz zamyka się w poniedziałki o 20:00.",
+                "Zamówienia można składać od soboty od 12:00 do poniedziałku do 20:00.",
             )
             form = self.get_form()
             return self.form_invalid(form)
