@@ -164,9 +164,9 @@ class OrderItemAdmin(admin.ModelAdmin):
         "order",
     )
     list_filter = [
-        "order__user__last_name",
         "order__date_created",
         "order__order_number",
+        "order__user__last_name",
         "product__producer",
     ]
     list_display = [
