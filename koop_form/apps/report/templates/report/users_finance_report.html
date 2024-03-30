@@ -15,60 +15,54 @@
             <div class="col-md-3">
                 <span class="mr-2">Imię i nazwisko: </span>
                 {% for username in name_list %}
-                    <article class="media ">
-                      <div class="media-body">
-
-                        <div>
-                          <span class="mr-2">{{ username }}</span>
-                        </div>
-
-                      </div>
-                    </article>
+                    <div>
+                        <span class="mr-2">{{ username }}</span>
+                    </div>
                 {% endfor %}
             </div>
 
             <div class="col-md-4">
                 <span class="mr-2">E-mail: </span>
                 {% for email in email_list %}
-                    <article class="media ">
-                      <div class="media-body">
-
-                        <div>
-                          <span class="mr-2">{{ email }}</span>
-                        </div>
-
-                      </div>
-                    </article>
+                    <div>
+                        <span class="mr-2">{{ email }}</span>
+                    </div>
                 {% endfor %}
             </div>
 
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <span class="mr-2">Skrzynka: </span>
                 {% for number in order_number_list %}
-                    <article class="media ">
-                      <div class="media-body">
-
-                        <div>
-                          <span class="mr-2">{{ number }}</span>
-                        </div>
-
-                      </div>
-                    </article>
+                    <div>
+                        <span class="mr-2">{{ number }}</span>
+                    </div>
                 {% endfor %}
             </div>
 
-            <div class="col-md-2">
-                <span class="mr-2">Kwota zamówienia: </span>
+            <div class="col-md-1">
+                <span class="mr-2">Kwota: </span>
                 {% for cost in order_cost_list %}
-                    <article class="media ">
-                      <div class="media-body">
+                    <div>
+                        <span class="mr-2">{{ cost|format_decimal:2 }} zł</span>
+                    </div>
+                {% endfor %}
+            </div>
 
-                        <div>
-                          <span class="mr-2">{{ cost|format_decimal:2 }} zł</span>
-                        </div>
+            <div class="col-md-1">
+                <span class="mr-2">Fundusz: </span>
+                {% for fund in user_fund_list %}
+                    <div>
+                        <span class="mr-2">{{ fund }}</span>
+                    </div>
+                {% endfor %}
+            </div>
 
-                      </div>
-                    </article>
+            <div class="col-md-1">
+                <span class="mr-2">Finalnie: </span>
+                {% for cost_fund in order_cost_fund_list %}
+                    <div>
+                        <span class="mr-2">{{ cost_fund|format_decimal:2 }} zł</span>
+                    </div>
                 {% endfor %}
             </div>
 

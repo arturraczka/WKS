@@ -502,13 +502,16 @@ class UsersFinanceReportView(TemplateView):
             get_user_model()
             .objects.all()
             .select_related("userprofile")
-            .order_by("last_name")
+            .order_by("orders__order_number")
+            .filter(orders__date_created__gte=calculate_previous_weekday())
         )
 
         name_list = []
         order_cost_list = []
         email_list = []
         order_number_list = []
+        user_fund_list = []
+        order_cost_fund_list = []
 
         # # user który nic nie zamówił pojawia się w raporcie
         # for user in users:
@@ -543,12 +546,16 @@ class UsersFinanceReportView(TemplateView):
             else:
                 orderitems = order.orderitems.select_related("product")
                 try:
-                    order_cost = (
-                        calculate_order_cost(orderitems) * user.userprofile.fund
-                    )
+                    user_fund = user.userprofile.fund
                 except UserProfile.DoesNotExist:
-                    order_cost = calculate_order_cost(orderitems) * Decimal("1.3")
+                    user_fund = Decimal("1.3")
+                order_cost = calculate_order_cost(orderitems)
+                order_cost_fund = order_cost * user_fund
+
+            user_fund_list.append(user_fund)
             order_cost_list.append(order_cost)
+            order_cost_fund_list.append(order_cost_fund)
+
             email_list.append(user.email)
             name_list += (f"{user.last_name} {user.first_name}",)
             order_number_list.append(order.order_number)
@@ -556,6 +563,9 @@ class UsersFinanceReportView(TemplateView):
         context["email_list"] = email_list
         context["name_list"] = name_list
         context["order_cost_list"] = order_cost_list
+
+        context["user_fund_list"] = user_fund_list
+        context["order_cost_fund_list"] = order_cost_fund_list
         context["order_number_list"] = order_number_list
 
         return context
@@ -639,13 +649,23 @@ class UsersFinanceReportDownloadView(UsersFinanceReportView):
             headers=headers,
         )
         writer = csv.writer(response)
-        writer.writerow(["imię nazwisko", "koop ID", "kwota zamówienia"])
-        for name, email, order_cost in zip(
+        writer.writerow(["imie nazwisko", "koop ID", "kwota zamowienia", "fundusz", "kwota z funduszem", "numer skrzynki"])
+        for name, email, order_cost, fund, order_fund, number in zip(
             context["name_list"],
             context["email_list"],
             context["order_cost_list"],
+            context["user_fund_list"],
+            context["order_cost_fund_list"],
+            context["order_number_list"],
         ):
-            writer.writerow([name, email, str(order_cost).replace(".", ",")])
+            writer.writerow([
+                name,
+                email,
+                str(order_cost).replace(".", ","),
+                str(fund).replace(".", ","),
+                str(order_fund).replace(".", ","),
+                number,
+            ])
 
         return response
 
