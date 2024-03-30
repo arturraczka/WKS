@@ -136,6 +136,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         self.products = (
             Product.objects.filter(producer=self.producer)
             .filter(is_active=True)
+            .filter(producer__is_active=True)
             # .filter(~Q(quantity_in_stock=0))
             .order_by("category", "name")
             .prefetch_related(
@@ -508,6 +509,7 @@ def product_search_view(request):
                 Product.objects.filter(name__icontains=search_query)
                 .filter(~Q(quantity_in_stock=0))
                 .filter(is_active=True)
+                .filter(producer__is_active=True)
                 .order_by("-category", "price")
             )
 
@@ -542,6 +544,7 @@ class OrderProductsAllFormView(OrderProductsFormView):
     def get_products_queryset(self):
         self.products = (
             Product.objects.filter(is_active=True)
+            .filter(producer__is_active=True)
             # .filter(~Q(quantity_in_stock=0))
             .order_by("producer__name", "name")
             .prefetch_related(
