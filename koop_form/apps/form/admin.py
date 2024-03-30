@@ -113,7 +113,7 @@ class ProductResource(resources.ModelResource):
 
 class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [ProductResource]
-    list_filter = ["producer__name"]
+    list_filter = ["is_stocked", "is_active", "producer__name"]
     inlines = (ProductWeightSchemeInLine,)
     list_display = [
         "name",
@@ -130,7 +130,7 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_filter = ["user__last_name", "date_created"]
+    list_filter = ["date_created", "user__last_name"]
     list_display = ["user_last_name", "order_number", "date_created"]
     search_fields = [
         "user__last_name",
