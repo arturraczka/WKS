@@ -23,6 +23,7 @@ class UserResource(resources.ModelResource):
             "first_name",
             "last_name",
             "id",
+            "is_active",
         )
 
 
