@@ -717,7 +717,7 @@ class MassOrderBoxReportDownloadView(TemplateView):
             for item in orderitems:
                 product_ids += (item.product.id,)
                 orderitems_names += (item.product.name,)
-                orderitems_quantity += (str(item.quantity).rstrip("0").rstrip("."),)
+                orderitems_quantity += (str(item.quantity).rstrip("0").rstrip(".").replace(".", ","),)
 
             products = Product.objects.filter(id__in=product_ids).select_related(
                 "producer"
