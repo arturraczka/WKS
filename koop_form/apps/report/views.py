@@ -1,5 +1,6 @@
 import logging
 import csv
+import pandas as pd
 from decimal import Decimal
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -685,12 +686,16 @@ class MassOrderBoxReportDownloadView(TemplateView):
             content_type=self.content_type,
             headers=headers,
         )
-        writer = csv.writer(response)
+
+        # writer = csv.writer(response)
 
         previous_friday = calculate_previous_weekday()
         orders_queryset = Order.objects.filter(
             date_created__gt=previous_friday
         ).order_by("order_number")
+
+        data = {}
+        df = pd.DataFrame(data)
 
         for order in orders_queryset:
             try:
@@ -720,19 +725,24 @@ class MassOrderBoxReportDownloadView(TemplateView):
             for prod in products:
                 producer_short += (prod.producer.short,)
 
-            writer.writerow(
-                [
-                    f"{username}; skrzynka {order.order_number}; do zapłaty: {order_cost_with_fund} zł; fundusz {fund}",
-                ]
-            )
-            writer.writerow(["Producent", "Nazwa produktu", "Zamówiona ilość"])
-            for short, name, quantity in zip(
-                producer_short,
-                orderitems_names,
-                orderitems_quantity,
-            ):
-                writer.writerow([short, name, quantity])
+            first_row = pd.DataFrame({
+                f"skrzynka {order.order_number}": ["Producent"],
+                f"{username} do zapłaty {order_cost_with_fund} zł": ["Nazwa produktu"],
+                f"fundusz {fund}": ["Zamówiona ilość"],
+                "-": [" ",],
+            }, index=[0])
 
+            new_df = pd.DataFrame({
+                f"skrzynka {order.order_number}": producer_short,
+                f"{username} do zapłaty {order_cost_with_fund} zł": orderitems_names,
+                f"fundusz {fund}": orderitems_quantity,
+                "-": [" "] * len(producer_short),
+            })
+
+            joined_df = pd.concat([first_row, new_df], ignore_index=True)
+            df = pd.concat([df, joined_df], axis=1)
+
+        df.to_csv(response, index=False)
         return response
 
 

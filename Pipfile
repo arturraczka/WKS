@@ -23,6 +23,7 @@ gunicorn = "*"
 sentry-sdk = {extras = ["django"], version = "*"}
 psycopg = {extras = ["binary"], version = "*"}
 django-widget-tweaks = "*"
+pandas = "*"
 
 [dev-packages]
 pytest-django = "4.7.0"
