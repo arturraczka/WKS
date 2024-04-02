@@ -77,9 +77,16 @@ class ProductsView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["products"] = Product.objects.filter(
-            producer=context["producer"]
-        ).filter(is_active=True)
+        context["products"] = (
+            Product.objects.filter(producer=context["producer"])
+            .filter(is_active=True)
+            .prefetch_related(
+                "weight_schemes",
+                "statuses",
+            )
+            .select_related("producer")
+            .select_related("category")
+        )
         add_producer_list_to_context(context, Producer)
         return context
 

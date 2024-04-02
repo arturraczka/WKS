@@ -277,3 +277,24 @@ table tr:nth-child(odd) {
 .width-500 {
     margin-left: 180px;
 }
+
+.td-products td {
+    padding: 8px;
+    border: 1px solid #bbb;
+}
+
+.td-products td:nth-child(1) {
+    width: 60px;
+}
+
+.td-products td:nth-child(2) {
+    width: 110px;
+}
+
+.td-products td:nth-child(3) {
+    width: 400px;
+}
+
+.td-products td:nth-child(4) {
+    width: 630px;
+}
