@@ -211,6 +211,10 @@ class ProducersFinanceReportView(TemplateView):
         producers_names = []
         producers_incomes = []
         producers_supply_incomes = []
+
+        total_incomes = 0
+        total_supply_incomes = 0
+
         for producer in producers:
             products = filter_products_with_ordered_quantity_income_and_supply_income(
                 Product, producer
@@ -225,11 +229,13 @@ class ProducersFinanceReportView(TemplateView):
                 continue
             producers_names += (producer.short,)
             if total_income:
+                total_incomes += total_income
                 producers_incomes += (f"{total_income:.2f}",)
             else:
                 producers_incomes.append(Decimal("0"))
 
             if total_supply_income:
+                total_supply_incomes += total_supply_income
                 producers_supply_incomes += (f"{total_supply_income:.2f}",)
             else:
                 producers_supply_incomes.append(Decimal("0"))
@@ -237,6 +243,9 @@ class ProducersFinanceReportView(TemplateView):
         context["producers_incomes"] = producers_incomes
         context["producers_supply_incomes"] = producers_supply_incomes
         context["producers_names"] = producers_names
+
+        context["total_incomes"] = total_incomes
+        context["total_supply_incomes"] = total_supply_incomes
 
         return context
 
@@ -514,28 +523,6 @@ class UsersFinanceReportView(TemplateView):
         user_fund_list = []
         order_cost_fund_list = []
 
-        # # user który nic nie zamówił pojawia się w raporcie
-        # for user in users:
-        #     email_list.append(user.email)
-        #     name_list += (f"{user.first_name} {user.last_name}",)
-        #     try:
-        #         orderitems = (
-        #             Order.objects.filter(date_created__gte=calculate_previous_weekday())
-        #             .get(user=user)
-        #             .orderitems.select_related("product")
-        #         )
-        #     except ObjectDoesNotExist:
-        #         order_cost = 0
-        #     else:
-        #         try:
-        #             order_cost = (
-        #                 calculate_order_cost(orderitems) * user.userprofile.fund
-        #             )
-        #         except UserProfile.DoesNotExist:
-        #             order_cost = calculate_order_cost(orderitems) * Decimal("1.3")
-        #     order_cost_list.append(order_cost)
-
-        # user który nic nie zamówił nie pojawia się w raporcie
         for user in users:
             try:
                 order = (
@@ -543,6 +530,8 @@ class UsersFinanceReportView(TemplateView):
                     .get(user=user)
                 )
             except ObjectDoesNotExist:
+                continue
+            except Order.MultipleObjectsReturned:
                 continue
             else:
                 orderitems = order.orderitems.select_related("product")
