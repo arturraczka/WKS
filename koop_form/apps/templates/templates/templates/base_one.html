@@ -17,27 +17,48 @@
         <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top d-flex">
             <div class="container">
                 <a class="navbar-brand mr-4" href="{% url 'products' slug='pierwszy' %}">Koop</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarToggle">
-                    <div class="navbar-nav">
-                        <a class="nav-item nav-link" href="{% url 'products' slug='pierwszy' %}">Przegląd</a>
-                        <a class="nav-item nav-link" href="{% url 'order-create' %}">Nowe zamówienie</a>
-                        <a class="nav-item nav-link" href="{% url 'product-search' %}">Szukaj</a>
-                        <a class="nav-item nav-link" href="{% url 'order-products-form' slug='pierwszy' %}">Producenci</a>
-                        <a class="nav-item nav-link" href="{% url 'order-products-all-form' %}">Produkty</a>
-                    </div>
-                    <!-- Navbar Right Side -->
-                    <div class="navbar-nav navbar-right">
-                        <a class="nav-item nav-link" href="{% url 'order-update-form' %}">Moje zamówienie</a>
-                        <a class="nav-item nav-link" href="{% url 'login' %}">Zaloguj</a>
-                        <a class="nav-item nav-link " href="{% url 'logout' %}">Wyloguj</a>
+                    <!-- navbar left side -->
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'products' slug='pierwszy' %}">Przegląd</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'order-create' %}">Nowe zamówienie</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'product-search' %}">Szukaj</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'order-products-form' slug='pierwszy' %}">Producenci</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'order-products-all-form' %}">Produkty</a>
+                        </li>
+                    </ul>
+                    <!-- navbar right side -->
+                    <ul class="navbar-nav navbar-right ml-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'order-update-form' %}">Moje zamówienie</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">Zaloguj</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout' %}">Wyloguj</a>
+                        </li>
                         {% if user.is_staff %}
-                            <a class="nav-item nav-link " href="{% url 'producer-products-supplies-list' %}">Raporty</a>
-                            <a class="nav-item nav-link " href="{% url 'supply-create' %}">Dostawy</a>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'producer-products-supplies-list' %}">Raporty</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'supply-create' %}">Dostawy</a>
+                            </li>
                         {% endif %}
-                    </div>
+                    </ul>
                 </div>
             </div>
         </nav>
