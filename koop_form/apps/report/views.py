@@ -453,7 +453,7 @@ class OrderBoxReportView(OrderBoxListView):
         for item in orderitems:
             product_ids += (item.product.id,)
             orderitems_names += (item.product.name,)
-            orderitems_quantity += (str(item.quantity).rstrip("0").rstrip("."),)
+            orderitems_quantity.append(str(item.quantity).rstrip("0").rstrip(".").replace(".", ","))
 
         products = (
             Product.objects.filter(id__in=product_ids)
@@ -583,12 +583,10 @@ class MassProducerBoxReportDownloadView(TemplateView):
         products_producers = []
         products_quant_in_stock = []
         for product in products_qs:
-            products_names.append(product.name)
-            products_quantities.append(product.ordered_quantity)
+            products_names.append(str(product.name)[0:-5])
+            products_quantities.append(str(product.ordered_quantity).rstrip("0").rstrip(".").replace(".", ","))
             if product.quantity_in_stock:
-                products_quant_in_stock.append(
-                    product.quantity_in_stock + product.ordered_quantity
-                )
+                products_quant_in_stock.append(str(product.quantity_in_stock + product.ordered_quantity).rstrip("0").rstrip(".").replace(".", ","))
             else:
                 products_quant_in_stock.append(" ")
             products_producers.append(product.producer.short)
