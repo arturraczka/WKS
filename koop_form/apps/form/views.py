@@ -124,7 +124,6 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         self.paginated_products = None
         self.initial_data = []
         self.available_quantities_list = []
-        self.products_description = []
         self.products_weight_schemes = []
         self.product_count = 0
 
@@ -163,7 +162,6 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         for product in self.paginated_products:
             self.product_count += 1
             self.initial_data.append({"product": product.id, "order": self.order})
-            self.products_description.append(product.description)
             weight_schemes = []
             for scheme in product.weight_schemes.all():
                 weight_schemes.append(
@@ -206,7 +204,7 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         add_weight_schemes_as_choices_to_forms(
             context["form"], self.products_weight_schemes
         )
-        context["zipped"] = zip(self.paginated_products, context["form"], self.available_quantities_list, self.products_description)
+        context["zipped"] = zip(self.paginated_products, context["form"], self.available_quantities_list)
         return context
 
     def form_valid(self, form):

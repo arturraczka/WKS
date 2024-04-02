@@ -9,16 +9,17 @@
         {% csrf_token %}
         {{ management_form }}
         <table>
-            {% for product, form, quantity, desc in zipped %}
+            {% for product, form, quantity in zipped %}
               <tr class="row1">
                 <td>
+                    <div>{{ product.producer.short }}</div>
+                </td>
+                <td>
+                    <div>{{ product.price }} zł <br>za szt/kg</div>
+                </td>
+                <td>
+                    <div>{{ product.name|slice:":-5" }}</div>
                     <div>
-                      <span>{{ product }}</span>
-                    </div>
-
-                    <div>
-                      <span class="mr-2">{{ product.price }} zł za szt/kg</span>
-                      <span class="mr-2"> | Kat: {{ product.category }}, {{ product.subcategory }}</span>
                       {% if product.statuses.all %}
                           <span class="text-muted">Status: </span>
                           {% for status in product.statuses.all %}
@@ -35,12 +36,17 @@
                 </td>
                 <td>
                     {% if quantity is not None %}
-                        <span class="mr-2"> Max: {{ quantity|format_decimal:3 }} (szt/kg) </span>
+                        <span class="mr-2"> Max: {{ quantity|format_decimal:3 }} (szt/kg) </span>
                     {% else %}
                         <span> </span>
                     {% endif %}
                 </td>
-                <td>{{ desc }}</td>
+                <td>
+                    <div>
+                        {{ product.category }}, {{ product.subcategory }}:
+                        {{ product.description }}
+                    </div>
+                </td>
               </tr>
             {% endfor %}
         </table>
