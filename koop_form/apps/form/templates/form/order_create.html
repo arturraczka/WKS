@@ -1,20 +1,16 @@
 {% extends "templates/base_one.html" %}
 {% load crispy_forms_tags %}
-{% block content %}
 
-<div class="col-md-4">
+{% block content %}
+<div class="mx-a col-md-4">
     <div class="content-section">
-        <form method="post">
-            {% csrf_token %}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Stwórz zamówienie na najbliższy tydzień</legend>
-                {{ form|crispy }}
-            </fieldset>
-            <div class="form-group">
-                <button class="btn btn-outline-secondary" type="submit">Utwórz zamówienie</button>
-            </div>
-        </form>
+        {% if update %}
+            <h4 class="form-border-bottom mb-4">Edytuj dzień odbioru zamówienia</h4>
+        {% else %}
+            <h4 class="form-border-bottom mb-4">Stwórz zamówienie na najbliższy tydzień</h4>
+        {% endif %}
+        <hr>
+        {% crispy form %}
     </div>
 </div>
-
 {% endblock content%}

@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Q
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
@@ -29,6 +30,7 @@ from apps.form.forms import (
     UpdateOrderItemForm,
     UpdateOrderItemFormSet,
     SearchForm,
+    DeleteOrderForm,
 )
 from apps.form.services import (
     calculate_order_cost,
@@ -39,7 +41,10 @@ from apps.form.services import (
     get_orderitems_query,
     add_weight_schemes_as_choices_to_forms,
     get_orderitems_query_with_related_order,
-    add_producer_list_to_context, reduce_product_stock, alter_product_stock,
+    add_producer_list_to_context,
+    reduce_product_stock,
+    alter_product_stock,
+    calculate_order_number,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -72,9 +77,16 @@ class ProductsView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["products"] = Product.objects.filter(
-            producer=context["producer"]
-        ).filter(is_active=True)
+        context["products"] = (
+            Product.objects.filter(producer=context["producer"])
+            .filter(is_active=True)
+            .prefetch_related(
+                "weight_schemes",
+                "statuses",
+            )
+            .select_related("producer")
+            .select_related("category")
+        )
         add_producer_list_to_context(context, Producer)
         return context
 
@@ -112,7 +124,6 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         self.paginated_products = None
         self.initial_data = []
         self.available_quantities_list = []
-        self.products_description = []
         self.products_weight_schemes = []
         self.product_count = 0
 
@@ -131,15 +142,15 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         self.products = (
             Product.objects.filter(producer=self.producer)
             .filter(is_active=True)
+            .filter(producer__is_active=True)
             # .filter(~Q(quantity_in_stock=0))
             .order_by("category", "name")
             .prefetch_related(
                 "weight_schemes",
                 "statuses",
             )
-            .select_related(
-                "producer"
-            )
+            .select_related("producer")
+            .select_related("category")
         )
 
     def paginate_products(self):
@@ -151,7 +162,6 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         for product in self.paginated_products:
             self.product_count += 1
             self.initial_data.append({"product": product.id, "order": self.order})
-            self.products_description.append(product.description)
             weight_schemes = []
             for scheme in product.weight_schemes.all():
                 weight_schemes.append(
@@ -190,13 +200,11 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         context["producer"] = self.producer
         add_producer_list_to_context(context, Producer)
         context["management_form"] = context["form"].management_form
-        context["available_quantities_list"] = self.available_quantities_list
-        context["products_description"] = self.products_description
         context["paginated_products"] = self.paginated_products
-        context["products"] = self.paginated_products
         add_weight_schemes_as_choices_to_forms(
             context["form"], self.products_weight_schemes
         )
+        context["zipped"] = zip(self.paginated_products, context["form"], self.available_quantities_list)
         return context
 
     def form_valid(self, form):
@@ -215,7 +223,9 @@ class OrderProductsFormView(FormOpenMixin, FormView):
                         self.request,
                         f"{instance.product.name}: Produkt został dodany do zamówienia.",
                     )
-                    reduce_product_stock(Product, instance.product.id, instance.quantity)
+                    reduce_product_stock(
+                        Product, instance.product.id, instance.quantity
+                    )
         return super().form_valid(form)
 
 
@@ -231,12 +241,17 @@ class OrderCreateView(FormOpenMixin, SuccessMessageMixin, CreateView):
             return self.form_invalid(form)
 
         form.instance.user = self.request.user
+        form.instance.order_number = calculate_order_number(Order)
         return super().form_valid(form)
 
     def get_success_url(self):
-        producer = Producer.objects.all().order_by("name").first()
-        success_url = reverse("order-products-form", kwargs={"slug": producer.slug})
+        success_url = reverse("order-products-all-form")
         return success_url
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["update"] = False
+        return context
 
 
 @method_decorator(login_required, name="dispatch")
@@ -357,14 +372,21 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         for instance in formset:
             if instance.quantity == 0:
                 orderitem_db = OrderItem.objects.get(id=instance.id)
-                reduce_product_stock(Product, orderitem_db.product.id, orderitem_db.quantity, negative=True)
+                reduce_product_stock(
+                    Product,
+                    orderitem_db.product.id,
+                    orderitem_db.quantity,
+                    negative=True,
+                )
                 orderitem_db.delete()
                 continue
 
             if not perform_update_orderitem_validations(instance, self.request):
                 continue
 
-            alter_product_stock(Product, instance.product.id, instance.quantity, instance.id, OrderItem)
+            alter_product_stock(
+                Product, instance.product.id, instance.quantity, instance.id, OrderItem
+            )
             instance.save()
             messages.success(
                 self.request,
@@ -377,8 +399,8 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
 @method_decorator(login_required, name="dispatch")
 class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = Order
-    fields = ["pick_up_day"]
     template_name = "form/order_create.html"
+    form_class = CreateOrderForm
     success_url = reverse_lazy("order-update-form")
     success_message = "Dzień odbioru zamówienia został zmieniony."
 
@@ -386,12 +408,23 @@ class OrderUpdateView(UserPassesTestMixin, SuccessMessageMixin, UpdateView):
         order = get_object_or_404(Order, id=self.kwargs["pk"])
         return self.request.user == order.user
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({"update": True})
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["update"] = True
+        return context
+
 
 @method_decorator(login_required, name="dispatch")
 class OrderDeleteView(
     FormOpenMixin, UserPassesTestMixin, SuccessMessageMixin, DeleteView
 ):
     model = Order
+    form_class = DeleteOrderForm
     template_name = "form/order_delete.html"
     success_url = reverse_lazy("products", kwargs={"slug": "pierwszy"})
     success_message = "Zamówienie zostało usunięte."
@@ -399,6 +432,13 @@ class OrderDeleteView(
     def test_func(self):
         order = get_object_or_404(Order, id=self.kwargs["pk"])
         return self.request.user == order.user
+
+    def form_valid(self, form):
+        success_url = self.get_success_url()
+        for item in self.object.orderitems.all():
+            reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
+        self.object.delete()
+        return HttpResponseRedirect(success_url)
 
 
 @method_decorator(login_required, name="dispatch")
@@ -455,7 +495,9 @@ class OrderItemFormView(FormOpenMixin, FormView):
                     self.request,
                     f"{saved_form.product.name}: Produkt został dodany do zamówienia.",
                 )
-                reduce_product_stock(Product, saved_form.product.id, saved_form.quantity)
+                reduce_product_stock(
+                    Product, saved_form.product.id, saved_form.quantity
+                )
         return super().form_valid(saved_form)
 
 
@@ -472,6 +514,7 @@ def product_search_view(request):
                 Product.objects.filter(name__icontains=search_query)
                 .filter(~Q(quantity_in_stock=0))
                 .filter(is_active=True)
+                .filter(producer__is_active=True)
                 .order_by("-category", "price")
             )
 
@@ -491,7 +534,7 @@ def product_search_view(request):
 
 
 def main_page_redirect(request):
-    obj = Producer.objects.all().first()
+    obj = Producer.objects.filter(is_active=True).first()
     response = redirect(obj)
     return response
 
@@ -506,13 +549,14 @@ class OrderProductsAllFormView(OrderProductsFormView):
     def get_products_queryset(self):
         self.products = (
             Product.objects.filter(is_active=True)
+            .filter(producer__is_active=True)
             # .filter(~Q(quantity_in_stock=0))
             .order_by("producer__name", "name")
             .prefetch_related(
                 "weight_schemes",
                 "statuses",
             )
-            .select_related("producer")
+            .select_related("producer", "category")
         )
 
     def get_order_and_producer(self):

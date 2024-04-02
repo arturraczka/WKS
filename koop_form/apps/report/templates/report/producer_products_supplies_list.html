@@ -1,0 +1,20 @@
+{% extends "report/base_report_sidebar.html" %}
+
+{% block content %}
+<div class="col-md-9">
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Wybierz producenta, żeby wyświetlić cotygodniowy raport sprzedaży:</h3>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-5">
+            {% for producer in producers %}
+                  <div class="producer">
+                    <h5><a class="article-title" href="{% url 'producer-products-supplies-report' slug=producer.0 %}">{{ producer.1 }}</a></h5>
+                  </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock content%}

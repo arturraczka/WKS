@@ -1,5 +1,5 @@
 {% extends "report/base_report_sidebar.html" %}
-{% load custom_filters %}
+{% load static %}
 
 {% block content %}
     <div class="col-md-9">
@@ -22,61 +22,30 @@
         <div class="row">
 
             <div class="col-md-1">
-                <span class="mr-2">Producent: </span>
-                {% for short in producer_short %}
-                    <article class="media ">
-                      <div class="media-body">
-
-                        <div>
-                          <span class="mr-2">{{ short }}</span>
-                        </div>
-
-                      </div>
-                    </article>
-                {% endfor %}
+                <div>Producent: </div>
+                    {% for short in producer_short %}
+                        <div>{{ short }}</div>
+                    {% endfor %}
             </div>
 
             <div class="col-md-5">
-                <span class="mr-2">Nazwa produktu: </span>
-                {% for name in orderitems_names %}
-                    <article class="media ">
-                      <div class="media-body">
-
-                        <div>
-                          <span class="mr-2">{{ name }}</span>
-                        </div>
-
-                      </div>
-                    </article>
-                {% endfor %}
+                <div>Nazwa produktu: </div>
+                    {% for name in orderitems_names %}
+                        <div>{{ name }}</div>
+                    {% endfor %}
             </div>
 
             <div class="col-md-3">
-                <span class="mr-2">Zamówiona ilość: </span>
-                {% for quantity in orderitems_quantity %}
-                    <article class="media ">
-                      <div class="media-body">
-
-                        <div>
-                          <span class="mr-2">{{ quantity }}</span>
-                        </div>
-
-                      </div>
-                    </article>
-                {% endfor %}
+                <div>Zamówiona ilość: </div>
+                    {% for quantity in orderitems_quantity %}
+                        <div>{{ quantity }}</div>
+                    {% endfor %}
             </div>
-
         </div>
     </div>
-
-    <script>
-        function goToSelectedLink() {
-            var select = document.getElementById("producers");
-            var selectedOption = select.options[select.selectedIndex].value;
-            if (selectedOption) {
-                window.location.href = selectedOption;
-            }
-        }
-    </script>
 {% endblock content%}
 
+{% block javascript %}
+{{ block.super }}
+<script src="{% static 'js/go_to_producer.js' %}"></script>
+{% endblock javascript %}

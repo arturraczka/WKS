@@ -90,8 +90,8 @@
     <p class='text-muted'>Kwota z funduszem: <br> <strong>{{ order_cost_with_fund|floatformat:"2" }} zł.</strong></p>
     <p class='text-muted'>Numer skrzynki: {{ order.order_number }}.</p>
     <p class='text-muted'>Dzień odbioru: {{ order.pick_up_day }}.</p>
-    <a href="{% url 'order-update' pk=order.id %}" class="button">Zmień dzień odbioru</a>
-    <a href="{% url 'order-delete' pk=order.id %}" class="button">Usuń to zamówienie</a>
+    <a href="{% url 'order-update' pk=order.id %}" class="btn btn-primary">Zmień dzień odbioru</a>
+    <a href="{% url 'order-delete' pk=order.id %}" class="btn btn-primary">Usuń to zamówienie</a>
   </div>
 </div>
 

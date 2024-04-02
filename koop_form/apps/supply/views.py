@@ -2,13 +2,17 @@ import logging
 
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.contrib.auth.decorators import user_passes_test
+from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.forms import modelformset_factory
 from django.views.generic import (
     CreateView,
     FormView,
+    TemplateView,
+    DeleteView,
 )
 
 from apps.form.models import Producer, Product
@@ -19,10 +23,13 @@ from apps.supply.forms import (
     CreateSupplyItemFormSet,
     CreateSupplyItemForm,
     UpdateSupplyItemFormSet,
-    UpdateSupplyItemForm,
+    UpdateSupplyItemForm, DeleteSupplyForm,
 )
 from apps.form.services import (
-    staff_check, alter_product_stock,
+    staff_check,
+    alter_product_stock,
+    reduce_product_stock,
+    calculate_previous_weekday, filter_products_with_ordered_quantity_income_and_supply_income,
 )
 
 
@@ -125,7 +132,9 @@ class SupplyProductsFormView(FormView):
                     )
 
                 else:
-                    alter_product_stock(Product, instance.product.id, instance.quantity, instance.id, SupplyItem, negative=True)
+                    reduce_product_stock(
+                        Product, instance.product.id, instance.quantity, negative=True
+                    )
                     instance.save()
                     messages.success(
                         self.request,
@@ -135,7 +144,6 @@ class SupplyProductsFormView(FormView):
         return super().form_valid(form)
 
 
-# NOT IN USE ##################################################################
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class SupplyUpdateFormView(FormView):
     model = SupplyItem
@@ -195,11 +203,22 @@ class SupplyUpdateFormView(FormView):
     def form_valid(self, form):
         formset = form.save(commit=False)
         for instance in formset:
-            # TODO dodać alter_product_stock() tak jak w SupplyItemAdminie
-            # TODO tak naprawdę można przekopiować logikę z OrderUpdateFormView
+            if instance.quantity == 0:
+                supplyitem_db = SupplyItem.objects.get(id=instance.id)
+                reduce_product_stock(
+                    Product, supplyitem_db.product.id, supplyitem_db.quantity
+                )
+                supplyitem_db.delete()
+                continue
 
-            # if not perform_update_orderitem_validations(instance, self.request):
-            #     return self.form_invalid(form)
+            alter_product_stock(
+                Product,
+                instance.product.id,
+                instance.quantity,
+                instance.id,
+                SupplyItem,
+                negative=True,
+            )
             instance.save()
             messages.success(
                 self.request,
@@ -208,4 +227,73 @@ class SupplyUpdateFormView(FormView):
         return super().form_valid(form)
 
 
-# NOT IN USE ###########################################################
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class SupplyListView(TemplateView):
+    template_name = "supply/supply_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        previous_friday = calculate_previous_weekday()
+        supply_list = Supply.objects.filter(date_created__gte=previous_friday)
+        context["supply_list"] = supply_list
+        return context
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class SupplyDeleteView(SuccessMessageMixin, DeleteView):
+    model = Supply
+    template_name = "supply/supply_delete.html"
+    form_class = DeleteSupplyForm
+    success_message = "Dostawa została usunięte."
+    success_url = reverse_lazy("supply-list")
+
+    def __init__(self):
+        self.producer = None
+
+    def get_object(self, queryset=None):
+        self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+        supply = (
+            Supply.objects.filter(producer=self.producer)
+            .order_by("-date_created")
+            .first()
+        )
+        return supply
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["slug"] = self.kwargs["slug"]
+        context["producer"] = self.producer.short
+        return context
+
+    def form_valid(self, form):
+        success_url = self.get_success_url()
+        for item in self.object.supplyitems.all():
+            reduce_product_stock(Product, item.product.id, item.quantity)
+        self.object.delete()
+        return HttpResponseRedirect(success_url)
+
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class SupplyFromOrdersCreateView(SupplyCreateView):
+    success_message = "Dostawa została utworzona."
+    template_name = "supply/supply_create_from_orders.html"
+
+    def form_valid(self, form):
+        if validate_supply_exists(Supply, form.instance.producer):
+            messages.warning(
+                self.request,
+                f"{form.instance.producer}: Ten producent ma już dostawę na ten tydzień.",
+            )
+            return self.form_invalid(form)
+        form.instance.user = self.request.user
+        self.object = form.save()
+
+        supply = Supply.objects.get(id=self.object.id)
+        producer = Producer.objects.get(id=form.instance.producer.id)
+        products = filter_products_with_ordered_quantity_income_and_supply_income(
+            Product, form.instance.producer.id).filter(ordered_quantity__gt=0)
+        for product in products:
+            if not product.is_stocked:
+                SupplyItem.objects.create(supply=supply, product=product, quantity=product.ordered_quantity)
+        return HttpResponseRedirect(reverse_lazy("supply-update-form", kwargs={"slug": producer.slug}))

@@ -1,0 +1,28 @@
+{% extends "supply/base_supply_sidebar.html" %}
+{% load custom_filters %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="col-md-9">
+    <h3>Wybierz dostawę, aby móc ją edytować:</h3>
+    <div class="row">
+        <div class="col-md-5 position-fix-2">
+            {% if supply_list %}
+                {% for supply in supply_list %}
+                    <article class="media fixed-height-small">
+                      <div class="media-body">
+                        <div class="article-metadata">
+                            <h5><a class="article-title" href="{% url 'supply-products-form' slug=supply.producer.slug %}">{{ supply }}</a></h5>
+                        </div>
+                      </div>
+                    </article>
+                {% endfor %}
+            {% else %}
+                <div>
+                    <span>Brak dostaw.</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content%}

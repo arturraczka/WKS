@@ -1,7 +1,7 @@
 from django.urls import path
 
 from apps.report.views import (
-    ProducerProductsReportView,
+    ProducerProductsSuppliesReportView,
     ProducerBoxReportView,
     UsersReportView,
     ProducerBoxListView,
@@ -9,23 +9,34 @@ from apps.report.views import (
     ProducerBoxReportDownloadView,
     UsersReportDownloadView,
     ProducersFinanceReportDownloadView,
-    ProducerProductsReportDownloadView,
+    ProducerProductsSuppliesReportDownloadView,
     OrderBoxListView,
     OrderBoxReportView,
     OrderBoxReportDownloadView,
     UsersFinanceReportView,
-    ProducerProductsListView,
+    ProducerProductsSuppliesListView,
     MassProducerBoxReportDownloadView,
     UsersFinanceReportDownloadView,
-    MassOrderBoxReportDownloadView,
+    MassOrderBoxReportDownloadView, ProducerProductsReportView, ProducerProductsReportDownloadView,
+    ProducerProductsListView, ProductsExcessReportView,
 )
 
 
 urlpatterns = [
     path(
+        "producenci-produkty-dostawy/",
+        ProducerProductsSuppliesListView.as_view(),
+        name="producer-products-supplies-list",
+    ),
+    path(
         "producenci-produkty/",
         ProducerProductsListView.as_view(),
         name="producer-products-list",
+    ),
+    path(
+        "producenci-produkty-dostawy/<str:slug>/",
+        ProducerProductsSuppliesReportView.as_view(),
+        name="producer-products-supplies-report",
     ),
     path(
         "producenci-produkty/<str:slug>/",
@@ -68,6 +79,11 @@ urlpatterns = [
         name="producers-finance-report-download",
     ),
     path(
+        "pobierz/producenci-produkty-dostawy/<str:slug>/",
+        ProducerProductsSuppliesReportDownloadView.as_view(),
+        name="producer-products-supplies-report-download",
+    ),
+    path(
         "pobierz/producenci-produkty/<str:slug>/",
         ProducerProductsReportDownloadView.as_view(),
         name="producer-products-report-download",
@@ -106,5 +122,10 @@ urlpatterns = [
         "pobierz/wszystkie-zamowienia-skrzynki/",
         MassOrderBoxReportDownloadView.as_view(),
         name="mass-order-box-report-download",
+    ),
+    path(
+        "nadwyzki/",
+        ProductsExcessReportView.as_view(),
+        name="excess-report",
     ),
 ]

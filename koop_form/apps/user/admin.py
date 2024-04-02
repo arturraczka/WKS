@@ -23,12 +23,19 @@ class UserResource(resources.ModelResource):
             "first_name",
             "last_name",
             "id",
+            "is_active",
         )
 
 
 class UserAdmin(ImportExportModelAdmin):
     resource_classes = [UserResource]
     inlines = [UserProfileInline]
+    list_display = ["last_name", "first_name", "email", "is_active", "is_staff"]
+    list_editable = []
+    search_fields = [
+        "last_name",
+        "email",
+    ]
 
 
 class UserProfileResource(resources.ModelResource):

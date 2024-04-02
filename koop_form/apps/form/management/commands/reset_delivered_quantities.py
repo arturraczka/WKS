@@ -5,6 +5,7 @@ import logging
 logger = logging.getLogger("django.server")
 
 
+# NOT IN USE
 class Command(BaseCommand):
     help = "Sets quantity_delivered_this_week attribute of all Products to 0"
 

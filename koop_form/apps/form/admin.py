@@ -10,13 +10,23 @@ from apps.form.models import (
     Product,
     Order,
     OrderItem,
-    product_weight_schemes, Category,
+    product_weight_schemes,
+    Category,
 )
-from apps.form.services import calculate_previous_weekday, reduce_product_stock, alter_product_stock
+from apps.form.services import (
+    calculate_previous_weekday,
+    reduce_product_stock,
+    alter_product_stock, calculate_order_number,
+)
 
 
 class ProductWeightSchemeInLine(admin.TabularInline):
     model = product_weight_schemes
+    extra = 1
+
+
+class OrderItemInLine(admin.TabularInline):
+    model = OrderItem
     extra = 1
 
 
@@ -60,9 +70,11 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 product=product, item_ordered_date__gt=calculate_previous_weekday()
             )
             for item in orderitems:
+                reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
                 item.delete()
 
     def not_arrived_deletes_related_orderitems(self, instance):
+        """If Producer.not_arrived equal True, then proceeds to remove """
         if instance.not_arrived:
             self.perform_delete(instance)
             instance.not_arrived = False
@@ -95,14 +107,22 @@ class ProductResource(resources.ModelResource):
             "info",
             "quantity_in_stock",
             "is_active",
+            "is_stocked",
         )
 
 
 class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [ProductResource]
-    list_filter = ["producer__name"]
+    list_filter = ["is_stocked", "is_active", "producer__name"]
     inlines = (ProductWeightSchemeInLine,)
-    list_display = ["name", "price", "producer", "category", "quantity_in_stock", "is_active"]
+    list_display = [
+        "name",
+        "price",
+        "producer",
+        "category",
+        "quantity_in_stock",
+        "is_active",
+    ]
     list_editable = ["price", "is_active", "quantity_in_stock"]
     search_fields = [
         "name",
@@ -110,15 +130,32 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_filter = ["user__last_name", "date_created"]
+    list_filter = ["date_created", "user__last_name"]
     list_display = ["user_last_name", "order_number", "date_created"]
     search_fields = [
         "user__last_name",
     ]
+    inlines = (OrderItemInLine,)
 
     @admin.display(description="User last name")
     def user_last_name(self, obj):
         return f"{obj.user.last_name}"
+
+    def delete_model(self, request, obj):
+        for item in obj.orderitems.all():
+            reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
+        obj.delete()
+
+    def delete_queryset(self, request, queryset):
+        for order in queryset:
+            for item in order.orderitems.all():
+                reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
+        queryset.delete()
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.order_number = calculate_order_number(Order)
+        super().save_model(request, obj, form, change)
 
 
 class OrderItemAdmin(admin.ModelAdmin):
@@ -127,9 +164,10 @@ class OrderItemAdmin(admin.ModelAdmin):
         "order",
     )
     list_filter = [
-        "order__user__last_name",
         "order__date_created",
         "order__order_number",
+        "order__user__last_name",
+        "product__producer",
     ]
     list_display = [
         "producer_short",
@@ -163,7 +201,9 @@ class OrderItemAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if change:
-            alter_product_stock(Product, obj.product.id, obj.quantity, obj.id, OrderItem)
+            alter_product_stock(
+                Product, obj.product.id, obj.quantity, obj.id, OrderItem
+            )
         else:
             reduce_product_stock(Product, obj.product.id, obj.quantity)
         super().save_model(request, obj, form, change)
@@ -171,6 +211,11 @@ class OrderItemAdmin(admin.ModelAdmin):
     def delete_model(self, request, obj):
         reduce_product_stock(Product, obj.product.id, obj.quantity, negative=True)
         super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        for item in queryset:
+            reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
+        queryset.delete()
 
 
 class CategoryAdmin(admin.ModelAdmin):

@@ -1,70 +1,57 @@
 {% extends "form/base_order_sidebar.html" %}
 {% load custom_filters %}
-
+{% load crispy_forms_tags %}
 {% block content %}
 
 {% block products %}
-    <div class="row">
-        <div class="col-md-4">
-                {% for product in products %}
-                      <div class="border-bottom">
-                        <div>
-                          <span>{{ product }}</span>
-                        </div>
-
-                        <div>
-                          <span class="mr-2">{{ product.price }} zł za szt/kg</span>
-                          <span class="mr-2"> | Kat: {{ product.category }}, {{ product.subcategory }} |</span>
+<div class="row">
+    <form method="post">
+        {% csrf_token %}
+        {{ management_form }}
+        <table>
+            {% for product, form, quantity in zipped %}
+              <tr class="row1">
+                <td>
+                    <div>{{ product.producer.short }}</div>
+                </td>
+                <td>
+                    <div>{{ product.price }} zł <br>za szt/kg</div>
+                </td>
+                <td>
+                    <div>{{ product.name|slice:":-5" }}</div>
+                    <div>
+                      {% if product.statuses.all %}
                           <span class="text-muted">Status: </span>
                           {% for status in product.statuses.all %}
                             <span class="text-muted"><strong>{{ status }},</strong></span>
                           {% endfor %}
-                        </div>
-                      </div>
-                {% endfor %}
-        </div>
-
-        <div class="col-md-2">
-            <form method="post">
-                {% csrf_token %}
-                {{ management_form }}
-                {% for form_instance in form %}
-                      <div class="border-bottom">
-                        <div>
-                          {{ form_instance }}
-                          <input type="submit" name="submit" value="Dodaj">
-                        </div>
-                      </div>
-                {% endfor %}
-            </form>
-        </div>
-
-        <div class="col-md-2">
-                {% for quantity in available_quantities_list %}
-                      <div class="border-bottom">
-                        <div>
-                            {% if quantity is not None %}
-                                <span class="mr-2"> Max: {{ quantity|format_decimal:3 }} (sztuk lub kg) </span>
-                            {% else %}
-                                <span> </span>
-                            {% endif %}
-                        </div>
-                      </div>
-                {% endfor %}
-        </div>
-
-        <div class="col-md-4">
-                {% for desc in products_description %}
-                      <div class="border-bottom">
-
-                        <div>
-                          <span class="mr-2">{{ desc }}</span>
-                        </div>
-
-                      </div>
-                {% endfor %}
-        </div>
-    </div>
+                      {% endif %}
+                    </div>
+                </td>
+                <td>
+                    {% crispy form %}
+                </td>
+                <td>
+                    <input class="btn btn-primary btn-margin-fix" type="submit" name="submit" value="Dodaj">
+                </td>
+                <td>
+                    {% if quantity is not None %}
+                        <span class="mr-2"> Max: {{ quantity|format_decimal:3 }} (szt/kg) </span>
+                    {% else %}
+                        <span> </span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div>
+                        {{ product.category }}, {{ product.subcategory }}:
+                        {{ product.description }}
+                    </div>
+                </td>
+              </tr>
+            {% endfor %}
+        </table>
+    </form>
+</div>
 {% endblock products %}
 
 {% endblock content %}

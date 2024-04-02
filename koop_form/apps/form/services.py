@@ -5,8 +5,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.db.models import Sum
 from django.contrib.messages import get_messages
-from django.db.models import Q
-from django.db.models import Case, When, F
+from django.db.models import Case, When, F, Q
 
 logger = logging.getLogger("django.server")
 
@@ -121,26 +120,37 @@ def create_order_data_list(products):
         order_data_list.append(order_data)
     return order_data_list
 
-
-def switch_products_isactive_bool_value(producer_instance):
-    """For a given producer instances sync related products is_active with producer's is_active"""
-    product_qs = producer_instance.products.all()
-    operator = True if producer_instance.is_active else False
-    product_qs.update(is_active=operator)
+# NOT IN USE
+# def switch_products_isactive_bool_value(producer_instance):
+#     """For a given producer instances sync related products is_active with producer's is_active"""
+#     product_qs = producer_instance.products.all()
+#     operator = True if producer_instance.is_active else False
+#     product_qs.update(is_active=operator)
 
 
 def get_quantity_choices():
     """Generates choices for OrderItem quantity field."""
     choices = [
         (Decimal("0.000"), "0"),
+        (Decimal("100"), "100"),
+        (Decimal("25"), "25"),
+        (Decimal("35"), "35"),
+        (Decimal("45"), "45"),
     ]
 
-    for x in range(1, 10):
+    for x in range(1, 10):  # od 1 do 9
         choices.append((Decimal(f"0.0{x}0"), f"0.0{x}"))
-        choices.append((Decimal(f"0.{x}00"), f"0.{x}"))
+        choices.append((Decimal(f"1.{x}00"), f"1.{x}"))
+        choices.append((Decimal(f"2.{x}00"), f"2.{x}"))
         choices.append((Decimal(f"{x}.000"), f"{x}"))
-        choices.append((Decimal(f"{x}.500"), f"{x}.5"))
+        choices.append((Decimal(f"1{x}.000"), f"1{x}"))
         choices.append((Decimal(f"{x}0.000"), f"{x}0"))
+
+    for x in range(3, 10):  # od 3 do 9
+        choices.append((Decimal(f"{x}.5"), f"{x}.5"))
+
+    for x in range(10, 100):  # od 10 do 99
+        choices.append((Decimal(f"0.{x}0"), f"0.{x}"))
 
     return sorted(choices)
 
@@ -195,18 +205,18 @@ def add_choices_to_form(form, product):
 
 
 def filter_products_with_ordered_quantity_income_and_supply_income(
-    product_model, producer_id
+    product_model, producer_id, filter_producer=True
 ):
     """Returns a Product QS filtered for a given Producer instance, ordered by name, with annotated: ordered_quantity,
     income, supply_quantity, supply_income and excess. Limits resulting QS to fields: name, orderitems__quantity and
     supplyitems__quantity."""
     previous_friday = calculate_previous_weekday()
-    products = (
-        product_model.objects.only(
-            "name", "orderitems__quantity", "supplyitems__quantity"
-        )
-        .filter(producer=producer_id)
-        .annotate(
+    products = product_model.objects.only("name", "orderitems__quantity", "supplyitems__quantity")
+
+    if filter_producer:
+        products = products.filter(producer=producer_id)
+
+    annotated_products = products.annotate(
             ordered_quantity=Sum(
                 Case(
                     When(
@@ -226,11 +236,9 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
             ),
             supply_income=F("supply_quantity") * F("price"),
             excess=F("supply_quantity") - F("ordered_quantity"),
-        )
-        .distinct()
-        .order_by("name")
-    )
-    return products
+        ).distinct().order_by("name")
+
+    return annotated_products
 
 
 def get_users_last_order(order_model, request_user):
@@ -263,7 +271,7 @@ def get_orderitems_query_with_related_order(orderitem_model, order_id):
 
 
 def check_if_form_is_open():
-    """Returns True if calling now() is between Friday 12:00 and Monday 20:00. Used as indicator to blocking POST
+    """Returns True if calling now() is between Saturday 12:00 and Monday 20:00. Used as indicator to blocking POST
     requests for Orders and OrderItems."""
     if settings.DEBUG:
         return True
@@ -276,14 +284,16 @@ def check_if_form_is_open():
 
 def reduce_product_stock(product_model, product_id, quantity, negative=False):
     """Reduces Product.quantity_in_stock according to OrderItem or SupplyItem quantity being saved.
-    If negative=True, increases instead of reducing. """
+    If negative=True, increases instead of reducing."""
     product_instance = product_model.objects.filter(id=product_id)
     if negative:
-        quantity = - quantity
-    product_instance.update(quantity_in_stock=F('quantity_in_stock') - quantity)
+        quantity = -quantity
+    product_instance.update(quantity_in_stock=F("quantity_in_stock") - quantity)
 
 
-def alter_product_stock(product_model, product_id, new_quantity, model_id, model, negative=False):
+def alter_product_stock(
+    product_model, product_id, new_quantity, model_id, model, negative=False
+):
     """Increases or decreases Product.quantity_in_stock according to OrderItem or SupplyItem quantity changes.
     If negative=True, reverses the action."""
     model_instance = model.objects.get(id=model_id)
@@ -291,5 +301,7 @@ def alter_product_stock(product_model, product_id, new_quantity, model_id, model
     old_quantity = model_instance.quantity
     quantity_difference = new_quantity - old_quantity
     if negative:
-        quantity_difference = - quantity_difference
-    product_instance.update(quantity_in_stock=F('quantity_in_stock') - quantity_difference)
+        quantity_difference = -quantity_difference
+    product_instance.update(
+        quantity_in_stock=F("quantity_in_stock") - quantity_difference
+    )

@@ -3,7 +3,7 @@
 {% load custom_filters %}
 
 {% block content %}
-<div class="col-md-7">
+<div class="col-md-9" xmlns="http://www.w3.org/1999/html">
     <h4>Przeglądanie produktów. Wybrany producent:</h4>
     <h3><strong>{{ producer.name }}</strong></h3>
     <p>{{ producer.description }}</p>
@@ -26,19 +26,37 @@
         {% endif %}
     </div>
 
-    {% for product in products %}
-      <div class="section-product">
-        <div>
-          <span class="border-1">{{ product.name }}</span>
-          <span class="mr-2"><strong>  {{ product.price }}</strong> zł za szt/kg</span>
-          <span class="mr-2"> | Kat: {{ product.category }}</span>
-        </div>
+    <table class="td-products">
+        {% for product in products %}
+          <tr class="row1">
+            <td>
+                <div>{{ product.producer.short }}</div>
+            </td>
+            <td>
+                <div>{{ product.price }} zł <br>za szt/kg</div>
+            </td>
+            <td>
+                <div>{{ product.name|slice:":-5" }}</div>
+                <div>
+                  {% if product.statuses.all %}
+                      <span class="text-muted">Status: </span>
+                      {% for status in product.statuses.all %}
+                        <span class="text-muted"><strong>{{ status }},</strong></span>
+                      {% endfor %}
+                  {% endif %}
+                </div>
+            </td>
+            <td>
+                <div>
+                    {{ product.category }}, {{ product.subcategory }}:
+                    {{ product.description }}
+                </div>
+            </td>
+          </tr>
+        {% endfor %}
+    </table>
 
-        <div>
-          <span class="">{{ product.description }}</span>
-        </div>
-      </div>
-    {% endfor %}
+
 </div>
 {% endblock content%}
 
@@ -47,5 +65,5 @@
 
 {% block javascript %}
 {{ block.super }}
-<script src="{% static 'form/js/go_to_producer.js' %}"></script>
+<script src="{% static 'js/go_to_producer.js' %}"></script>
 {% endblock javascript %}

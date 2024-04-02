@@ -1,3 +1,5 @@
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
 from django.forms import (
     ModelForm,
     HiddenInput,
@@ -6,6 +8,23 @@ from django.forms import (
 )
 
 from apps.supply.models import Supply, SupplyItem
+
+
+class DeleteSupplyForm(ModelForm):
+    form_html = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.include_media = True
+        self.helper.form_class = ""
+        self.helper.tag = None
+        self.helper.wrapper_class = None
+        self.helper.add_input(Submit("submit", "Usuń"))
+
+    class Meta:
+        model = Supply
+        fields = []
 
 
 class CreateSupplyForm(ModelForm):
@@ -20,6 +39,12 @@ class CreateSupplyForm(ModelForm):
         producers = kwargs.pop("producers")
         super().__init__(*args, **kwargs)
         self.fields["producer"].queryset = producers
+        self.helper = FormHelper(self)
+        self.helper.include_media = True
+        self.helper.form_class = ""
+        self.helper.tag = None
+        self.helper.wrapper_class = None
+        self.helper.add_input(Submit("submit", "Utwórz dostawę"))
 
 
 class CreateSupplyItemForm(ModelForm):

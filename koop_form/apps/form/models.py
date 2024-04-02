@@ -14,7 +14,7 @@ logger = logging.getLogger("django.server")
 
 class Producer(models.Model):
     name = models.CharField(unique=True)
-    short = models.CharField(default="test")
+    short = models.CharField(default="test")  # to powinno być unique and indexed
     slug = models.CharField(unique=True, blank=True)
     description = models.TextField(max_length=1000)
     order = models.IntegerField(
@@ -28,6 +28,8 @@ class Producer(models.Model):
     order_deadline = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        verbose_name = "Producent"
+        verbose_name_plural = "Producenci"
         ordering = ["name"]
 
     def __str__(self):
@@ -45,6 +47,8 @@ class WeightScheme(models.Model):
     quantity = models.DecimalField(max_digits=6, decimal_places=3, unique=True)
 
     class Meta:
+        verbose_name = "Schemat wagowy"
+        verbose_name_plural = "Schematy wagowe"
         ordering = ["quantity"]
 
     def __str__(self):
@@ -56,6 +60,8 @@ class Status(models.Model):
     desc = models.TextField()
 
     class Meta:
+        verbose_name = "Status"
+        verbose_name_plural = "Statusy"
         ordering = ["status_type"]
 
     def __str__(self):
@@ -64,6 +70,10 @@ class Status(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=24, unique=True)
+
+    class Meta:
+        verbose_name = "Kategoria"
+        verbose_name_plural = "Kategorie"
 
     def __str__(self):
         return self.name
@@ -97,17 +107,21 @@ class Product(models.Model):
     )
     is_active = models.BooleanField(default=True)
     statuses = models.ManyToManyField(Status, related_name="products", blank=True)
-    category = models.ForeignKey(Category, related_name="products", on_delete=models.PROTECT, null=True)
+    category = models.ForeignKey(
+        Category, related_name="products", on_delete=models.PROTECT, null=True
+    )
     subcategory = models.CharField(null=True, blank=True)
     unit = models.CharField(choices=unit_choices)
     info = models.TextField(max_length=255, null=True, blank=True)
     is_stocked = models.BooleanField(default=False)
 
     class Meta:
+        verbose_name = "Produkt"
+        verbose_name_plural = "Produkty"
         ordering = ["name"]
 
     def __str__(self):
-        return f"{self.producer.short}: {self.name}"
+        return f"{self.name}"
 
 
 class product_weight_schemes(models.Model):
@@ -117,6 +131,7 @@ class product_weight_schemes(models.Model):
     def __str__(self):
         return f"{self.product}: " f"{self.weightscheme}"
 
+# TODO dodać resztę , verbose_name= powyżej
 
 class Order(models.Model):
     PICKUP_CHOICES = [
@@ -124,16 +139,18 @@ class Order(models.Model):
         ("czwartek", "czwartek"),
     ]
 
-    user = models.ForeignKey(ModelUser, on_delete=models.CASCADE, related_name="orders")
+    user = models.ForeignKey(ModelUser, on_delete=models.CASCADE, related_name="orders", verbose_name="użytkownik")
     products = models.ManyToManyField(
-        Product, through="OrderItem", related_name="orders", blank=True
+        Product, through="OrderItem", related_name="orders", blank=True, verbose_name="produkty"
     )
-    pick_up_day = models.CharField(max_length=10, choices=PICKUP_CHOICES)
-    date_created = models.DateTimeField(auto_now_add=True)
+    pick_up_day = models.CharField(max_length=10, choices=PICKUP_CHOICES, verbose_name="dzień odbioru")
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name="utworzono")
     is_given = models.BooleanField(default=False)  # do I need this?
-    order_number = models.IntegerField(blank=True)
+    order_number = models.IntegerField(blank=True, verbose_name="numer zamówienia")
 
     class Meta:
+        verbose_name = "Zamówienie"
+        verbose_name_plural = "Zamówienia"
         ordering = ["-date_created"]
         indexes = [
             models.Index(fields=["date_created"]),
@@ -150,17 +167,19 @@ class OrderItem(models.Model):
     QUANTITY_CHOICES = get_quantity_choices()
 
     order = models.ForeignKey(
-        Order, on_delete=models.CASCADE, related_name="orderitems"
+        Order, on_delete=models.CASCADE, related_name="orderitems", verbose_name="zamówienie"
     )
     product = models.ForeignKey(
-        Product, on_delete=models.CASCADE, related_name="orderitems"
+        Product, on_delete=models.CASCADE, related_name="orderitems", verbose_name="produkt"
     )
     quantity = models.DecimalField(
-        max_digits=6, decimal_places=3, choices=QUANTITY_CHOICES
+        max_digits=6, decimal_places=3, choices=QUANTITY_CHOICES, verbose_name="ilość"
     )
-    item_ordered_date = models.DateTimeField(auto_now_add=True)
+    item_ordered_date = models.DateTimeField(auto_now_add=True, verbose_name="utworzono")
 
     class Meta:
+        verbose_name = "Produkt w zamówieniu"
+        verbose_name_plural = "Produkty w zamówieniu"
         ordering = ["product"]
         indexes = [
             models.Index(fields=["order", "product"]),

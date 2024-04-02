@@ -1,15 +1,10 @@
 import logging
 
-from django.db.models.signals import post_save, pre_save, pre_delete
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
-from apps.form.models import WeightScheme, Product, OrderItem, Order, Producer
-from apps.form.services import (
-    calculate_order_number,
-    recalculate_order_numbers,
-    # set_products_quantity_to_0,
-    switch_products_isactive_bool_value,
-)
+from apps.form.models import WeightScheme, Product, Order
+from apps.form.services import recalculate_order_numbers
 
 
 logger = logging.getLogger("django.server")
@@ -41,10 +36,10 @@ def add_zero_as_weight_scheme(sender, instance, **kwargs):
 #             instance.quantity_delivered_this_week = -1
 
 
-@receiver(pre_save, sender=Order)
-def assign_order_number(sender, instance, **kwargs):
-    if instance.order_number is None:
-        instance.order_number = calculate_order_number(sender)
+# @receiver(pre_save, sender=Order)
+# def assign_order_number(sender, instance, **kwargs):
+#     if instance.order_number is None:
+#         instance.order_number = calculate_order_number(sender)
 
 
 # @receiver(post_save, sender=OrderItem)
@@ -66,12 +61,13 @@ def on_order_delete_trigger_recalculate_order_numbers(sender, instance, **kwargs
 #         instance.not_arrived = False
 
 
-@receiver(pre_save, sender=Producer)
-def check_before_switch_products_isactive_bool_value(sender, instance, **kwargs):
-    try:
-        producer_db = sender.objects.get(pk=instance.pk)
-    except sender.DoesNotExist:
-        pass
-    else:
-        if producer_db.is_active != instance.is_active:
-            switch_products_isactive_bool_value(instance)
+# NOT IN USE
+# @receiver(pre_save, sender=Producer)
+# def check_before_switch_products_isactive_bool_value(sender, instance, **kwargs):
+#     try:
+#         producer_db = sender.objects.get(pk=instance.pk)
+#     except sender.DoesNotExist:
+#         pass
+#     else:
+#         if producer_db.is_active != instance.is_active:
+#             switch_products_isactive_bool_value(instance)

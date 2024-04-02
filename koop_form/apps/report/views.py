@@ -1,5 +1,6 @@
 import logging
 import csv
+import pandas as pd
 from decimal import Decimal
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -40,17 +41,56 @@ class ProducerProductsReportView(TemplateView):
         self.product_names_list = []
         self.product_ordered_quantities_list = []
         self.product_incomes_list = []
+        self.total_income = 0
+
+    def get_producer(self):
+        self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+
+    def get_products(self):
+        self.products = filter_products_with_ordered_quantity_income_and_supply_income(
+            Product, self.producer.id
+        ).exclude(Q(income=0))
+
+    def get_product_names_quantities_incomes(self):
+        for product in self.products:
+            self.total_income += product.income
+            self.product_names_list += (product.name,)
+            self.product_ordered_quantities_list.append(product.ordered_quantity)
+            self.product_incomes_list += (f"{Decimal(product.income):.2f}",)
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        self.get_producer()
+        self.get_products()
+        self.get_product_names_quantities_incomes()
+        context["producer"] = self.producer
+        context["producers"] = get_producers_list(Producer)
+
+        context["product_names_list"] = self.product_names_list
+        context[
+            "product_ordered_quantities_list"
+        ] = self.product_ordered_quantities_list
+        context["product_incomes_list"] = self.product_incomes_list
+        context["total_income"] = self.total_income
+        return context
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class ProducerProductsSuppliesReportView(ProducerProductsReportView):
+    template_name = "report/producer_products_supplies_report.html"
+
+    def __init__(self, **kwargs):
+        super().__init__()
         self.supply_quantities_list = []
         self.supply_incomes_list = []
-        self.total_income = 0
         self.total_supply_income = 0
         self.product_excess_list = []
 
-    def get_producer_products(self):
-        self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+    def get_products(self):
         self.products = filter_products_with_ordered_quantity_income_and_supply_income(
             Product, self.producer.id
-        )
+        ).exclude(Q(income=0) & Q(supply_income=0))
 
     def get_product_names_quantities_incomes(self):
         for product in self.products:
@@ -67,22 +107,9 @@ class ProducerProductsReportView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        self.get_producer_products()
-        self.get_product_names_quantities_incomes()
-        context["producer"] = self.producer
-        context["producers"] = get_producers_list(Producer)
-
-        context["product_names_list"] = self.product_names_list
-        context[
-            "product_ordered_quantities_list"
-        ] = self.product_ordered_quantities_list
-        context["product_incomes_list"] = self.product_incomes_list
         context["supply_quantities_list"] = self.supply_quantities_list
         context["supply_incomes_list"] = self.supply_incomes_list
-
         context["excess"] = self.product_excess_list
-        context["total_income"] = self.total_income
         context["total_supply_income"] = self.total_supply_income
         return context
 
@@ -159,12 +186,17 @@ class UsersReportView(TemplateView):
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
+class ProducerProductsSuppliesListView(ProducersView):
+    template_name = "report/producer_products_supplies_list.html"
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducerProductsListView(ProducersView):
     template_name = "report/producer_products_list.html"
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerBoxListView(ProducerProductsListView):
+class ProducerBoxListView(ProducerProductsSuppliesListView):
     template_name = "report/producer_box_list.html"
 
 
@@ -179,6 +211,10 @@ class ProducersFinanceReportView(TemplateView):
         producers_names = []
         producers_incomes = []
         producers_supply_incomes = []
+
+        total_incomes = 0
+        total_supply_incomes = 0
+
         for producer in producers:
             products = filter_products_with_ordered_quantity_income_and_supply_income(
                 Product, producer
@@ -189,14 +225,17 @@ class ProducersFinanceReportView(TemplateView):
             )
             total_income = aggregated_income["total_income"]
             total_supply_income = aggregated_income["total_supply_income"]
-
+            if total_income == 0 and total_supply_income == 0:
+                continue
             producers_names += (producer.short,)
             if total_income:
+                total_incomes += total_income
                 producers_incomes += (f"{total_income:.2f}",)
             else:
                 producers_incomes.append(Decimal("0"))
 
             if total_supply_income:
+                total_supply_incomes += total_supply_income
                 producers_supply_incomes += (f"{total_supply_income:.2f}",)
             else:
                 producers_supply_incomes.append(Decimal("0"))
@@ -204,6 +243,9 @@ class ProducersFinanceReportView(TemplateView):
         context["producers_incomes"] = producers_incomes
         context["producers_supply_incomes"] = producers_supply_incomes
         context["producers_names"] = producers_names
+
+        context["total_incomes"] = total_incomes
+        context["total_supply_incomes"] = total_supply_incomes
 
         return context
 
@@ -297,7 +339,7 @@ class ProducersFinanceReportDownloadView(ProducersFinanceReportView):
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerProductsReportDownloadView(ProducerProductsReportView):
+class ProducerProductsSuppliesReportDownloadView(ProducerProductsSuppliesReportView):
     response_class = HttpResponse
     content_type = "text/csv"
 
@@ -367,10 +409,10 @@ class OrderBoxListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        orders = Order.objects.filter(
-            date_created__gte=calculate_previous_weekday()
-        ).order_by("date_created")
+        previous_friday = calculate_previous_weekday()
+        orders = Order.objects.filter(date_created__gte=previous_friday).order_by(
+            "date_created"
+        )
 
         context["orders"] = orders
 
@@ -392,7 +434,11 @@ class OrderBoxReportView(OrderBoxListView):
             context["fund"] = Decimal("1.3")
         context["username"] = order.user.first_name + " " + order.user.last_name
 
-        orderitems = OrderItem.objects.filter(order=order).select_related("product").order_by("product__producer__short", "product__name")
+        orderitems = (
+            OrderItem.objects.filter(order=order)
+            .select_related("product")
+            .order_by("product__producer__short", "product__name")
+        )
 
         context["order_cost"] = calculate_order_cost(orderitems)
         context[
@@ -407,9 +453,13 @@ class OrderBoxReportView(OrderBoxListView):
         for item in orderitems:
             product_ids += (item.product.id,)
             orderitems_names += (item.product.name,)
-            orderitems_quantity += (str(item.quantity).rstrip("0").rstrip("."),)
+            orderitems_quantity.append(str(item.quantity).rstrip("0").rstrip(".").replace(".", ","))
 
-        products = Product.objects.filter(id__in=product_ids).select_related("producer").order_by("producer__short", "name")
+        products = (
+            Product.objects.filter(id__in=product_ids)
+            .select_related("producer")
+            .order_by("producer__short", "name")
+        )
         for prod in products:
             producer_short += (prod.producer.short,)
 
@@ -462,37 +512,51 @@ class UsersFinanceReportView(TemplateView):
             get_user_model()
             .objects.all()
             .select_related("userprofile")
-            .order_by("userprofile__koop_id")
+            .order_by("orders__order_number")
+            .filter(orders__date_created__gte=calculate_previous_weekday())
         )
 
         name_list = []
         order_cost_list = []
         email_list = []
+        order_number_list = []
+        user_fund_list = []
+        order_cost_fund_list = []
 
-        # TODO przyda się logika, że jeśli user nic nie zamówił, to nie pojawi się w raporcie
         for user in users:
-            email_list.append(user.email)
-            name_list += (f"{user.first_name} {user.last_name}",)
             try:
-                orderitems = (
+                order = (
                     Order.objects.filter(date_created__gte=calculate_previous_weekday())
                     .get(user=user)
-                    .orderitems.select_related("product")
                 )
             except ObjectDoesNotExist:
-                order_cost = 0
+                continue
+            except Order.MultipleObjectsReturned:
+                continue
             else:
+                orderitems = order.orderitems.select_related("product")
                 try:
-                    order_cost = (
-                        calculate_order_cost(orderitems) * user.userprofile.fund
-                    )
+                    user_fund = user.userprofile.fund
                 except UserProfile.DoesNotExist:
-                    order_cost = calculate_order_cost(orderitems) * Decimal("1.3")
+                    user_fund = Decimal("1.3")
+                order_cost = calculate_order_cost(orderitems)
+                order_cost_fund = order_cost * user_fund
+
+            user_fund_list.append(user_fund)
             order_cost_list.append(order_cost)
+            order_cost_fund_list.append(order_cost_fund)
+
+            email_list.append(user.email)
+            name_list += (f"{user.last_name} {user.first_name}",)
+            order_number_list.append(order.order_number)
 
         context["email_list"] = email_list
         context["name_list"] = name_list
         context["order_cost_list"] = order_cost_list
+
+        context["user_fund_list"] = user_fund_list
+        context["order_cost_fund_list"] = order_cost_fund_list
+        context["order_number_list"] = order_number_list
 
         return context
 
@@ -519,12 +583,10 @@ class MassProducerBoxReportDownloadView(TemplateView):
         products_producers = []
         products_quant_in_stock = []
         for product in products_qs:
-            products_names.append(product.name)
-            products_quantities.append(product.ordered_quantity)
+            products_names.append(str(product.name)[0:-5])
+            products_quantities.append(str(product.ordered_quantity).rstrip("0").rstrip(".").replace(".", ","))
             if product.quantity_in_stock:
-                products_quant_in_stock.append(
-                    product.quantity_in_stock + product.ordered_quantity
-                )
+                products_quant_in_stock.append(str(product.quantity_in_stock + product.ordered_quantity).rstrip("0").rstrip(".").replace(".", ","))
             else:
                 products_quant_in_stock.append(" ")
             products_producers.append(product.producer.short)
@@ -575,13 +637,23 @@ class UsersFinanceReportDownloadView(UsersFinanceReportView):
             headers=headers,
         )
         writer = csv.writer(response)
-        writer.writerow(["imię nazwisko", "koop ID", "kwota zamówienia"])
-        for name, email, order_cost in zip(
+        writer.writerow(["imie nazwisko", "koop ID", "kwota zamowienia", "fundusz", "kwota z funduszem", "numer skrzynki"])
+        for name, email, order_cost, fund, order_fund, number in zip(
             context["name_list"],
             context["email_list"],
             context["order_cost_list"],
+            context["user_fund_list"],
+            context["order_cost_fund_list"],
+            context["order_number_list"],
         ):
-            writer.writerow([name, email, str(order_cost).replace(".", ",")])
+            writer.writerow([
+                name,
+                email,
+                str(order_cost).replace(".", ","),
+                str(fund).replace(".", ","),
+                str(order_fund).replace(".", ","),
+                number,
+            ])
 
         return response
 
@@ -601,12 +673,16 @@ class MassOrderBoxReportDownloadView(TemplateView):
             content_type=self.content_type,
             headers=headers,
         )
-        writer = csv.writer(response)
+
+        # writer = csv.writer(response)
 
         previous_friday = calculate_previous_weekday()
         orders_queryset = Order.objects.filter(
             date_created__gt=previous_friday
         ).order_by("order_number")
+
+        data = {}
+        df = pd.DataFrame(data)
 
         for order in orders_queryset:
             try:
@@ -628,7 +704,7 @@ class MassOrderBoxReportDownloadView(TemplateView):
             for item in orderitems:
                 product_ids += (item.product.id,)
                 orderitems_names += (item.product.name,)
-                orderitems_quantity += (str(item.quantity).rstrip("0").rstrip("."),)
+                orderitems_quantity += (str(item.quantity).rstrip("0").rstrip(".").replace(".", ","),)
 
             products = Product.objects.filter(id__in=product_ids).select_related(
                 "producer"
@@ -636,17 +712,101 @@ class MassOrderBoxReportDownloadView(TemplateView):
             for prod in products:
                 producer_short += (prod.producer.short,)
 
+            first_row = pd.DataFrame({
+                f"skrzynka {order.order_number}": ["Producent"],
+                f"{username} do zapłaty {order_cost_with_fund} zł": ["Nazwa produktu"],
+                f"fundusz {fund}": ["Zamówiona ilość"],
+                "-": [" ",],
+            }, index=[0])
+
+            new_df = pd.DataFrame({
+                f"skrzynka {order.order_number}": producer_short,
+                f"{username} do zapłaty {order_cost_with_fund} zł": orderitems_names,
+                f"fundusz {fund}": orderitems_quantity,
+                "-": [" "] * len(producer_short),
+            })
+
+            joined_df = pd.concat([first_row, new_df], ignore_index=True)
+            df = pd.concat([df, joined_df], axis=1)
+
+        df.to_csv(response, index=False)
+        return response
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class ProducerProductsReportDownloadView(ProducerProductsSuppliesReportView):
+    response_class = HttpResponse
+    content_type = "text/csv"
+
+    def render_to_response(self, context, **response_kwargs):
+        headers = {
+            "Content-Disposition": f'attachment; filename="raport-producent-produkty: {context["producer"].short}.csv"'
+        }
+
+        response = self.response_class(
+            content_type=self.content_type,
+            headers=headers,
+        )
+        writer = csv.writer(response)
+        writer.writerow(
+            [
+                context["producer"].name,
+            ]
+        )
+        writer.writerow(
+            [
+                "Kwota zamówienia (zł):",
+                f'{context["total_income"]:.2f}'.replace(".", ","),
+            ]
+        )
+        writer.writerow(
+            [
+                "Nazwa produktu",
+                "Zamówiona ilość",
+                "Kwota z zamówienia",
+            ]
+        )
+        for name, quantity, income in zip(
+            context["product_names_list"],
+            context["product_ordered_quantities_list"],
+            context["product_incomes_list"],
+        ):
+            if not quantity:
+                continue
             writer.writerow(
                 [
-                    f"{username}; skrzynka {order.order_number}; do zapłaty: {order_cost_with_fund} zł; fundusz {fund}",
+                    name,
+                    str(quantity).replace(".", ","),
+                    str(income).replace(".", ","),
                 ]
             )
-            writer.writerow(["Producent", "Nazwa produktu", "Zamówiona ilość"])
-            for short, name, quantity in zip(
-                producer_short,
-                orderitems_names,
-                orderitems_quantity,
-            ):
-                writer.writerow([short, name, quantity])
-
         return response
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class ProductsExcessReportView(TemplateView):
+    template_name = "report/products_excess_report.html"
+
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.products = None
+        self.product_excess_list = []
+        self.product_names_list = []
+
+    def get_products(self):
+        self.products = filter_products_with_ordered_quantity_income_and_supply_income(
+            Product, producer_id=None, filter_producer=False
+        ).exclude(Q(excess=0)).filter(is_stocked=False)
+
+    def get_product_names_and_excess(self):
+        for product in self.products:
+            self.product_excess_list += (product.excess,)
+            self.product_names_list += (product.name,)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        self.get_products()
+        self.get_product_names_and_excess()
+        context["product_names_list"] = self.product_names_list
+        context["excess"] = self.product_excess_list
+        return context

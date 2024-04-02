@@ -1,0 +1,30 @@
+{% extends "report/base_report_sidebar.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+    <div class="col-md-9">
+        <h3>Nadwyżki:</h3>
+
+        <div class="row">
+            <div class="col-md-5">
+                <div>Nazwa produktu: </div>
+                {% for name in product_names_list %}
+                    <div>{{ name }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="col-md-2">
+                <div>Nadwyżka: </div>
+                {% for ex in excess %}
+                    <div>{{ ex|format_decimal }} szt/kg</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock content%}
+
+{% block javascript %}
+{{ block.super }}
+<script src="{% static 'js/go_to_producer.js' %}"></script>
+{% endblock javascript %}

@@ -88,22 +88,20 @@ a.article-title:hover {
   font-size: 2.5rem;
 }
 
-/* Style for success messages */
 .alert-success {
-    background-color: #4CAF50; /* Green background color */
-    color: white; /* White text color */
+    background-color: #4CAF50;
+    color: white;
 }
 
-/* Style for error messages */
 .alert-error {
-    background-color: #FF5733; /* Red background color */
-    color: white; /* White text color */
+    background-color: #FF5733;
+    color: white;
 }
 
-/* Style for warning messages */
+
 .alert-warning {
-    background-color: #FF8000; /* Yellow background color */
-    color: white; /* White text color */
+    background-color: #FF8000;
+    color: white;
 }
 
 /* order widget */
@@ -115,23 +113,35 @@ a.article-title:hover {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Define styles for the button */
-.button {
+/* overwritting bootstrap button classes */
+.btn-primary {
   display: inline-block;
-  padding: 7px 15px; /* Adjust padding to your liking */
-  background-color: #5f788a; /* Button background color */
-  color: #cbd5db; /* Button text color */
-  text-decoration: none; /* Remove underline */
-  border: none; /* Remove border */
-  border-radius: 5px; /* Add rounded corners */
-  cursor: pointer; /* Show pointer cursor on hover */
+  padding: 7px 15px;
+  background-color: #5f788a;
+  color: #fff;
+  border: none;
   margin-bottom: 10px;
 }
 
-/* Style the button on hover */
-.button:hover {
-  color: #fff; /* Change background color on hover */
-  text-decoration: none;
+.btn-inactive {
+  display: inline-block;
+  padding: 7px 15px;
+  background-color: #e0e0e0;
+  color: #a0a0a0;
+  border: none;
+  margin-bottom: 10px;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-primary:hover {
+  color: #cbd5db;
+  background-color: #5f788a;
+}
+
+.btn-margin-fix {
+    margin-top: -6px;
+    padding-bottom: 6px;
 }
 
 /* Custom CSS to widen the container */
@@ -180,6 +190,12 @@ a.article-title:hover {
     height: 100px;
 }
 
+.form-border-bottom {
+    margin-top: 5px;
+    display:block;
+    height:60px;
+}
+
 .border-bottom {
     margin-top: 5px;
     border-bottom: 1px;
@@ -202,4 +218,91 @@ a.article-title:hover {
     display:block;
     height:75px;
     margin-bottom: 10px;
+}
+
+.side-panel-scroll {
+    max-height: 90vh;
+    overflow-y: scroll;
+}
+
+.align-right {
+    float: right;
+}
+
+.mx-a {
+    margin: auto;
+}
+
+.margin-top-negative {
+    margin-top: -64px;
+}
+
+td {
+    padding: 8px;
+    border: 1px solid #bbb;
+}
+
+td:nth-child(1) {
+    width: 60px;
+}
+
+td:nth-child(2) {
+    width: 90px;
+}
+
+td:nth-child(3) {
+    width: 300px;
+}
+
+td:nth-child(4) {
+    width: 80px;
+}
+
+td:nth-child(5) {
+    width: 90px;
+}
+
+td:nth-child(6) {
+    width: 100px;
+}
+
+td:nth-child(7) {
+    width: 450px;
+}
+
+.field-max-width {
+    max-width: 100px;
+}
+
+table tr:nth-child(even) {
+  background-color: #f4f4f4;
+}
+
+table tr:nth-child(odd) {
+  background-color: #eee;
+}
+
+.width-500 {
+    margin-left: 180px;
+}
+
+.td-products td {
+    padding: 8px;
+    border: 1px solid #bbb;
+}
+
+.td-products td:nth-child(1) {
+    width: 60px;
+}
+
+.td-products td:nth-child(2) {
+    width: 110px;
+}
+
+.td-products td:nth-child(3) {
+    width: 400px;
+}
+
+.td-products td:nth-child(4) {
+    width: 630px;
 }
