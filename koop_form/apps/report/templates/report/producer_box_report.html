@@ -20,28 +20,12 @@
         <div class="row">
             <div class="col-md-4">
                 {% for product in products %}
-                    <article class="media ">
-                      <div class="media-body">
-
-                        <div>
-                          <span class="mr-2">{{ product.name }}, łącznie: {{ product.ordered_quantity|format_decimal:3 }}</span>
-                        </div>
-
-                      </div>
-                    </article>
+                    <div>{{ product.name }}, łącznie: {{ product.ordered_quantity|format_decimal:3 }}</div>
                 {% endfor %}
             </div>
             <div class="col-md-8">
                 {% for data in order_data %}
-                    <article class="media ">
-                      <div class="media-body">
-
-                        <div>
-                          <span class="mr-2">{{ data }}</span>
-                        </div>
-
-                      </div>
-                    </article>
+                    <div>{{ data }}</div>
                 {% endfor %}
             </div>
         </div>

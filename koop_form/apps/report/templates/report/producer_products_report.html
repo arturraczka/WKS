@@ -22,23 +22,23 @@
         <div class="row">
             <div class="col-md-5">
                 <div>Nazwa produktu: </div>
-                {% for name in product_names_list %}
-                    <div>{{ name }}</div>
-                {% endfor %}
+                    {% for name in product_names_list %}
+                        <div>{{ name }}</div>
+                    {% endfor %}
             </div>
 
             <div class="col-md-1">
                 <div>Zamówiono: </div>
-                {% for quantity in product_ordered_quantities_list %}
-                    <div>{{ quantity|format_decimal }} szt/kg</div>
-                {% endfor %}
+                    {% for quantity in product_ordered_quantities_list %}
+                        <div>{{ quantity|format_decimal }} szt/kg</div>
+                    {% endfor %}
             </div>
 
             <div class="col-md-2">
                 <div>Kwota z zamówienia: </div>
-                {% for income in product_incomes_list %}
-                    <div>{{ income }} zł</div>
-                {% endfor %}
+                    {% for income in product_incomes_list %}
+                        <div>{{ income }} zł</div>
+                    {% endfor %}
             </div>
         </div>
     </div>
