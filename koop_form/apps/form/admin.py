@@ -3,6 +3,7 @@ from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources, fields, widgets
 
+from apps.form.forms import OrderInlineFormset, OrderItemInlineFormset
 from apps.form.models import (
     Producer,
     WeightScheme,
@@ -28,6 +29,19 @@ class ProductWeightSchemeInLine(admin.TabularInline):
 class OrderItemInLine(admin.TabularInline):
     model = OrderItem
     extra = 1
+    verbose_name_plural = "Produkty w zamówieniu:"
+    verbose_name = "Produkty w zamówieniu:"
+    formset = OrderItemInlineFormset
+
+
+class OrderInLine(admin.StackedInline):
+    model = Order
+    can_delete = False
+    verbose_name_plural = "Zamówienia:"
+    verbose_name = "Zamówienie:"
+    extra = 1
+    fields = ["pick_up_day"]
+    formset = OrderInlineFormset
 
 
 class ProducerResource(resources.ModelResource):

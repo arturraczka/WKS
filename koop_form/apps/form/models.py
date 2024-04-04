@@ -159,8 +159,8 @@ class Order(models.Model):
     def __str__(self):
         return f"{self.user.last_name}: {str(self.date_created)[:19]}"
 
-    def get_absolute_url(self):
-        return reverse("order-detail", kwargs={"pk": self.pk, "user": self.user})
+    # def get_absolute_url(self):
+    #     return reverse("order-detail", kwargs={"pk": self.pk, "user": self.user})
 
 
 class OrderItem(models.Model):

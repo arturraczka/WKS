@@ -1,4 +1,5 @@
-from crispy_forms.bootstrap import StrictButton
+import logging
+
 from django.forms import (
     ModelForm,
     HiddenInput,
@@ -6,11 +7,16 @@ from django.forms import (
     CharField,
     BaseModelFormSet,
     ModelChoiceField,
+    BaseInlineFormSet,
 )
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Layout, Field
+from crispy_forms.layout import Submit
 
-from apps.form.models import OrderItem, Order
+from apps.form.models import OrderItem, Order, Product
+from apps.form.services import calculate_order_number, reduce_product_stock, alter_product_stock
+
+
+logger = logging.getLogger("django.server")
 
 
 class DeleteOrderForm(ModelForm):
@@ -109,3 +115,34 @@ class SearchForm(Form):
         min_length=3,
         required=False,
     )
+
+
+class OrderInlineFormset(BaseInlineFormSet):
+    def get_queryset(self):
+        return Order.objects.none()
+
+    def save_new(self, form, commit=True):
+        instance = super().save_new(form, commit=False)
+        instance.order_number = calculate_order_number(Order)
+        if commit:
+            instance.save()
+        return instance
+
+
+class OrderItemInlineFormset(BaseInlineFormSet):
+    def save_new(self, form, commit=True):
+        instance = super().save_new(form, commit=False)
+        logger.info(instance)
+        reduce_product_stock(Product, instance.product.id, instance.quantity)
+        return super().save_new(form, commit=commit)
+
+    def save_existing(self, form, instance, commit=True):
+        alter_product_stock(
+            Product, instance.product.id, instance.quantity, instance.id, OrderItem
+        )
+        super().save_existing(form, instance, commit=commit)
+
+    def delete_existing(self, obj, commit=True):
+        if commit:
+            reduce_product_stock(Product, obj.product.id, obj.quantity, negative=True)
+            obj.delete()
