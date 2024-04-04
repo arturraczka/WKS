@@ -792,21 +792,15 @@ class ProductsExcessReportView(TemplateView):
         self.products = None
         self.product_excess_list = []
         self.product_names_list = []
+        self.product_prices_list = []
 
     def get_products(self):
         self.products = filter_products_with_ordered_quantity_income_and_supply_income(
             Product, producer_id=None, filter_producer=False
         ).exclude(Q(excess=0)).filter(is_stocked=False)
 
-    def get_product_names_and_excess(self):
-        for product in self.products:
-            self.product_excess_list += (product.excess,)
-            self.product_names_list += (product.name,)
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         self.get_products()
-        self.get_product_names_and_excess()
-        context["product_names_list"] = self.product_names_list
-        context["excess"] = self.product_excess_list
+        context["products"] = self.products
         return context

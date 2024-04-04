@@ -3,24 +3,28 @@
 {% load custom_filters %}
 
 {% block content %}
-    <div class="col-md-9">
+    <div class="col-md-6">
         <h3>Nadwyżki:</h3>
 
         <div class="row">
-            <div class="col-md-5">
-                <div>Nazwa produktu: </div>
-                {% for name in product_names_list %}
-                    <div>{{ name }}</div>
+            <table class="td-excess">
+                {% for product in products %}
+                  <tr class="row1">
+                    <td>
+                        <div>{{ product.name }}</div>
+                    </td>
+                    <td>
+                        <div>{{ product.excess }} szt/kg</div>
+                    </td>
+                    <td>
+                        <div>{{ product.price }} zł</div>
+                    </td>
+                  </tr>
                 {% endfor %}
-            </div>
-
-            <div class="col-md-2">
-                <div>Nadwyżka: </div>
-                {% for ex in excess %}
-                    <div>{{ ex|format_decimal }} szt/kg</div>
-                {% endfor %}
-            </div>
+            </table>
         </div>
+    </div>
+    <div class="col-md-3">
     </div>
 {% endblock content%}
 

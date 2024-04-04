@@ -306,3 +306,18 @@ table tr:nth-child(odd) {
 .td-products td:nth-child(4) {
     width: 630px;
 }
+
+.td-excess td {
+}
+
+.td-excess td:nth-child(1) {
+    width: 300px;
+}
+
+.td-excess td:nth-child(2) {
+    width: 100px;
+}
+
+.td-excess td:nth-child(3) {
+    width: 100px;
+}
