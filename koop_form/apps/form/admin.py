@@ -120,9 +120,8 @@ class ProductResource(resources.ModelResource):
 
     class Meta:
         model = Product
-        import_id_fields = ("id",)
+        import_id_fields = ("name",)
         fields = (
-            "id",
             "producer",
             "name",
             "description",
