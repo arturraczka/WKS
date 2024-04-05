@@ -8,6 +8,7 @@ from django.forms import (
     BaseModelFormSet,
     ModelChoiceField,
     BaseInlineFormSet,
+    widgets,
 )
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
@@ -129,12 +130,24 @@ class OrderInlineFormset(BaseInlineFormSet):
         return instance
 
 
+class OrderItemFormInline(ModelForm):
+    class Meta:
+        model = OrderItem
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['product'].disabled = True
+        instance = getattr(self.instance, 'product', None)
+        instance_representation = str(instance) if instance else ''
+        self.fields['product'].widget.choices = [(instance_representation, instance_representation),]
+
+
 class OrderItemInlineFormset(BaseInlineFormSet):
-    def save_new(self, form, commit=True):
-        instance = super().save_new(form, commit=False)
-        logger.info(instance)
-        reduce_product_stock(Product, instance.product.id, instance.quantity)
-        return super().save_new(form, commit=commit)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.form = OrderItemFormInline
 
     def save_existing(self, form, instance, commit=True):
         alter_product_stock(
@@ -146,3 +159,14 @@ class OrderItemInlineFormset(BaseInlineFormSet):
         if commit:
             reduce_product_stock(Product, obj.product.id, obj.quantity, negative=True)
             obj.delete()
+
+
+class OrderItemEmptyInlineFormset(BaseInlineFormSet):
+    def get_queryset(self):
+        return OrderItem.objects.none()
+
+    def save_new(self, form, commit=True):
+        instance = super().save_new(form, commit=False)
+        logger.info(instance)
+        reduce_product_stock(Product, instance.product.id, instance.quantity)
+        return super().save_new(form, commit=commit)

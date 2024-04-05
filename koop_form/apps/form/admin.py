@@ -3,7 +3,7 @@ from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources, fields, widgets
 
-from apps.form.forms import OrderInlineFormset, OrderItemInlineFormset
+from apps.form.forms import OrderInlineFormset, OrderItemInlineFormset, OrderItemEmptyInlineFormset
 from apps.form.models import (
     Producer,
     WeightScheme,
@@ -28,10 +28,22 @@ class ProductWeightSchemeInLine(admin.TabularInline):
 
 class OrderItemInLine(admin.TabularInline):
     model = OrderItem
-    extra = 1
-    verbose_name_plural = "Produkty w zamówieniu:"
-    verbose_name = "Produkty w zamówieniu:"
+    extra = 0
+    verbose_name_plural = "Edytuj ilość lub usuń produkt z zamówienia:"
+    verbose_name = "Edytuj ilość lub usuń produkt z zamówienia:"
     formset = OrderItemInlineFormset
+
+    def has_add_permission(self, request, obj):
+        return False
+
+
+class OrderItemEmptyInLine(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+
+    verbose_name_plural = "Dodaj nowy produkt do zamówienia:"
+    verbose_name = "Dodaj nowy produkt do zamówienia:"
+    formset = OrderItemEmptyInlineFormset
 
 
 class OrderInLine(admin.StackedInline):
@@ -144,12 +156,13 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_filter = ["date_created", "user__last_name"]
+    list_select_related = True
+    list_filter = ["date_created", "order_number", "user__last_name"]
     list_display = ["user_last_name", "order_number", "date_created"]
     search_fields = [
         "user__last_name",
     ]
-    inlines = (OrderItemInLine,)
+    inlines = (OrderItemEmptyInLine, OrderItemInLine,)
 
     @admin.display(description="User last name")
     def user_last_name(self, obj):
@@ -173,6 +186,8 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 class OrderItemAdmin(admin.ModelAdmin):
+    list_per_page = 50
+    list_select_related = True
     raw_id_fields = (
         "product",
         "order",
