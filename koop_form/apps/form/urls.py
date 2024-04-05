@@ -12,7 +12,7 @@ from apps.form.views import (
     OrderItemFormView,
     product_search_view,
     main_page_redirect,
-    OrderProductsAllFormView,
+    OrderProductsAllFormView, OrderCategoriesFormView,
 )
 
 
@@ -33,6 +33,11 @@ urlpatterns = [
         "zamowienie/producenci/<str:slug>/",
         OrderProductsFormView.as_view(),
         name="order-products-form",
+    ),
+    path(
+        "zamowienie/kategorie/<str:name>/",
+        OrderCategoriesFormView.as_view(),
+        name="order-categories-form",
     ),
     path("zamowienie/nowe/", OrderCreateView.as_view(), name="order-create"),
     path(

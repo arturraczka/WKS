@@ -4,30 +4,19 @@
 
 {% block content %}
 <div class="col-md-9">
-    <h4>Składanie zamówienia. Wybrany producent:</h4>
-    <h3><strong>{{ producer.name }}</strong></h3>
-    <p>{{ producer.description }}</p>
+    <h4>Składanie zamówienia. Wybrana kategoria:</h4>
+    <h3><strong>{{ category.name }}</strong></h3>
+
     <div>
-        <label for="producers">Zmień producenta:</label>
-        <select name="producers" id="producers">
+        <label for="categories">Zmień Kategorię:</label>
+        <select name="categories" id="categories">
           <option disabled selected value> -- wybierz -- </option>
-          {% for producer in producers %}
-              <option value="{% url 'order-products-form' slug=producer.0 %}">{{ producer.1 }}</option>
+          {% for category in categories %}
+              <option value="{% url 'order-categories-form' name=category.name %}">{{ category.name }}</option>
           {% endfor %}
         </select>
 
         <button onclick="goToSelectedLink()">Idź</button>
-    </div>
-
-    <div>
-        {% if previous_producer %}
-            <a class="btn btn-primary my-2" href="{% url 'order-products-form' slug=previous_producer %}">Poprzedni producent</a>
-        {% else %}
-            <a class="btn btn-inactive my-2">Poprzedni producent</a>
-        {% endif %}
-        {% if next_producer %}
-            <a class="btn btn-primary my-2" href="{% url 'order-products-form' slug=next_producer %}">Następny producent</a>
-        {% endif %}
     </div>
 
     <div class="pagination">
@@ -74,5 +63,5 @@
 
 {% block javascript %}
 {{ block.super }}
-<script src="{% static 'js/go_to_producer.js' %}"></script>
+<script src="{% static 'js/go_to_category.js' %}"></script>
 {% endblock javascript %}

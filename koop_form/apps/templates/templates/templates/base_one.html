@@ -27,9 +27,6 @@
                             <a class="nav-link" href="{% url 'products' slug='pierwszy' %}">Przegląd</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'order-create' %}">Nowe zamówienie</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" href="{% url 'product-search' %}">Szukaj</a>
                         </li>
                         <li class="nav-item">
@@ -38,11 +35,14 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'order-products-all-form' %}">Produkty</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'order-categories-form' name='pierwsza' %}">Kategorie</a>
+                        </li>
                     </ul>
                     <!-- navbar right side -->
                     <ul class="navbar-nav navbar-right ml-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'order-update-form' %}">Moje zamówienie</a>
+                            <a class="nav-link" href="{% url 'order-update-form' %}">Zamówienie</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'login' %}">Zaloguj</a>

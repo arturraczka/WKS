@@ -22,7 +22,7 @@ from django.views.generic import (
 )
 
 from apps.form.custom_mixins import FormOpenMixin
-from apps.form.models import Producer, Order, OrderItem, Product
+from apps.form.models import Producer, Order, OrderItem, Product, Category
 from apps.form.forms import (
     CreateOrderForm,
     CreateOrderItemForm,
@@ -562,3 +562,47 @@ class OrderProductsAllFormView(OrderProductsFormView):
     def get_order_and_producer(self):
         self.order = get_users_last_order(Order, self.request.user)
         self.producer = Producer.objects.filter(is_active=True).first()
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(
+    user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
+)
+class OrderCategoriesFormView(OrderProductsFormView):
+    model = OrderItem
+    template_name = "form/order_categories_form.html"
+    form_class = None
+    products_per_page = 100
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.category = None
+
+    def get_order_and_producer(self):
+        self.order = get_users_last_order(Order, self.request.user)
+        self.producer = Producer.objects.filter(is_active=True).first()
+        if self.kwargs["name"] == "pierwsza":
+            self.category = Category.objects.all().first()
+        else:
+            self.category = get_object_or_404(Category, name=self.kwargs["name"])
+
+    def get_products_queryset(self):
+        self.products = (
+            Product.objects.filter(category=self.category)
+            .filter(is_active=True)
+            .filter(producer__is_active=True)
+            # .filter(~Q(quantity_in_stock=0))
+            .order_by("category", "name")
+            .prefetch_related(
+                "weight_schemes",
+                "statuses",
+            )
+            .select_related("producer")
+            .select_related("category")
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["category"] = self.category
+        context["categories"] = Category.objects.all()
+        return context
