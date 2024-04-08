@@ -242,7 +242,7 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
             ),
             supply_income=F("supply_quantity") * F("price"),
             excess=F("supply_quantity") - F("ordered_quantity"),
-        ).distinct("name").order_by("name")
+        ).distinct().order_by("name")
 
     return annotated_products
 
