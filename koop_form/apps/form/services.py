@@ -227,7 +227,7 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
                 "orderitems__quantity",
                 filter=Q(orderitems__item_ordered_date__gte=previous_friday),
                 default=0,
-                distinct=True
+                distinct=False
             ),
             income=F("ordered_quantity") * F("price"),
             supply_quantity=Sum(
@@ -238,7 +238,7 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
             ),
             supply_income=F("supply_quantity") * F("price"),
             excess=F("supply_quantity") - F("ordered_quantity"),
-        ).distinct().order_by("name")
+        ).order_by("name")
 
     return annotated_products
 
