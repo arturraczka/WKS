@@ -224,21 +224,25 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
 
     annotated_products = products.annotate(
             ordered_quantity=Sum(
-                "orderitems__quantity",
-                filter=Q(orderitems__item_ordered_date__gte=previous_friday),
-                default=0,
-                distinct=False
+                Case(
+                    When(
+                        orderitems__item_ordered_date__gte=previous_friday,
+                        then=F("orderitems__quantity"),
+                    ),
+                    default=Decimal(0),
+                )
             ),
             income=F("ordered_quantity") * F("price"),
-            supply_quantity=Sum(
-                "supplyitems__quantity",
-                filter=Q(supplyitems__date_created__gte=previous_friday),
-                default=0,
-                distinct=True
+            supply_quantity=Case(
+                When(
+                    supplyitems__date_created__gte=previous_friday,
+                    then=F("supplyitems__quantity"),
+                ),
+                default=Decimal(0),
             ),
             supply_income=F("supply_quantity") * F("price"),
             excess=F("supply_quantity") - F("ordered_quantity"),
-        ).order_by("name")
+        ).distinct().order_by("name")
 
     return annotated_products
 
