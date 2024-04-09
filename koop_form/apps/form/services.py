@@ -233,12 +233,14 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
                 )
             ),
             income=F("ordered_quantity") * F("price"),
-            supply_quantity=Case(
-                When(
-                    supplyitems__date_created__gte=previous_friday,
-                    then=F("supplyitems__quantity"),
+            supply_quantity=Sum(
+                Case(
+                    When(
+                        supplyitems__date_created__gte=previous_friday,
+                        then=F("supplyitems__quantity"),
+                    ),
+                    default=Decimal(0),
                 ),
-                default=Decimal(0),
             ),
             supply_income=F("supply_quantity") * F("price"),
             excess=F("supply_quantity") - F("ordered_quantity"),

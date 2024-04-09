@@ -90,7 +90,7 @@ class ProducerProductsSuppliesReportView(ProducerProductsReportView):
     def get_products(self):
         self.products = filter_products_with_ordered_quantity_income_and_supply_income(
             Product, self.producer.id
-        ).exclude(Q(income=0) & Q(supply_income=0))
+        ).exclude(Q(income=Decimal("0")) & Q(supply_quantity=Decimal("0")))
 
     def get_product_names_quantities_incomes(self):
         for product in self.products:
