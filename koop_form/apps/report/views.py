@@ -21,7 +21,7 @@ from apps.form.services import (
     create_order_data_list,
     staff_check,
     get_producers_list,
-    filter_products_with_ordered_quantity_income_and_supply_income,
+    filter_products_with_ordered_quantity_income_and_supply_income, filter_products_with_ordered_quantity,
 )
 
 from apps.form.views import ProducersView
@@ -47,9 +47,9 @@ class ProducerProductsReportView(TemplateView):
         self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
 
     def get_products(self):
-        self.products = filter_products_with_ordered_quantity_income_and_supply_income(
-            Product, self.producer.id
-        ).exclude(Q(income=0))
+        self.products = filter_products_with_ordered_quantity(
+            Product
+        ).exclude(Q(income=0)).filter(producer=self.producer.id)
 
     def get_product_names_quantities_incomes(self):
         for product in self.products:
@@ -797,7 +797,7 @@ class ProductsExcessReportView(TemplateView):
     def get_products(self):
         self.products = filter_products_with_ordered_quantity_income_and_supply_income(
             Product, producer_id=None, filter_producer=False
-        ).exclude(Q(excess=0)).filter(is_stocked=False)
+        ).filter(excess__gt=0).filter(is_stocked=False)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

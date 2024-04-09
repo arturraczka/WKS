@@ -247,6 +247,25 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
     return annotated_products
 
 
+def filter_products_with_ordered_quantity(product_model):
+    """Returns a Product QS with annotated: ordered_quantity and income.
+    Limits resulting QS to fields: name, orderitems__quantity and
+    supplyitems__quantity."""
+    previous_friday = calculate_previous_weekday()
+    products = product_model.objects.only("name", "orderitems__quantity")
+
+    annotated_products = products.annotate(
+            ordered_quantity=Sum(
+                "orderitems__quantity",
+                filter=Q(orderitems__item_ordered_date__gte=previous_friday),
+                default=0,
+            ),
+            income=F("ordered_quantity") * F("price"),
+        ).distinct().order_by("name")
+
+    return annotated_products
+
+
 def get_users_last_order(order_model, request_user):
     previous_friday = calculate_previous_weekday()
     return order_model.objects.get(user=request_user, date_created__gte=previous_friday)
