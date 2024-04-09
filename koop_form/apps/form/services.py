@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Sum, Prefetch
 from django.contrib.messages import get_messages
 from django.db.models import Case, When, F, Q
 
@@ -224,22 +224,18 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
 
     annotated_products = products.annotate(
             ordered_quantity=Sum(
-                Case(
-                    When(
-                        orderitems__item_ordered_date__gte=previous_friday,
-                        then=F("orderitems__quantity"),
-                    ),
-                    default=Decimal(0),
-                )
+                "orderitems__quantity",
+                filter=Q(orderitems__item_ordered_date__gte=previous_friday),
+                default=0,
+                distinct=True
             ),
             income=F("ordered_quantity") * F("price"),
-            supply_quantity=Case(
-                    When(
-                        supplyitems__date_created__gte=previous_friday,
-                        then=F("supplyitems__quantity"),
-                    ),
-                    default=Decimal(0),
-                ),
+            supply_quantity=Sum(
+                "supplyitems__quantity",
+                filter=Q(supplyitems__date_created__gte=previous_friday),
+                default=0,
+                distinct=True
+            ),
             supply_income=F("supply_quantity") * F("price"),
             excess=F("supply_quantity") - F("ordered_quantity"),
         ).distinct().order_by("name")
