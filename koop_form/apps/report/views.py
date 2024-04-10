@@ -531,19 +531,19 @@ class UsersFinanceReportView(TemplateView):
 
             user_fund_list.append(user_fund)
             order_cost_list.append(order_cost)
-            order_cost_fund_list.append(order_cost_fund)
+            order_cost_fund_list.append(str(format(order_cost_fund, ".1f")).replace(".", ","))
 
             email_list.append(user.email)
             name_list += (f"{user.last_name} {user.first_name}",)
             order_number_list.append(order.order_number)
 
-        context["email_list"] = email_list
         context["name_list"] = name_list
+        context["email_list"] = email_list
+        context["order_number_list"] = order_number_list
         context["order_cost_list"] = order_cost_list
-
         context["user_fund_list"] = user_fund_list
         context["order_cost_fund_list"] = order_cost_fund_list
-        context["order_number_list"] = order_number_list
+        context["zipped"] = zip(name_list, email_list, order_number_list, order_cost_list, user_fund_list, order_cost_fund_list)
 
         return context
 

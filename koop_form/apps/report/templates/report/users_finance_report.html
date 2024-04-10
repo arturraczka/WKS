@@ -12,47 +12,30 @@
 
       <div class="row">
 
-            <div class="col-md-3">
-                <div>Imię i nazwisko: </div>
-                    {% for username in name_list %}
-                        <div>{{ username }}</div>
-                    {% endfor %}
-            </div>
-
-            <div class="col-md-4">
-                <div>E-mail: </div>
-                    {% for email in email_list %}
-                        <div>{{ email }}</div>
-                    {% endfor %}
-            </div>
-
-            <div class="col-md-1">
-                <div>Skrzynka: </div>
-                    {% for number in order_number_list %}
-                        <div>{{ number }}</div>
-                    {% endfor %}
-            </div>
-
-            <div class="col-md-1">
-                <div>Kwota: </div>
-                    {% for cost in order_cost_list %}
-                        <div>{{ cost|format_decimal:2 }} zł</div>
-                    {% endfor %}
-            </div>
-
-            <div class="col-md-1">
-                <div>Fundusz: </div>
-                    {% for fund in user_fund_list %}
-                        <div>{{ fund }}</div>
-                    {% endfor %}
-            </div>
-
-            <div class="col-md-1">
-                <div>Finalnie: </div>
-                    {% for cost_fund in order_cost_fund_list %}
-                        <div>{{ cost_fund|format_decimal:2 }} zł</div>
-                    {% endfor %}
-            </div>
+        <table class="td-user-finance">
+            {% for username, email, number, cost, fund, cost_fund in zipped %}
+              <tr class="row1">
+                <td>
+                    <div>{{ username }}</div>
+                </td>
+                <td>
+                    <div>{{ email }}</div>
+                </td>
+                <td>
+                    <div>{{ number }}</div>
+                </td>
+                <td>
+                    <div>{{ cost|format_decimal:2 }} zł</div>
+                </td>
+                <td>
+                    <div>{{ fund }}</div>
+                </td>
+                <td>
+                    <div>{{ cost_fund }} zł</div>
+                </td>
+              </tr>
+            {% endfor %}
+        </table>
 
       </div>
     </div>
