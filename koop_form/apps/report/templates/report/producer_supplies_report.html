@@ -7,13 +7,13 @@
         <label for="producers">Zmień producenta:</label>
         <select name="producers" id="producers">
           {% for producer in producers %}
-              <option value="{% url 'producer-products-supplies-report' slug=producer.0 %}">{{ producer.1 }}</option>
+              <option value="{% url 'producer-supplies-report' slug=producer.0 %}">{{ producer.1 }}</option>
           {% endfor %}
         </select>
 
         <button onclick="goToSelectedLink()">Idź</button>
         <div class="form-group">
-            <a class="btn btn-outline-secondary my-2" href="{% url 'producer-products-supplies-report-download' slug=producer.slug %}">Pobierz raport</a>
+            <a class="btn btn-outline-secondary my-2" href="{% url 'producer-supplies-report-download' slug=producer.slug %}">Pobierz raport</a>
         </div>
 
         <h3>{{ producer.name }}</h3>

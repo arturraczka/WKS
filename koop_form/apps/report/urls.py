@@ -24,9 +24,9 @@ from apps.report.views import (
 
 urlpatterns = [
     path(
-        "producenci-produkty-dostawy/",
+        "producenci-dostawy/",
         ProducerProductsSuppliesListView.as_view(),
-        name="producer-products-supplies-list",
+        name="producer-supplies-list",
     ),
     path(
         "producenci-produkty/",
@@ -34,9 +34,9 @@ urlpatterns = [
         name="producer-products-list",
     ),
     path(
-        "producenci-produkty-dostawy/<str:slug>/",
+        "producenci-dostawy/<str:slug>/",
         ProducerProductsSuppliesReportView.as_view(),
-        name="producer-products-supplies-report",
+        name="producer-supplies-report",
     ),
     path(
         "producenci-produkty/<str:slug>/",
@@ -79,9 +79,9 @@ urlpatterns = [
         name="producers-finance-report-download",
     ),
     path(
-        "pobierz/producenci-produkty-dostawy/<str:slug>/",
+        "pobierz/producenci-dostawy/<str:slug>/",
         ProducerProductsSuppliesReportDownloadView.as_view(),
-        name="producer-products-supplies-report-download",
+        name="producer-supplies-report-download",
     ),
     path(
         "pobierz/producenci-produkty/<str:slug>/",

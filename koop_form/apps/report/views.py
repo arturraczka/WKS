@@ -79,7 +79,7 @@ class ProducerProductsReportView(TemplateView):
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducerProductsSuppliesReportView(ProducerProductsReportView):
-    template_name = "report/producer_products_supplies_report.html"
+    template_name = "report/producer_supplies_report.html"
 
     def __init__(self, **kwargs):
         super().__init__()
@@ -188,7 +188,7 @@ class UsersReportView(TemplateView):
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class ProducerProductsSuppliesListView(ProducersView):
-    template_name = "report/producer_products_supplies_list.html"
+    template_name = "report/producer_supplies_list.html"
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
