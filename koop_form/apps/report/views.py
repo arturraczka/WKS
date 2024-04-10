@@ -22,6 +22,7 @@ from apps.form.services import (
     staff_check,
     get_producers_list,
     filter_products_with_ordered_quantity_income_and_supply_income, filter_products_with_ordered_quantity,
+    filter_products_with_supplies_quantity,
 )
 
 from apps.form.views import ProducersView
@@ -206,7 +207,7 @@ class ProducersFinanceReportView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        producers = Producer.objects.filter(is_active=True)
+        producers = Producer.objects.filter(is_active=True).order_by("name")
 
         producers_names = []
         producers_incomes = []
@@ -216,21 +217,20 @@ class ProducersFinanceReportView(TemplateView):
         total_supply_incomes = 0
 
         for producer in producers:
-            products = filter_products_with_ordered_quantity_income_and_supply_income(
-                Product, producer
-            )
-            # total_income = calculate_total_income(products)
-            aggregated_income = products.aggregate(
-                total_income=Sum("income"), total_supply_income=Sum("supply_income")
-            )
-            total_income = aggregated_income["total_income"]
-            total_supply_income = aggregated_income["total_supply_income"]
-            if total_income == 0 and total_supply_income == 0:
+            products_with_orders = filter_products_with_ordered_quantity(Product).filter(producer=producer)
+            products_with_supplies = filter_products_with_supplies_quantity(Product).filter(producer=producer)
+
+            aggregated_order_income = products_with_orders.aggregate(total_income=Sum("income"))
+            aggregated_supply_income = products_with_supplies.aggregate(total_supply_income=Sum("supply_income"))
+
+            total_order_income = aggregated_order_income["total_income"]
+            total_supply_income = aggregated_supply_income["total_supply_income"]
+            if total_order_income == 0 and total_supply_income == 0:
                 continue
             producers_names += (producer.short,)
-            if total_income:
-                total_incomes += total_income
-                producers_incomes += (f"{total_income:.2f}",)
+            if total_order_income:
+                total_incomes += total_order_income
+                producers_incomes += (f"{total_order_income:.2f}",)
             else:
                 producers_incomes.append(Decimal("0"))
 
@@ -790,9 +790,6 @@ class ProductsExcessReportView(TemplateView):
     def __init__(self, **kwargs):
         super().__init__()
         self.products = None
-        self.product_excess_list = []
-        self.product_names_list = []
-        self.product_prices_list = []
 
     def get_products(self):
         self.products = filter_products_with_ordered_quantity_income_and_supply_income(

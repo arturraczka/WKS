@@ -10,8 +10,8 @@ from django.db.models import Case, When, F, Q
 logger = logging.getLogger("django.server")
 
 
-def calculate_previous_weekday(day=4, hour=0):
-    """Returns datetime object of a chosen day of a week within last 7 days. Defaults to Friday 00:00. Monday: 1, Tuesday: 7, Wednesday: 6,
+def calculate_previous_weekday(day=5, hour=23):
+    """Returns datetime object of a chosen day of a week within last 7 days. Defaults to Friday 23:00. Monday: 1, Tuesday: 7, Wednesday: 6,
     Thursday: 5, Friday: 4, Saturday: 3, Sunday: 2"""
     today = (
         datetime.now()
@@ -249,8 +249,7 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
 
 def filter_products_with_ordered_quantity(product_model):
     """Returns a Product QS with annotated: ordered_quantity and income.
-    Limits resulting QS to fields: name, orderitems__quantity and
-    supplyitems__quantity."""
+    Limits resulting QS to fields: name, orderitems__quantity and annotations."""
     previous_friday = calculate_previous_weekday()
     products = product_model.objects.only("name", "orderitems__quantity")
 
@@ -261,6 +260,24 @@ def filter_products_with_ordered_quantity(product_model):
                 default=0,
             ),
             income=F("ordered_quantity") * F("price"),
+        ).distinct().order_by("name")
+
+    return annotated_products
+
+
+def filter_products_with_supplies_quantity(product_model):
+    """Returns a Product QS with annotated: supply_quantity and supply_income.
+    Limits resulting QS to fields: name, supplyitems__quantity and annotations."""
+    previous_friday = calculate_previous_weekday()
+    products = product_model.objects.only("name", "supplyitems__quantity")
+
+    annotated_products = products.annotate(
+            supply_quantity=Sum(
+                "supplyitems__quantity",
+                filter=Q(supplyitems__date_created__gte=previous_friday),
+                default=0,
+            ),
+            supply_income=F("supply_quantity") * F("price"),
         ).distinct().order_by("name")
 
     return annotated_products
