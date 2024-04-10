@@ -17,7 +17,6 @@
         </div>
 
         <h3>{{ producer.name }}</h3>
-        <h4>Kwota z zamówienia łącznie: {{ total_income|floatformat:"2" }} zł.</h4>
         <h4>Kwota z dostawy łącznie: {{ total_supply_income|floatformat:"2" }} zł.</h4>
 
         <div class="row">
@@ -28,21 +27,7 @@
                 {% endfor %}
             </div>
 
-            <div class="col-md-1">
-                <div>Zamówiono: </div>
-                {% for quantity in product_ordered_quantities_list %}
-                    <div>{{ quantity|format_decimal }} szt/kg</div>
-                {% endfor %}
-            </div>
-
             <div class="col-md-2">
-                <div>Kwota z zamówienia: </div>
-                {% for income in product_incomes_list %}
-                    <div>{{ income }} zł</div>
-                {% endfor %}
-            </div>
-
-            <div class="col-md-1">
                 <div>Dostawa: </div>
                 {% for sup_quantity in supply_quantities_list %}
                     <div>{{ sup_quantity|format_decimal }} szt/kg</div>
@@ -56,12 +41,6 @@
                 {% endfor %}
             </div>
 
-            <div class="col-md-1">
-                <div>Nadwyżka: </div>
-                {% for ex in excess %}
-                    <div>{{ ex|format_decimal }} szt/kg</div>
-                {% endfor %}
-            </div>
         </div>
     </div>
 {% endblock content%}

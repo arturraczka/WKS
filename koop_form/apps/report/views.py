@@ -31,54 +31,65 @@ from apps.user.models import UserProfile
 logger = logging.getLogger("django.server")
 
 
-@method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerProductsReportView(TemplateView):
-    template_name = "report/producer_products_report.html"
-
+class ProducerTemplateReportView(TemplateView):
     def __init__(self, **kwargs):
         super().__init__()
         self.producer = None
         self.products = None
         self.product_names_list = []
-        self.product_ordered_quantities_list = []
-        self.product_incomes_list = []
-        self.total_income = 0
 
     def get_producer(self):
         self.producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
+
+    def get_products(self):
+        pass
+
+    def extract_products_data(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        self.get_producer()
+        self.get_products()
+        self.extract_products_data()
+        context["producer"] = self.producer
+        context["producers"] = get_producers_list(Producer)
+        return context
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class ProducerOrdersReportView(ProducerTemplateReportView):
+    template_name = "report/producer_orders_report.html"
+
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.order_quantities_list = []
+        self.order_incomes_list = []
+        self.total_order_income = 0
 
     def get_products(self):
         self.products = filter_products_with_ordered_quantity(
             Product
         ).exclude(Q(income=0)).filter(producer=self.producer.id)
 
-    def get_product_names_quantities_incomes(self):
+    def extract_products_data(self):
         for product in self.products:
-            self.total_income += product.income
+            self.total_order_income += product.income
             self.product_names_list += (product.name,)
-            self.product_ordered_quantities_list.append(product.ordered_quantity)
-            self.product_incomes_list += (f"{Decimal(product.income):.2f}",)
-
+            self.order_quantities_list.append(product.ordered_quantity)
+            self.order_incomes_list += (f"{Decimal(product.income):.2f}",)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        self.get_producer()
-        self.get_products()
-        self.get_product_names_quantities_incomes()
-        context["producer"] = self.producer
-        context["producers"] = get_producers_list(Producer)
-
         context["product_names_list"] = self.product_names_list
-        context[
-            "product_ordered_quantities_list"
-        ] = self.product_ordered_quantities_list
-        context["product_incomes_list"] = self.product_incomes_list
-        context["total_income"] = self.total_income
+        context["order_quantities_list"] = self.order_quantities_list
+        context["order_incomes_list"] = self.order_incomes_list
+        context["total_order_income"] = self.total_order_income
         return context
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerProductsSuppliesReportView(ProducerProductsReportView):
+class ProducerSuppliesReportView(ProducerTemplateReportView):
     template_name = "report/producer_supplies_report.html"
 
     def __init__(self, **kwargs):
@@ -86,31 +97,24 @@ class ProducerProductsSuppliesReportView(ProducerProductsReportView):
         self.supply_quantities_list = []
         self.supply_incomes_list = []
         self.total_supply_income = 0
-        self.product_excess_list = []
 
     def get_products(self):
-        self.products = filter_products_with_ordered_quantity_income_and_supply_income(
-            Product, self.producer.id
-        ).exclude(Q(income=Decimal("0")) & Q(supply_quantity=Decimal("0")))
+        self.products = filter_products_with_supplies_quantity(
+            Product
+        ).exclude(Q(supply_income=0)).filter(producer=self.producer.id)
 
-    def get_product_names_quantities_incomes(self):
+    def extract_products_data(self):
         for product in self.products:
-            self.total_income += product.income
             self.total_supply_income += product.supply_income
-
             self.product_names_list += (product.name,)
-            self.product_ordered_quantities_list.append(product.ordered_quantity)
-            self.product_incomes_list += (f"{Decimal(product.income):.2f}",)
-
             self.supply_quantities_list += (product.supply_quantity,)
             self.supply_incomes_list += (f"{Decimal(product.supply_income):.2f}",)
-            self.product_excess_list += (product.excess,)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["product_names_list"] = self.product_names_list
         context["supply_quantities_list"] = self.supply_quantities_list
         context["supply_incomes_list"] = self.supply_incomes_list
-        context["excess"] = self.product_excess_list
         context["total_supply_income"] = self.total_supply_income
         return context
 
@@ -187,17 +191,17 @@ class UsersReportView(TemplateView):
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerProductsSuppliesListView(ProducersView):
+class ProducerSuppliesListView(ProducersView):
     template_name = "report/producer_supplies_list.html"
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerProductsListView(ProducersView):
-    template_name = "report/producer_products_list.html"
+class ProducerOrdersListView(ProducersView):
+    template_name = "report/producer_orders_list.html"
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerBoxListView(ProducerProductsSuppliesListView):
+class ProducerBoxListView(ProducerSuppliesListView):
     template_name = "report/producer_box_list.html"
 
 
@@ -339,13 +343,13 @@ class ProducersFinanceReportDownloadView(ProducersFinanceReportView):
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerProductsSuppliesReportDownloadView(ProducerProductsSuppliesReportView):
+class ProducerSuppliesReportDownloadView(ProducerSuppliesReportView):
     response_class = HttpResponse
     content_type = "text/csv"
 
     def render_to_response(self, context, **response_kwargs):
         headers = {
-            "Content-Disposition": f'attachment; filename="raport-producent-produkty: {context["producer"].short}.csv"'
+            "Content-Disposition": f'attachment; filename="raport-producent-dostawy:-{context["producer"].short}.csv"'
         }
 
         response = self.response_class(
@@ -360,12 +364,6 @@ class ProducerProductsSuppliesReportDownloadView(ProducerProductsSuppliesReportV
         )
         writer.writerow(
             [
-                "Kwota zamówienia (zł):",
-                f'{context["total_income"]:.2f}'.replace(".", ","),
-            ]
-        )
-        writer.writerow(
-            [
                 "Kwota dostawy (zł):",
                 f'{context["total_supply_income"]:.2f}'.replace(".", ","),
             ]
@@ -373,31 +371,20 @@ class ProducerProductsSuppliesReportDownloadView(ProducerProductsSuppliesReportV
         writer.writerow(
             [
                 "Nazwa produktu",
-                "Zamówiona ilość",
-                "Kwota z zamówienia",
                 "Dostarczona ilość",
                 "Kwota z dostawy",
-                "Nadwyżka",
             ]
         )
-        for name, quantity, income, supply_quantity, supply_income, excess in zip(
+        for name, supply_quantity, supply_income in zip(
             context["product_names_list"],
-            context["product_ordered_quantities_list"],
-            context["product_incomes_list"],
             context["supply_quantities_list"],
             context["supply_incomes_list"],
-            context["excess"],
         ):
-            if not (quantity or supply_quantity):
-                continue
             writer.writerow(
                 [
                     name,
-                    str(quantity).replace(".", ","),
-                    str(income).replace(".", ","),
                     str(supply_quantity).replace(".", ","),
                     str(supply_income).replace(".", ","),
-                    str(excess).replace(".", ","),
                 ]
             )
         return response
@@ -734,13 +721,13 @@ class MassOrderBoxReportDownloadView(TemplateView):
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerProductsReportDownloadView(ProducerProductsSuppliesReportView):
+class ProducerOrdersReportDownloadView(ProducerOrdersReportView):
     response_class = HttpResponse
     content_type = "text/csv"
 
     def render_to_response(self, context, **response_kwargs):
         headers = {
-            "Content-Disposition": f'attachment; filename="raport-producent-produkty: {context["producer"].short}.csv"'
+            "Content-Disposition": f'attachment; filename="raport-producent-zamowienia:-{context["producer"].short}.csv"'
         }
 
         response = self.response_class(
@@ -756,7 +743,7 @@ class ProducerProductsReportDownloadView(ProducerProductsSuppliesReportView):
         writer.writerow(
             [
                 "Kwota zamówienia (zł):",
-                f'{context["total_income"]:.2f}'.replace(".", ","),
+                f'{context["total_order_income"]:.2f}'.replace(".", ","),
             ]
         )
         writer.writerow(
@@ -768,8 +755,8 @@ class ProducerProductsReportDownloadView(ProducerProductsSuppliesReportView):
         )
         for name, quantity, income in zip(
             context["product_names_list"],
-            context["product_ordered_quantities_list"],
-            context["product_incomes_list"],
+            context["order_quantities_list"],
+            context["order_incomes_list"],
         ):
             if not quantity:
                 continue

@@ -1,7 +1,7 @@
 from django.urls import path
 
 from apps.report.views import (
-    ProducerProductsSuppliesReportView,
+    ProducerSuppliesReportView,
     ProducerBoxReportView,
     UsersReportView,
     ProducerBoxListView,
@@ -9,39 +9,39 @@ from apps.report.views import (
     ProducerBoxReportDownloadView,
     UsersReportDownloadView,
     ProducersFinanceReportDownloadView,
-    ProducerProductsSuppliesReportDownloadView,
+    ProducerSuppliesReportDownloadView,
     OrderBoxListView,
     OrderBoxReportView,
     OrderBoxReportDownloadView,
     UsersFinanceReportView,
-    ProducerProductsSuppliesListView,
+    ProducerSuppliesListView,
     MassProducerBoxReportDownloadView,
     UsersFinanceReportDownloadView,
-    MassOrderBoxReportDownloadView, ProducerProductsReportView, ProducerProductsReportDownloadView,
-    ProducerProductsListView, ProductsExcessReportView,
+    MassOrderBoxReportDownloadView, ProducerOrdersReportView, ProducerOrdersReportDownloadView,
+    ProducerOrdersListView, ProductsExcessReportView,
 )
 
 
 urlpatterns = [
     path(
         "producenci-dostawy/",
-        ProducerProductsSuppliesListView.as_view(),
+        ProducerSuppliesListView.as_view(),
         name="producer-supplies-list",
     ),
     path(
-        "producenci-produkty/",
-        ProducerProductsListView.as_view(),
-        name="producer-products-list",
+        "producenci-zamowienia/",
+        ProducerOrdersListView.as_view(),
+        name="producer-orders-list",
     ),
     path(
         "producenci-dostawy/<str:slug>/",
-        ProducerProductsSuppliesReportView.as_view(),
+        ProducerSuppliesReportView.as_view(),
         name="producer-supplies-report",
     ),
     path(
-        "producenci-produkty/<str:slug>/",
-        ProducerProductsReportView.as_view(),
-        name="producer-products-report",
+        "producenci-zamowienia/<str:slug>/",
+        ProducerOrdersReportView.as_view(),
+        name="producer-orders-report",
     ),
     path(
         "producenci-skrzynki/",
@@ -80,13 +80,13 @@ urlpatterns = [
     ),
     path(
         "pobierz/producenci-dostawy/<str:slug>/",
-        ProducerProductsSuppliesReportDownloadView.as_view(),
+        ProducerSuppliesReportDownloadView.as_view(),
         name="producer-supplies-report-download",
     ),
     path(
-        "pobierz/producenci-produkty/<str:slug>/",
-        ProducerProductsReportDownloadView.as_view(),
-        name="producer-products-report-download",
+        "pobierz/producenci-zamowienia/<str:slug>/",
+        ProducerOrdersReportDownloadView.as_view(),
+        name="producer-orders-report-download",
     ),
     path(
         "zamowienia-skrzynki/",
