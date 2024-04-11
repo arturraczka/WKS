@@ -10,8 +10,8 @@ from django.db.models import Case, When, F, Q
 logger = logging.getLogger("django.server")
 
 
-def calculate_previous_weekday(day=5, hour=23):
-    """Returns datetime object of a chosen day of a week within last 7 days. Defaults to Friday 23:00. Monday: 1, Tuesday: 7, Wednesday: 6,
+def calculate_previous_weekday(day=3, hour=1):
+    """Returns datetime object of a chosen day of a week within last 7 days. Defaults to Saturday 1:00 AM. Monday: 1, Tuesday: 7, Wednesday: 6,
     Thursday: 5, Friday: 4, Saturday: 3, Sunday: 2"""
     today = (
         datetime.now()
