@@ -2,7 +2,7 @@ name: koop_form
 version: 1.0.0 #docker compose version
 services:
   webapp:
-    image: koop_form:0.1.0a6
+    image: koop_form:0.1.0a7
     environment:
       ENV_CONFIG_PATH: /env
       ALLOWED_HOSTS_CONFIG_PATH: /allowhosts
@@ -56,7 +56,7 @@ configs:
   init_empty_config:
     file: ./init_empty_config
   env:
-    file: ./.myenv
+    file: ./.myenv_example
   allowhosts:
     file: ./allowhosts.json
 
