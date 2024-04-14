@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "apps.supply",
     "apps.templates",
     "apps.static",
+    "apps.prometheus_proxy",
     "django_extensions",
     "import_export",
     "axes",
