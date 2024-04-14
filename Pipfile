@@ -9,6 +9,7 @@ environ = "1.0"
 django-environ = "0.11.2"
 django-extensions = "3.2.3"
 django-cors-headers = "4.3.1"
+django-crontab = "0.7.1"
 factory-boy = "3.3.0"
 pytz = "2023.3.post1"
 python-json-logger = "2.0.7"
@@ -16,8 +17,8 @@ django-import-export = "3.3.3"
 tablib = "3.5.0"
 django-crispy-forms = "2.1"
 crispy-bootstrap5 = "2023.10"
-django-axes = {version = "6.1.1", extras = ["ipware"]}
-django-stubs = {version = "4.2.6", extras = ["compatible-mypy"]}
+django-axes = {version = "==6.1.1", extras = ["ipware"]}
+django-stubs = {version = "==4.2.6", extras = ["compatible-mypy"]}
 django-debug-toolbar = "*"
 gunicorn = "*"
 sentry-sdk = {extras = ["django"], version = "*"}

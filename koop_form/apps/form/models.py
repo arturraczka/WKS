@@ -13,16 +13,16 @@ logger = logging.getLogger("django.server")
 
 
 class Producer(models.Model):
-    name = models.CharField(unique=True)
-    short = models.CharField(default="test")  # to powinno być unique and indexed
-    slug = models.CharField(unique=True, blank=True)
+    name = models.CharField(unique=True, max_length=100)
+    short = models.CharField(default="test", max_length=16)  # to powinno być unique and indexed
+    slug = models.CharField(unique=True, blank=True, max_length=100)
     description = models.TextField(max_length=1000)
     order = models.IntegerField(
         default=10
     )  # Default order or use choices for specific values
     is_active = models.BooleanField(default=True)
     not_arrived = models.BooleanField(default=False, blank=True)
-    manager_name = models.CharField(blank=True, null=True)
+    manager_name = models.CharField(blank=True, null=True, max_length=100)
     manager_email = models.EmailField(blank=True, null=True)
     manager_phone = models.PositiveIntegerField(blank=True, null=True)
     order_deadline = models.DateTimeField(null=True, blank=True)
@@ -110,8 +110,8 @@ class Product(models.Model):
     category = models.ForeignKey(
         Category, related_name="products", on_delete=models.PROTECT, null=True
     )
-    subcategory = models.CharField(null=True, blank=True)
-    unit = models.CharField(choices=unit_choices)
+    subcategory = models.CharField(null=True, blank=True, max_length=100)
+    unit = models.CharField(choices=unit_choices, max_length=100)
     info = models.TextField(max_length=255, null=True, blank=True)
     is_stocked = models.BooleanField(default=False)
 

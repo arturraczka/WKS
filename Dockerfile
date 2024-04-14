@@ -1,6 +1,8 @@
 # Base image
 FROM python:3.10-slim
 
+RUN apt update -y
+RUN apt install cron -y
 # Set working directory
 WORKDIR /app
 # Install dependencies using Pipenv
@@ -19,4 +21,5 @@ RUN python koop_form/manage.py collectstatic --no-input
 EXPOSE 8000
 
 # Command to run Gunicorn
-CMD ["pipenv", "run", "gunicorn", "--chdir", "./koop_form", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["./start.sh"]
+
