@@ -251,7 +251,7 @@ def filter_products_with_ordered_quantity(product_model):
     """Returns a Product QS with annotated: ordered_quantity and income.
     Limits resulting QS to fields: name, orderitems__quantity and annotations."""
     previous_friday = calculate_previous_weekday()
-    products = product_model.objects.only("name", "orderitems__quantity")
+    products = product_model.objects.only("name", "is_stocked", "orderitems__quantity")
 
     annotated_products = products.annotate(
             ordered_quantity=Sum(

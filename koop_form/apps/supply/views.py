@@ -30,6 +30,7 @@ from apps.form.services import (
     alter_product_stock,
     reduce_product_stock,
     calculate_previous_weekday, filter_products_with_ordered_quantity_income_and_supply_income,
+    filter_products_with_ordered_quantity,
 )
 
 
@@ -291,8 +292,8 @@ class SupplyFromOrdersCreateView(SupplyCreateView):
 
         supply = Supply.objects.get(id=self.object.id)
         producer = Producer.objects.get(id=form.instance.producer.id)
-        products = filter_products_with_ordered_quantity_income_and_supply_income(
-            Product, form.instance.producer.id).filter(ordered_quantity__gt=0)
+        products = filter_products_with_ordered_quantity(
+            Product).filter(ordered_quantity__gt=0).filter(producer=form.instance.producer.id)
         for product in products:
             if not product.is_stocked:
                 SupplyItem.objects.create(supply=supply, product=product, quantity=product.ordered_quantity)
