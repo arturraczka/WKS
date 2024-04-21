@@ -123,6 +123,9 @@ venv.bak/
 .myenv
 .privatemakefileenvs
 htpasswd
+koop-envs
+additional_envs
+additional-envs
 
 # Spyder project settings
 .spyderproject
