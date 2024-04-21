@@ -1,4 +1,0 @@
-EMAIL_HOST_PASSWORD=x
-SECRET_KEY=123
-DATABASE_URL=postgresql://postgres:password@database:5432/koop_db
-EMAIL_HOST_USER=a@a.pl
