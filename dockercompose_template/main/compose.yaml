@@ -1,8 +1,14 @@
 name: koop_form
 version: 1.0.0 #docker compose version
+
+
 services:
+
   webapp:
-    image: koop_form:0.1.0a7
+    image: ${KOOP_IMAGE}:${KOOP_TAG}
+    env_file:
+      - ../parameters/additional_envs
+
     environment:
       ENV_CONFIG_PATH: /env
       ALLOWED_HOSTS_CONFIG_PATH: /allowhosts
@@ -26,11 +32,12 @@ services:
 
     volumes:
       - ./main-nginx.conf:/etc/nginx/conf.d/default.conf  # Mount your Nginx configuration file
-      - ./nginx-conf:/nginx-conf
-      - static-volume:/app/koop_form/staticfiles
-      - ./website.crt:/website.crt
-      - ./website.key:/website.key
       - ./nginx-lua-prometheus:/nginx-lua-prometheus
+      - ../parameters/nginx-conf:/nginx-conf
+      - static-volume:/app/koop_form/staticfiles
+      - ../parameters/website.crt:/website.crt
+      - ../parameters/website.key:/website.key
+
     depends_on:
       - webapp  # Ensure webapp service starts before Nginx
     networks:
@@ -56,9 +63,9 @@ configs:
   init_empty_config:
     file: ./init_empty_config
   env:
-    file: ./.myenv
+    file: ../parameters/koop-envs
   allowhosts:
-    file: ./allowhosts.json
+    file: ../parameters/allowhosts.json
 
 networks:
   # The presence of these objects is sufficient to define them

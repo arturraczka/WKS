@@ -31,8 +31,12 @@ run-only-docker:
 compose-run-start:
 	DOCKER_COMPOSE_COMMAND="docker compose" dockercompose/compose-run.sh dockercompose/compose.yaml
 
-compose-run-stop:
-	docker compose -f ./dockercompose/compose.yaml down
+new-compose-run-start:
+	DOCKER_COMPOSE_COMMAND="docker compose" dockercompose_template/main/scripts/compose-run.sh dockercompose_template/main/compose.yaml
+
+
+new-compose-run-stop:
+	docker compose -f ./dockercompose_template/main/compose.yaml down
 
 compose-run-migrate:
 	sleep 10
@@ -41,10 +45,10 @@ compose-run-migrate:
 compose-run-create-superusper:
 	docker exec -it koop_form-webapp-1 python koop_form/manage.py createsuperuser
 
-compose-run-restore-database:
-	./dockercompose/restore_database.sh ./koop_form/db_dump_test
+new-compose-run-restore-database:
+	./dockercompose_template/main/scripts/restore_database.sh ./koop_form/db_dump_test
 
 remove-compose-db-volume:
 	docker volume rm koop_form_db-data
 
-start-all-compose: build-image compose-run-start compose-run-migrate compose-run-create-superusper
+start-all-compose: build-image new-compose-run-start compose-run-migrate compose-run-create-superusper
