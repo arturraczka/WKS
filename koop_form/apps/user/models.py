@@ -21,6 +21,14 @@ class UserProfile(models.Model):
     )
     phone_number = models.PositiveIntegerField(blank=True, null=True)
     koop_id = models.PositiveIntegerField(null=False, unique=True)
+    credit = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=False,
+        blank=True,
+        default=0,
+        verbose_name="nadpłata/dług",
+    )
 
     def __str__(self):
         return f"Profil: {self.user.first_name} {self.user.last_name}"
