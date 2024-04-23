@@ -95,6 +95,7 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             orderitems = OrderItem.objects.filter(
                 product=product, item_ordered_date__gt=calculate_previous_weekday()
             )
+            # TODO to można zrobić dużo lepiej: policzyć sume wszystkich orderitem.quantity agregatem, zrobić update na produkcie jeden raz i finalnie bulk delete caly queryset
             for item in orderitems:
                 reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
                 item.delete()
@@ -159,9 +160,8 @@ class OrderAdmin(admin.ModelAdmin):
     list_select_related = True
     list_filter = ["date_created", "order_number", "user__last_name"]
     list_display = ["user_last_name", "order_number", "date_created"]
-    search_fields = [
-        "user__last_name",
-    ]
+    search_fields = ["user__last_name"]
+    readonly_fields = ['amount', 'amount_with_fund', 'difference', 'credit']
     inlines = (OrderItemEmptyInLine, OrderItemInLine,)
 
     @admin.display(description="User last name")
