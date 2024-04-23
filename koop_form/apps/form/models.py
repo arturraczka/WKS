@@ -147,6 +147,12 @@ class Order(models.Model):
     date_created = models.DateTimeField(auto_now_add=True, verbose_name="utworzono")
     is_given = models.BooleanField(default=False)  # do I need this?
     order_number = models.IntegerField(blank=True, verbose_name="numer zamówienia")
+    amount = models.DecimalField(null=False, default=0, blank=True, decimal_places=2, max_digits=7, verbose_name="kwota zamówienia")
+    amount_with_fund = models.DecimalField(null=False, default=0, blank=True, decimal_places=2, max_digits=7, verbose_name="kwota po funduszu")
+    cash = models.DecimalField(null=False, default=0, blank=True, decimal_places=2, max_digits=7, verbose_name="gotówka")
+    difference = models.DecimalField(null=False, default=0, blank=True, decimal_places=2, max_digits=7, verbose_name="różnica")
+    paid = models.DecimalField(null=False, default=0, blank=True, decimal_places=2, max_digits=7, verbose_name="zapłacono")
+    credit = models.DecimalField(max_digits=6, decimal_places=2, null=False, blank=True, default=0, verbose_name="nadpłata/dług")
 
     class Meta:
         verbose_name = "Zamówienie"
