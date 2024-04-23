@@ -1,9 +1,9 @@
 import logging
 
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import post_save, pre_delete, pre_save, post_delete
 from django.dispatch import receiver
 
-from apps.form.models import WeightScheme, Product, Order
+from apps.form.models import WeightScheme, Product, Order, OrderItem
 from apps.form.services import recalculate_order_numbers
 
 
@@ -20,6 +20,52 @@ def add_zero_as_weight_scheme(sender, instance, **kwargs):
         weight_scheme_zero = WeightScheme.objects.get(quantity=0)
     instance.weight_schemes.add(weight_scheme_zero.id)
 
+
+@receiver(post_save, sender=OrderItem)
+def update_order_amount_if_created(sender, instance, created, **kwargs):
+    if created:
+        instance_amount = instance.quantity * instance.product.price
+        order = Order.objects.get(id=instance.order.id)
+        order.amount += instance_amount
+        order.amount_with_fund = order.amount * order.user.userprofile.fund
+        order.save()
+
+
+
+@receiver(pre_save, sender=OrderItem)
+def update_order_amount_if_edited(sender, instance, **kwargs):
+    try:
+        item_db = sender.objects.get(pk=instance.pk)
+    except sender.DoesNotExist:
+        pass
+    else:
+        diff = instance.quantity - item_db.quantity
+        order = Order.objects.get(id=instance.order.id)
+        order.amount = order.amount + (diff * instance.product.price)
+        order.amount_with_fund = order.amount * order.user.userprofile.fund
+        order.save()
+
+
+@receiver(post_delete, sender=OrderItem)
+def update_order_amount_if_deleted(sender, instance, **kwargs):
+    instance_amount = instance.quantity * instance.product.price
+    instance.order.amount = instance.order.amount - instance_amount
+    instance.order.amount_with_fund = instance.order.amount * instance.order.user.userprofile.fund
+    instance.order.save()
+
+
+@receiver(pre_save, sender=Order)
+def update_order_difference(sender, instance, **kwargs):
+    if instance.cash:
+        instance.difference = instance.cash - instance.amount_with_fund
+    else:
+        instance.cash = 0
+        instance.difference = - instance.amount_with_fund
+    if instance.paid:
+        instance.credit = instance.paid - instance.amount_with_fund
+    else:
+        instance.paid = 0
+        instance.credit = - instance.amount_with_fund
 
 # @receiver(pre_save, sender=Product)
 # def check_before_reduce_order_quantity(sender, instance, **kwargs):
