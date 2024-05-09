@@ -1,6 +1,6 @@
 DOCKERFILE = Dockerfile
 IMAGE_NAME=koop_form
-APP_VERSION=0.1.0a7
+APP_VERSION=0.1.0a9
 IMAGE_ENVS_FILE=env
 ENVS_FILE=./.myenv
 IMAGE_ALLOW_HOSTS_FILE=local_hosts
@@ -28,6 +28,9 @@ run-only-docker:
     "$(IMAGE_NAME):$(APP_VERSION)"
 
 #could be docker-compose instead of docker compose
+
+compose-run-start-logs:
+	docker compose -f dockercompose_template/main/compose.yaml --env-file dockercompose_template/parameters/compose-envs up
 
 compose-run-start:
 	DOCKER_COMPOSE_COMMAND="docker compose" dockercompose_template/main/scripts/compose-run.sh dockercompose_template/main/compose.yaml
