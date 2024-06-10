@@ -1,6 +1,29 @@
+import logging
+import os
 from os import path
 from environ import Env
 from pathlib import Path
+import json
+import traceback
+
+def is_list_of_strings(data):
+  """Checks if a variable is a list of strings."""
+  return isinstance(data, list) and all(isinstance(item, str) for item in data)
+
+def get_allowed_hosts(config_path, default_list):
+    if not config_path:
+        return default_list
+    try:
+        with open(config_path, 'r') as file:
+            hosts = json.load(file)
+        print(hosts)
+        if not is_list_of_strings(hosts):
+            raise TypeError("Config file with allowed hosts nust be json list of strings")
+        return hosts
+    except Exception as e:
+        logging.error(traceback.format_exc())
+        return default_list
+
 
 # creates Env class instance with default DEBUG=False if there is no DEBUG var
 env = Env(DEBUG=(bool, False))
@@ -9,11 +32,17 @@ env = Env(DEBUG=(bool, False))
 # BASE_DIR = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-env.read_env(path.join(BASE_DIR, ".env"))
+ENV_CONFIG_PATH=os.environ.get("ENV_CONFIG_PATH", default=path.join(BASE_DIR, ".env"))
 
-SECRET_KEY = env("SECRET_KEY")
+env.read_env(ENV_CONFIG_PATH)
+
+ALLOWED_HOSTS_CONFIG_PATH=env("ALLOWED_HOSTS_CONFIG_PATH", default=None)
+print(ALLOWED_HOSTS_CONFIG_PATH)
+
+SECRET_KEY = env("SECRET_KEY", default=None)
 
 AUTHENTICATION_BACKENDS = [
+
     # AxesStandaloneBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
     "axes.backends.AxesStandaloneBackend",
     # Django ModelBackend is the default authentication backend.
@@ -44,7 +73,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    "default": env.db("DATABASE_URL"),
+    "default": env.db("DATABASE_URL", default=None),
 }
 
 # Password validation
@@ -160,7 +189,6 @@ LOGGERS = {
     },
 }
 
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,  # może być potrzeba zmienić na True, gdy w produkcji logger nie będzie działał
@@ -176,8 +204,8 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 465
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 EMAIL_TIMEOUT = 30
 
 AXES_FAILURE_LIMIT = 10

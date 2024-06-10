@@ -106,9 +106,9 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             instance.not_arrived = False
 
     def save_model(self, request, obj, form, change):
-        self.set_order_deadline_to_related_products(obj)
         self.not_arrived_deletes_related_orderitems(obj)
         super().save_model(request, obj, form, change)
+        self.set_order_deadline_to_related_products(obj)
 
 
 class ProductResource(resources.ModelResource):
