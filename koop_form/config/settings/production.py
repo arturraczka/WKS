@@ -43,7 +43,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "axes.middleware.AxesMiddleware",  # should be the last middleware
+    # "axes.middleware.AxesMiddleware",  # should be the last middleware
 ]
 
 sentry_sdk.init(
