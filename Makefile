@@ -33,7 +33,7 @@ compose-run-start-logs:
 	docker compose -f dockercompose_template/main/compose.yaml --env-file dockercompose_template/parameters/compose-envs up
 
 compose-run-start:
-	DOCKER_COMPOSE_COMMAND="docker compose" dockercompose_template/main/scripts/compose-run.sh dockercompose_template/main/compose.yaml
+	DOCKER_COMPOSE_COMMAND="docker-compose" dockercompose_template/main/scripts/compose-run.sh dockercompose_template/main/compose.yaml
 
 
 compose-run-stop:
