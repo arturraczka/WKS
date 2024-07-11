@@ -3,16 +3,17 @@ version: 1.0.0 #docker compose version
 
 
 services:
-
   webapp:
     image: ${KOOP_IMAGE}:${KOOP_TAG}
     env_file:
-      - ../parameters/additional_envs
+      - path: ../parameters/additional_envs
+        required: false
+      - path: ../parameters/production.env
+        required: false
 
     environment:
       ENV_CONFIG_PATH: /env
       ALLOWED_HOSTS_CONFIG_PATH: /allowhosts
-
     configs:
       - env
       - allowhosts
@@ -23,13 +24,10 @@ services:
 
   nginx:
     image: openresty/openresty:1.25.3.1-2-alpine-fat
-
-  #  command: ["nginx", "-c" ,"/nginx-conf/main-nginx.conf"]
     ports:
       - "80:80"  # Expose port 80 of the container to port 80 on the host
       - "443:443"
       - "9145:9145"
-
     volumes:
       - ./main-nginx.conf:/etc/nginx/conf.d/default.conf  # Mount your Nginx configuration file
       - ./nginx-lua-prometheus:/nginx-lua-prometheus
@@ -37,7 +35,6 @@ services:
       - static-volume:/app/koop_form/staticfiles
       - ../parameters/website.crt:/website.crt
       - ../parameters/website.key:/website.key
-
     depends_on:
       - webapp  # Ensure webapp service starts before Nginx
     networks:

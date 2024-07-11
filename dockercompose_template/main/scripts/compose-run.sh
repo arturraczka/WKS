@@ -22,12 +22,15 @@ fi
 if [[ -z "$(${DOCKER_COMPOSE_COMMAND} -f ${COMPOSE_FILE_PATH} ps -q)" ]]; then
   echo "no docker compose running"
   echo "START docker compose running"
+  docker volume rm koop_form_static-volume #needed to recreate static files
   ${DOCKER_COMPOSE_COMMAND} -f ${COMPOSE_FILE_PATH} --env-file ${ENV_FILE_PATH} up -d
 else
   echo "docker compose running is already running"
   echo "RESTART docker compose running"
-  ${DOCKER_COMPOSE_COMMAND} -f ${COMPOSE_FILE_PATH} --env-file ${ENV_FILE_PATH} up -d #up when compose.yaml change
+
+  ${DOCKER_COMPOSE_COMMAND} -f ${COMPOSE_FILE_PATH} --env-file ${ENV_FILE_PATH} down
+  docker volume rm koop_form_static-volume
   sleep 2 #arbitral sleep helps before restart
-  ${DOCKER_COMPOSE_COMMAND} -f ${COMPOSE_FILE_PATH} --env-file ${ENV_FILE_PATH} restart #when compose.yaml does not change but other things must be reinit
+  ${DOCKER_COMPOSE_COMMAND} -f ${COMPOSE_FILE_PATH} --env-file ${ENV_FILE_PATH} up -d #when compose.yaml does not change but other things must be reinit
 fi
 
