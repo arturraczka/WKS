@@ -131,6 +131,10 @@ class product_weight_schemes(models.Model):
     def __str__(self):
         return f"{self.product}: " f"{self.weightscheme}"
 
+    def save(self, *args, **kwargs):
+        if not product_weight_schemes.objects.filter(product=self.product, weightscheme=self.weightscheme).exists():
+            super().save(*args, **kwargs)
+
 # TODO dodać resztę , verbose_name= powyżej
 
 class Order(models.Model):

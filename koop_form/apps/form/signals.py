@@ -1,24 +1,25 @@
 import logging
 
-from django.db.models.signals import post_save, pre_delete
+
+from django.db.models.signals import post_save, pre_delete, class_prepared, post_migrate, m2m_changed, pre_save
 from django.dispatch import receiver
 
 from apps.form.models import WeightScheme, Product, Order
 from apps.form.services import recalculate_order_numbers
 
-
 logger = logging.getLogger("django.server")
 
 
+def init_weight_scheme_with_zero(sender, **kwargs):
+    if not WeightScheme.objects.filter(quantity=0).exists():
+        WeightScheme(quantity=0).save()
+        logger.info('Database populated with WeightScheme quantity=0.')
+    else:
+        logger.info(f'Database already has WeightScheme quantity=0. {sender}')
+
 @receiver(post_save, sender=Product)
-def add_zero_as_weight_scheme(sender, instance, **kwargs):
-    try:
-        weight_scheme_zero = WeightScheme.objects.get(quantity=0)
-    except WeightScheme.DoesNotExist:
-        weight_scheme_zero = WeightScheme(quantity=0)
-        weight_scheme_zero.save()
-        weight_scheme_zero = WeightScheme.objects.get(quantity=0)
-    instance.weight_schemes.add(weight_scheme_zero.id)
+def add_zero_as_weight_scheme(sender, instance,**kwargs):
+    instance.weight_schemes.add(WeightScheme.objects.get(quantity=0))
 
 
 # @receiver(pre_save, sender=Product)
