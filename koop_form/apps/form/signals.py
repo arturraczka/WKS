@@ -1,7 +1,7 @@
 import logging
 
 
-from django.db.models.signals import post_save, pre_delete, class_prepared, post_migrate, m2m_changed, pre_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
 from apps.form.models import WeightScheme, Product, Order
