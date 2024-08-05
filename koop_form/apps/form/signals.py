@@ -19,7 +19,14 @@ def init_weight_scheme_with_zero(sender, **kwargs):
 
 @receiver(post_save, sender=Product)
 def add_zero_as_weight_scheme(sender, instance,**kwargs):
-    instance.weight_schemes.add(WeightScheme.objects.get(quantity=0))
+    if WeightScheme.objects.filter(quantity=0).exists():
+        instance.weight_schemes.add(WeightScheme.objects.get(quantity=0))
+
+@receiver(pre_delete, sender=WeightScheme)
+def add_zero_as_weight_scheme(sender, instance,**kwargs):
+    if WeightScheme.objects.filter(quantity=0).first() == instance:
+        raise Exception("WeigthScheme=0 cannot be deleted")
+
 
 
 # @receiver(pre_save, sender=Product)

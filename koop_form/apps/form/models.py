@@ -135,6 +135,10 @@ class product_weight_schemes(models.Model):
         if not product_weight_schemes.objects.filter(product=self.product, weightscheme=self.weightscheme).exists():
             super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        if not WeightScheme.objects.filter(quantity=0).exists() or self.weightscheme.id != WeightScheme.objects.get(quantity=0).id:
+            super().delete(*args, **kwargs)
+
 # TODO dodać resztę , verbose_name= powyżej
 
 class Order(models.Model):
