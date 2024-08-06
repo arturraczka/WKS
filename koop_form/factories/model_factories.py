@@ -7,6 +7,7 @@ import pytz
 from apps.form.models import Producer, Product, Status, WeightScheme, Order, OrderItem
 from django.utils import timezone
 
+from apps.form.services import calculate_order_number
 from apps.user.models import UserProfile
 
 ModelUser = get_user_model()
@@ -65,6 +66,7 @@ class OrderFactory(DjangoModelFactory):
     pick_up_day = ["środa", "czwartek"][random.randint(0, 1)]
     date_created = timezone.now()
     is_given = False
+    order_number = 1
 
     @post_generation
     def products(self, create, extracted, **kwargs):

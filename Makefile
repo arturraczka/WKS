@@ -27,6 +27,10 @@ run-only-docker:
     --network host \
     "$(IMAGE_NAME):$(APP_VERSION)"
 
+#remove later, find container with  docker ps -a
+run-only-database:
+	docker-compose -f dockercompose_template/main/compose.yaml run -p 5432:5432 database
+
 #could be docker-compose instead of docker compose
 
 compose-run-start-logs:

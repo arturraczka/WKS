@@ -4,11 +4,14 @@ import logging
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
-from apps.form.models import WeightScheme, Product, Order
+from apps.form.models import WeightScheme, Product, Order, product_weight_schemes
 from apps.form.services import recalculate_order_numbers
 
 logger = logging.getLogger("django.server")
 
+
+class NotAllowedDeletionException(Exception):
+    pass
 
 def init_weight_scheme_with_zero(sender, **kwargs):
     if not WeightScheme.objects.filter(quantity=0).exists():
@@ -23,10 +26,14 @@ def add_zero_as_weight_scheme(sender, instance,**kwargs):
         instance.weight_schemes.add(WeightScheme.objects.get(quantity=0))
 
 @receiver(pre_delete, sender=WeightScheme)
-def add_zero_as_weight_scheme(sender, instance,**kwargs):
+def add_zero_as_weight_scheme_deletion_prevent(sender, instance,**kwargs):
     if WeightScheme.objects.filter(quantity=0).first() == instance:
-        raise Exception("WeigthScheme=0 cannot be deleted")
+        raise NotAllowedDeletionException("WeigthScheme=0 cannot be deleted")
 
+@receiver(pre_delete, sender=product_weight_schemes)
+def add_zero_as_product_weight_scheme_deletion_prevent(sender, instance,**kwargs):
+    if WeightScheme.objects.filter(quantity=0).first() == instance.weightscheme:
+        raise NotAllowedDeletionException("WeigthScheme=0 cannot be deleted in Product")
 
 
 # @receiver(pre_save, sender=Product)
