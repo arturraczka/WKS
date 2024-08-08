@@ -4,7 +4,7 @@ import logging
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
-from apps.form.models import WeightScheme, Product, Order, product_weight_schemes
+from apps.form.models import WeightScheme, Product, Order
 from apps.form.services import recalculate_order_numbers
 
 logger = logging.getLogger("django.server")

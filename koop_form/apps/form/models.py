@@ -1,7 +1,5 @@
 import logging
 
-from django.contrib import messages
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse

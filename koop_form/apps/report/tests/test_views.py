@@ -32,7 +32,7 @@ class TestProducerProductsReportView(TestCase):
         self.client.force_login(self.user)
         self.producer = ProducerFactory()
         self.url = reverse(
-            "producer-products-report", kwargs={"slug": self.producer.slug}
+            "producer-orders-report", kwargs={"slug": self.producer.slug}
         )
         self.product1 = ProductFactory(
             producer=self.producer, price=5.5, name="warzywo"
@@ -59,9 +59,9 @@ class TestProducerProductsReportView(TestCase):
         assert context_data["producer"] == self.producer
         assert context_data["producers"] == get_producers_list(Producer)
         assert sorted(context_data["product_names_list"]) == ["cebula", "warzywo"]
-        assert sorted(context_data["product_ordered_quantities_list"]) == [4.5, 5.5]
-        assert sorted(context_data["product_incomes_list"]) == ["24.75", "77.00"]
-        assert context_data["total_income"] == 101.75
+        assert sorted(context_data["order_quantities_list"]) == [4.5, 5.5]
+        assert sorted(context_data["order_incomes_list"]) == ["24.75", "77.00"]
+        assert context_data["total_order_income"] == 101.75
 
     def test_user_is_not_staff(self):
         self.client.force_login(UserFactory())
@@ -101,11 +101,6 @@ class TestProducerBoxReportView(TestCase):
         assert context_data["producer"] == self.producer
         assert list(context_data["producers"]) == list(producers)
         assert list(context_data["products"]) == list(products)
-        assert list(context_data["order_data"]) == [
-            "(skrz1: 4) ",
-            "(skrz2: 1) ",
-            "(skrz3: 2) ",
-        ]
         assert response.status_code == 200
 
     def test_user_is_not_staff(self):
@@ -136,7 +131,6 @@ class TestUsersReportView(TestCase):
 
         assert response.status_code == 200
         assert context_data["user_name_list"] == ["K Kamil", "M Marek"]
-        assert context_data["user_order_number_list"] == [1, 2]
         assert context_data["user_pickup_day_list"] == ["środa", "czwartek"]
         assert context_data["user_phone_number_list"] == [444555666, 777666555]
 
@@ -157,7 +151,7 @@ class TestProducerProductsListView(TestCase):
             5,
         ):
             ProducerFactory()
-        self.url = reverse("producer-products-list")
+        self.url = reverse("producer-orders-list")
 
     def test_user_is_not_staff(self):
         response = self.client.get(self.url)
