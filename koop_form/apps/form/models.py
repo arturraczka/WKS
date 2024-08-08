@@ -1,5 +1,7 @@
 import logging
 
+from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -53,6 +55,10 @@ class WeightScheme(models.Model):
 
     def __str__(self):
         return str(self.quantity)
+
+    def delete(self, *args, **kwargs):
+        if not self.quantity == 0:
+            super().delete(*args, **kwargs)
 
 
 class Status(models.Model):
@@ -132,11 +138,15 @@ class product_weight_schemes(models.Model):
         return f"{self.product}: " f"{self.weightscheme}"
 
     def save(self, *args, **kwargs):
+        if self.pk:
+            self_db = product_weight_schemes.objects.get(pk=self.pk).select_related("weightscheme")
+            if self.weightscheme.quantity != 0 and self_db.weightscheme.quantity == 0:
+                return
         if not product_weight_schemes.objects.filter(product=self.product, weightscheme=self.weightscheme).exists():
             super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        if not WeightScheme.objects.filter(quantity=0).exists() or self.weightscheme.id != WeightScheme.objects.get(quantity=0).id:
+        if not self.weightscheme.quantity == 0:
             super().delete(*args, **kwargs)
 
 # TODO dodać resztę , verbose_name= powyżej
