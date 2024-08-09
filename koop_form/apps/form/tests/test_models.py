@@ -3,14 +3,14 @@ import logging
 
 from django.test import TestCase
 
-from apps.form.models import Order, WeightScheme
+from apps.form.models import Order, WeightScheme, product_weight_schemes
 from apps.form.services import calculate_order_number
 from factories.model_factories import (
     UserFactory,
     ProductFactory,
     OrderItemFactory,
     OrderFactory,
-    ProducerFactory,
+    ProducerFactory, WeightSchemeFactory,
 )
 
 logger = logging.getLogger("django.server")
@@ -45,9 +45,42 @@ class TestProduct(TestCase):
     def test_signal_add_zero_as_weight_scheme(self):
         #given
         zero_weight_scheme = WeightScheme.objects.get(quantity=0)
-
         #when then
         assert zero_weight_scheme in self.product.weight_schemes.all()
+
+@pytest.mark.django_db
+class Test_product_weight_schemes(TestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.order = OrderFactory(user=self.user, order_number=calculate_order_number(Order))
+        self.order_second = OrderFactory(user=self.user, order_number=calculate_order_number(Order))
+        self.product = ProductFactory(order_max_quantity=100)
+        self.weight_scheme_1 = WeightSchemeFactory(quantity=1)
+        self.weight_scheme_2 = WeightSchemeFactory(quantity=2)
+
+    def test_prevent_update_zero_as_weight_scheme(self):
+        # given
+        zero_weight_scheme = WeightScheme.objects.get(quantity=0)
+        product_weight_schemes_0 = product_weight_schemes.objects.filter(weightscheme_id=zero_weight_scheme.id).first()
+
+        # when
+        product_weight_schemes_0.weightscheme = self.weight_scheme_1
+        product_weight_schemes_0.save()
+
+        #  then
+        self.assertTrue(zero_weight_scheme in self.product.weight_schemes.all())
+
+    def test_update_weight_scheme(self):
+        # given
+        self.product.weight_schemes.add(self.weight_scheme_1)
+        product_weight_schemes_1 = product_weight_schemes.objects.filter(weightscheme_id=self.weight_scheme_1.id).first()
+
+        # when
+        product_weight_schemes_1.weightscheme = self.weight_scheme_2
+        product_weight_schemes_1.save()
+
+        # then
+        self.assertFalse(self.weight_scheme_1 in self.product.weight_schemes.all())
 
 
 @pytest.mark.django_db

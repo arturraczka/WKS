@@ -137,7 +137,7 @@ class product_weight_schemes(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            self_db = product_weight_schemes.objects.get(pk=self.pk).select_related("weightscheme")
+            self_db = product_weight_schemes.objects.get(pk=self.pk)
             if self.weightscheme.quantity != 0 and self_db.weightscheme.quantity == 0:
                 return
         if not product_weight_schemes.objects.filter(product=self.product, weightscheme=self.weightscheme).exists():
