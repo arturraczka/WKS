@@ -683,21 +683,16 @@ class MassOrderBoxReportDownloadView(TemplateView):
             order_cost = calculate_order_cost(orderitems)
             order_cost_with_fund = f"{order_cost * fund:.2f}"
 
+            product_ids = []
             producer_short = []
             orderitems_names = []
             orderitems_quantity = []
-            product_ids = []
 
             for item in orderitems:
                 product_ids += (item.product.id,)
+                producer_short += (item.product.producer.short,)
                 orderitems_names += (item.product.name,)
                 orderitems_quantity += (str(item.quantity).rstrip("0").rstrip(".").replace(".", ","),)
-
-            products = Product.objects.filter(id__in=product_ids).select_related(
-                "producer"
-            )
-            for prod in products:
-                producer_short += (prod.producer.short,)
 
             first_row = pd.DataFrame({
                 f"skrzynka {order.order_number}": ["Producent"],
