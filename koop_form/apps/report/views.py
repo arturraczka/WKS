@@ -678,38 +678,34 @@ class MassOrderBoxReportDownloadView(TemplateView):
                 fund = Decimal("1.3")
             username = order.user.first_name + " " + order.user.last_name
 
-            orderitems = OrderItem.objects.filter(order=order).select_related("product")
+            orderitems = OrderItem.objects.filter(order=order).select_related("product", "product__producer")
 
             order_cost = calculate_order_cost(orderitems)
             order_cost_with_fund = f"{order_cost * fund:.2f}"
 
-            product_ids = []
             producer_short = []
             orderitems_names = []
             orderitems_quantity = []
 
             for item in orderitems:
-                product_ids += (item.product.id,)
                 producer_short += (item.product.producer.short,)
                 orderitems_names += (item.product.name,)
                 orderitems_quantity += (str(item.quantity).rstrip("0").rstrip(".").replace(".", ","),)
 
-            first_row = pd.DataFrame({
-                f"skrzynka {order.order_number}": ["Producent"],
-                f"{username} do zapłaty {order_cost_with_fund} zł": ["Nazwa produktu"],
-                f"fundusz {fund}": ["Zamówiona ilość"],
-                "-": [" ",],
-            }, index=[0])
+            values = pd.DataFrame(zip(producer_short, orderitems_names, orderitems_quantity, [" "]*len(producer_short) )).sort_values(by=0)
+            first_rows = pd.DataFrame(
+                zip(
+                    [f"skrzynka {order.order_number}", "Producent"],
+                    [f"{username} do zapłaty {order_cost_with_fund} zł", "Nazwa produktu"],
+                    [f"fundusz {fund}", "Zamówiona ilość"],
+                    ["-", " "]
+                )
+            )
+            joined_df = pd.concat([first_rows, values], axis=0, ignore_index=True)
+            joined_df.columns = joined_df.iloc[0]
+            joined_df_with_headers = joined_df[1:].reset_index(drop=True)
 
-            new_df = pd.DataFrame({
-                f"skrzynka {order.order_number}": producer_short,
-                f"{username} do zapłaty {order_cost_with_fund} zł": orderitems_names,
-                f"fundusz {fund}": orderitems_quantity,
-                "-": [" "] * len(producer_short),
-            })
-
-            joined_df = pd.concat([first_row, new_df], ignore_index=True)
-            df = pd.concat([df, joined_df], axis=1)
+            df = pd.concat([df, joined_df_with_headers], axis=1)
 
         df.to_csv(response, index=False)
         return response

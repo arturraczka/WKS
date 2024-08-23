@@ -58,10 +58,10 @@ class Test_product_weight_schemes(TestCase):
         self.weight_scheme_1 = WeightSchemeFactory(quantity=1)
         self.weight_scheme_2 = WeightSchemeFactory(quantity=2)
 
-    def test_prevent_update_zero_as_weight_scheme(self):
+    def test_save_prevent_update_zero_as_weight_scheme(self):
         # given
         zero_weight_scheme = WeightScheme.objects.get(quantity=0)
-        product_weight_schemes_0 = product_weight_schemes.objects.filter(weightscheme_id=zero_weight_scheme.id).first()
+        product_weight_schemes_0 = product_weight_schemes.objects.get(weightscheme_id=zero_weight_scheme.id)
 
         # when
         product_weight_schemes_0.weightscheme = self.weight_scheme_1
@@ -70,10 +70,10 @@ class Test_product_weight_schemes(TestCase):
         #  then
         self.assertTrue(zero_weight_scheme in self.product.weight_schemes.all())
 
-    def test_update_weight_scheme(self):
+    def test_save_update_weight_scheme(self):
         # given
         self.product.weight_schemes.add(self.weight_scheme_1)
-        product_weight_schemes_1 = product_weight_schemes.objects.filter(weightscheme_id=self.weight_scheme_1.id).first()
+        product_weight_schemes_1 = product_weight_schemes.objects.get(weightscheme_id=self.weight_scheme_1.id)
 
         # when
         product_weight_schemes_1.weightscheme = self.weight_scheme_2
@@ -81,6 +81,7 @@ class Test_product_weight_schemes(TestCase):
 
         # then
         self.assertFalse(self.weight_scheme_1 in self.product.weight_schemes.all())
+        self.assertTrue(self.weight_scheme_2 in self.product.weight_schemes.all())
 
 
 @pytest.mark.django_db

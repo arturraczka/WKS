@@ -38,9 +38,8 @@ class MassOrderBoxReportDownloadView(TestCase):
         self.user_2 = UserFactory(is_staff=True)
         self.client.force_login(self.user_1)
         self.client.force_login(self.user_2)
-        self.producer_1 = ProducerFactory(name="yoyoma")
-        self.producer_1.short = "YOYO"
-        self.producer_2 = ProducerFactory(name="elomaaa")
+        self.producer_1 = ProducerFactory(name="yoyoma",short="YOYO")
+        self.producer_2 = ProducerFactory(name="elomaaa",short="EMAA")
         self.product_1 = ProductFactory(producer=self.producer_1, price=5.5, name="warzywo")
         self.product_2 = ProductFactory(producer=self.producer_2, price=14, name="cebula")
         self.product_3 = ProductFactory(producer=self.producer_2, price=21, name="ziemniak")
