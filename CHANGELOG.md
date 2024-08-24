@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # [1.0.2]
 ### Fix
 - [marcinkosztolowicz] Fix error exporting all orders csv when item is duplicated in any order
-
+- [marcinkosztolowicz] Change MassOrderBoxReport items in box order by producer short name 
+- [marcinkosztolowicz] Change  items in producer product order by  box number
 
 # [1.0.1]
 ### Fix
