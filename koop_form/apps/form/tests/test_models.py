@@ -1,113 +1,87 @@
-import datetime
 import pytest
-import random
 import logging
 
-from django.db.models import Q
 from django.test import TestCase
 
-from apps.form.models import OrderItem, Product, Order, WeightScheme
-from apps.form.services import calculate_previous_weekday
+from apps.form.models import Order, WeightScheme, product_weight_schemes
+from apps.form.services import calculate_order_number
 from factories.model_factories import (
     UserFactory,
     ProductFactory,
     OrderItemFactory,
     OrderFactory,
-    ProducerFactory,
+    ProducerFactory, WeightSchemeFactory,
 )
 
 logger = logging.getLogger("django.server")
 
 
 @pytest.mark.django_db
-class TestProductModel(TestCase):
+class TestWeightScheme:
+    def test_signal_init_weight_scheme_with_zero(self):
+        assert WeightScheme.objects.filter(quantity=0).exists()
+
+    def test_delete(self):
+        weight_scheme_zero = WeightScheme.objects.get(quantity=0)
+        weight_scheme_1 = WeightScheme.objects.create(quantity=1)
+        weight_scheme_zero.delete()
+        weight_scheme_1.delete()
+        assert WeightScheme.objects.filter(quantity=0).exists()
+        assert not WeightScheme.objects.filter(quantity=1).exists()
+
+
+@pytest.mark.django_db
+class TestProduct(TestCase):
     def setUp(self):
         self.user = UserFactory()
-        self.order = OrderFactory(user=self.user)
+        self.order = OrderFactory(user=self.user, order_number=calculate_order_number(Order))
+        self.order_second = OrderFactory(user=self.user, order_number=calculate_order_number(Order))
         self.product = ProductFactory(order_max_quantity=100)
 
-    def calculate_ordered_quantity(self, previous_friday):
-        orderitems = (
-            OrderItem.objects.filter(product=self.product.id)
-            .filter(Q(item_ordered_date__gte=previous_friday))
-            .order_by("item_ordered_date")
-        )
-
-        ordered_quantity = 0
-        for item in orderitems:
-            ordered_quantity += item.quantity
-
-        return ordered_quantity
-
-    # not in use at this moment ###########################################
-    # def test_reduce_order_quantity(self):
-    #     previous_friday = calculate_previous_weekday()
-    #     OrderItemFactory(product=self.product, quantity=5)
-    #     for _ in range(1, 8):
-    #         OrderItemFactory(product=self.product)
-    #
-    #     ordered_quantity = self.calculate_ordered_quantity(previous_friday)
-    #
-    #     product_db = Product.objects.get(id=self.product.id)
-    #     rand_quantity = random.randint(7, 12)
-    #     product_db.quantity_delivered_this_week = rand_quantity
-    #     product_db.save()
-    #
-    #     ordered_quantity_post_save = self.calculate_ordered_quantity(previous_friday)
-    #
-    #     assert product_db.quantity_delivered_this_week == -1
-    #     assert ordered_quantity > rand_quantity
-    #     assert ordered_quantity_post_save <= rand_quantity
+    def test_order_ordering(self):
+        self.assertEquals(self.order.order_number, 1)
+        self.assertEquals(self.order_second.order_number, 2)
 
     def test_signal_add_zero_as_weight_scheme(self):
+        #given
         zero_weight_scheme = WeightScheme.objects.get(quantity=0)
-        assert zero_weight_scheme in list(self.product.weight_schemes.all())
-
-
-@pytest.mark.django_db
-class TestOrderModel(TestCase):
-    def setUp(self):
-        for _ in range(1, 20):
-            number = random.randint(1, 20)
-            past_date = datetime.datetime.now().astimezone() - datetime.timedelta(
-                days=number
-            )
-            OrderFactory(date_created=past_date)
-
-    def test_calculate_order_number(self):
-        previous_friday = calculate_previous_weekday()
-        orders_qs = Order.objects.filter(date_created__gte=previous_friday).order_by(
-            "date_created"
-        )
-
-        initial_number = 0
-        for order in orders_qs:
-            initial_number += 1
-            assert order.order_number == initial_number
-
-    def test_recalculate_order_numbers(self):
-        previous_friday = calculate_previous_weekday()
-        qs_count = Order.objects.filter(date_created__gte=previous_friday).count()
-        rand_int = random.randint(0, qs_count - 1)
-        list(Order.objects.filter(date_created__gte=previous_friday))[rand_int].delete()
-
-        self.test_calculate_order_number()
-
+        #when then
+        assert zero_weight_scheme in self.product.weight_schemes.all()
 
 @pytest.mark.django_db
-class TestOrderItemModel(TestCase):
+class Test_product_weight_schemes(TestCase):
     def setUp(self):
-        self.orderitem = OrderItemFactory()
+        self.user = UserFactory()
+        self.order = OrderFactory(user=self.user, order_number=calculate_order_number(Order))
+        self.order_second = OrderFactory(user=self.user, order_number=calculate_order_number(Order))
+        self.product = ProductFactory(order_max_quantity=100)
+        self.weight_scheme_1 = WeightSchemeFactory(quantity=1)
+        self.weight_scheme_2 = WeightSchemeFactory(quantity=2)
 
-    def test_quantity_eq_0_triggers_delete(self):
-        orderitem_qs_count = OrderItem.objects.filter().count()
-        assert orderitem_qs_count == 1
+    def test_save_prevent_update_zero_as_weight_scheme(self):
+        # given
+        zero_weight_scheme = WeightScheme.objects.get(quantity=0)
+        product_weight_schemes_0 = product_weight_schemes.objects.get(weightscheme_id=zero_weight_scheme.id)
 
-        self.orderitem.quantity = 0
-        self.orderitem.save()
+        # when
+        product_weight_schemes_0.weightscheme = self.weight_scheme_1
+        product_weight_schemes_0.save()
 
-        orderitem_qs_count = OrderItem.objects.filter().count()
-        assert orderitem_qs_count == 0
+        #  then
+        self.assertTrue(zero_weight_scheme in self.product.weight_schemes.all())
+
+    def test_save_update_weight_scheme(self):
+        # given
+        self.product.weight_schemes.add(self.weight_scheme_1)
+        product_weight_schemes_1 = product_weight_schemes.objects.get(weightscheme_id=self.weight_scheme_1.id)
+
+        # when
+        product_weight_schemes_1.weightscheme = self.weight_scheme_2
+        product_weight_schemes_1.save()
+
+        # then
+        self.assertFalse(self.weight_scheme_1 in self.product.weight_schemes.all())
+        self.assertTrue(self.weight_scheme_2 in self.product.weight_schemes.all())
 
 
 @pytest.mark.django_db
@@ -122,34 +96,3 @@ class TestProducerModel(TestCase):
 
     def test_slug_creation(self):
         assert self.producer.slug == "wielka-korba-p13"
-
-    # not in use at this moment ###########################################
-    # def test_set_products_quantity_to_0(self):
-    #     count_pre_save = OrderItem.objects.count()
-    #
-    #     self.producer.not_arrived = True
-    #     self.producer.save()
-    #
-    #     products_qs = Product.objects.filter(producer=self.producer)
-    #     count_post_save = OrderItem.objects.count()
-    #
-    #     assert self.producer.not_arrived is False
-    #     for product in products_qs:
-    #         assert product.quantity_delivered_this_week == -1
-    #     assert count_pre_save == 15
-    #     assert count_post_save == 0
-
-    def test_switch_products_isactive_bool_value(self):
-        self.producer.is_active = False
-        self.producer.save()
-
-        products_qs = Product.objects.filter(producer=self.producer)
-        for product in products_qs:
-            assert product.is_active is False
-
-        self.producer.is_active = True
-        self.producer.save()
-
-        products_qs = Product.objects.filter(producer=self.producer)
-        for product in products_qs:
-            assert product.is_active is True

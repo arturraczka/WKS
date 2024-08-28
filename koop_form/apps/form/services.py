@@ -111,7 +111,7 @@ def create_order_data_list(products):
     for product in products:
         orderitems_qs = (
             product.orderitems.filter(item_ordered_date__gte=previous_friday)
-            .order_by("item_ordered_date")
+            .order_by("order__order_number")
             .select_related("order")
         )
         order_data = ""

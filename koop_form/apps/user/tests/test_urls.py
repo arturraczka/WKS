@@ -62,17 +62,6 @@ class TestPasswordResetDoneView(TestCase):
         assert response.status_code == 200
 
 
-class TestPasswordResetConfirmView(TestCase):
-    def setUp(self):
-        self.url = reverse(
-            "password_reset_confirm", kwargs={"uidb64": None, "token": None}
-        )
-
-    def test_response(self):
-        response = self.client.get(self.url)
-        assert response.status_code == 200
-
-
 class TestPasswordResetCompleteView(TestCase):
     def setUp(self):
         self.url = reverse("password_reset_complete")

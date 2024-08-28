@@ -1,5 +1,6 @@
 from django.apps import AppConfig
-from django.core.management import call_command
+from django.db.models.signals import post_migrate
+
 
 class FormConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
@@ -7,6 +8,8 @@ class FormConfig(AppConfig):
 
     def ready(self):
         from . import signals
- #       call_command("crontab", "add")
+        post_migrate.connect(signals.init_weight_scheme_with_zero, sender=self)
+
+
 
 

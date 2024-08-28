@@ -54,6 +54,10 @@ class WeightScheme(models.Model):
     def __str__(self):
         return str(self.quantity)
 
+    def delete(self, *args, **kwargs):
+        if not self.quantity == 0:
+            super().delete(*args, **kwargs)
+
 
 class Status(models.Model):
     status_type = models.CharField(max_length=100)
@@ -130,6 +134,18 @@ class product_weight_schemes(models.Model):
 
     def __str__(self):
         return f"{self.product}: " f"{self.weightscheme}"
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            self_db = product_weight_schemes.objects.get(pk=self.pk)
+            if self.weightscheme.quantity != 0 and self_db.weightscheme.quantity == 0:
+                return
+        if not product_weight_schemes.objects.filter(product=self.product, weightscheme=self.weightscheme).exists():
+            super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if not self.weightscheme.quantity == 0:
+            super().delete(*args, **kwargs)
 
 # TODO dodać resztę , verbose_name= powyżej
 

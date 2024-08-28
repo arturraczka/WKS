@@ -1,6 +1,6 @@
 DOCKERFILE = Dockerfile
 IMAGE_NAME=koop_form
-APP_VERSION=1.0.0
+APP_VERSION=1.0.2
 IMAGE_ENVS_FILE=env
 ENVS_FILE=./.myenv
 IMAGE_ALLOW_HOSTS_FILE=local_hosts
@@ -27,6 +27,10 @@ run-only-docker:
     --network host \
     "$(IMAGE_NAME):$(APP_VERSION)"
 
+#remove later, find container with  docker ps -a; delete ti with: docker rm $(docker ps -aq)
+run-only-database:
+	docker-compose -f dockercompose_template/main/compose.yaml run -p 5432:5432 database
+
 #could be docker-compose instead of docker compose
 
 compose-run-start-logs:
@@ -37,7 +41,7 @@ compose-run-start:
 
 
 compose-run-stop:
-	docker compose -f ./dockercompose_template/main/compose.yaml down
+	docker-compose -f ./dockercompose_template/main/compose.yaml down
 
 compose-run-migrate:
 	sleep 10
@@ -47,7 +51,7 @@ compose-run-create-superusper:
 	docker exec -it koop_form-webapp-1 python koop_form/manage.py createsuperuser
 
 compose-run-restore-database:
-	./dockercompose_template/main/scripts/restore_database.sh ./koop_form/db_dump_test
+	./dockercompose_template/main/scripts/restore_database.sh -f ./koop_form/db_dump_test
 
 remove-compose-db-volume:
 	docker volume rm koop_form_db-data
