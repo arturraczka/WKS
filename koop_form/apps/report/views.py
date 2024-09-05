@@ -692,7 +692,12 @@ class MassOrderBoxReportDownloadView(TemplateView):
                 orderitems_names += (item.product.name,)
                 orderitems_quantity += (str(item.quantity).rstrip("0").rstrip(".").replace(".", ","),)
 
-            values = pd.DataFrame(zip(producer_short, orderitems_names, orderitems_quantity, [" "]*len(producer_short) )).sort_values(by=0)
+            values = pd.DataFrame({
+                0: producer_short,
+                1: orderitems_names,
+                2: orderitems_quantity,
+                3: [" "]*len(producer_short)
+            }).sort_values(by=0)
             first_rows = pd.DataFrame(
                 zip(
                     [f"skrzynka {order.order_number}", "Producent"],
