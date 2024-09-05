@@ -66,7 +66,7 @@ class MassOrderBoxReportDownloadView(TestCase):
         self.assertTrue(((df[5] == "warzywo") & (df[6] == "2")).any())
         self.assertTrue(((df[5] == "ziemniak") & (df[6] == "20")).any())
 
-    def test_duplicated_item(self):
+    def test_response_and_content_duplicated_item(self):
         # given
         OrderItemFactory(order=self.order_1, product=self.product_1, quantity=Decimal(2.5))
         OrderItemFactory(order=self.order_2, product=self.product_1, quantity=Decimal(2))
@@ -87,6 +87,30 @@ class MassOrderBoxReportDownloadView(TestCase):
         self.assertTrue(((df[5] == "cebula") & (df[6] == "3,5")).any())
         self.assertTrue(((df[5] == "warzywo") & (df[6] == "2")).any())
         self.assertTrue(((df[5] == "ziemniak") & (df[6] == "20")).any())
+
+    def test_response_and_content_empty_order(self):
+        # given
+        self.user_3 = UserFactory(is_staff=True)
+        self.client.force_login(self.user_3)
+        OrderItemFactory(order=self.order_1, product=self.product_1, quantity=Decimal(2.5))
+        OrderItemFactory(order=self.order_2, product=self.product_1, quantity=Decimal(2))
+        OrderItemFactory(order=self.order_1, product=self.product_2, quantity=Decimal(5))
+        OrderItemFactory(order=self.order_2, product=self.product_2, quantity=Decimal(0.5))
+        OrderItemFactory(order=self.order_1, product=self.product_3, quantity=Decimal(10))
+        OrderItemFactory(order=self.order_2, product=self.product_3, quantity=Decimal(20))
+        self.order_3 = OrderFactory(order_number=3, user=self.user_3)
+        # when
+        response = self.client.get(self.url)
+        # then
+        df = pd.read_csv(StringIO(response.content.decode("utf-8")), sep=",", header=None)
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue(((df[1] == "cebula") & (df[2] == "5")).any())
+        self.assertTrue(((df[1] == "warzywo") & (df[2] == "2,5")).any())
+        self.assertTrue(((df[1] == "ziemniak") & (df[2] == "10")).any())
+        self.assertTrue(((df[5] == "cebula") & (df[6] == "0,5")).any())
+        self.assertTrue(((df[5] == "warzywo") & (df[6] == "2")).any())
+        self.assertTrue(((df[5] == "ziemniak") & (df[6] == "20")).any())
+        self.assertTrue((pd.isna(df[[8,9,10,11]][2:])).all().all()) # every value for order 3 is Nan
 
 
 @pytest.mark.django_db
