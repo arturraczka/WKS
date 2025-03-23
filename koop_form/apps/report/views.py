@@ -77,7 +77,7 @@ class ProducerOrdersReportView(ProducerTemplateReportView):
             self.total_order_income += product.income
             self.product_names_list += (product.name,)
             self.order_quantities_list.append(product.ordered_quantity)
-            self.order_incomes_list += (f"{Decimal(product.income):.2f}",)
+            self.order_incomes_list += (f"{Decimal(product.income):.2f}".replace(".", ","),)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -108,7 +108,7 @@ class ProducerSuppliesReportView(ProducerTemplateReportView):
             self.total_supply_income += product.supply_income
             self.product_names_list += (product.name,)
             self.supply_quantities_list += (product.supply_quantity,)
-            self.supply_incomes_list += (f"{Decimal(product.supply_income):.2f}",)
+            self.supply_incomes_list += (f"{Decimal(product.supply_income):.2f}".replace(".", ","),)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -234,13 +234,13 @@ class ProducersFinanceReportView(TemplateView):
             producers_names += (producer.short,)
             if total_order_income:
                 total_incomes += total_order_income
-                producers_incomes += (f"{total_order_income:.2f}",)
+                producers_incomes += (f"{total_order_income:.2f}".replace(".", ","),)
             else:
                 producers_incomes.append(Decimal("0"))
 
             if total_supply_income:
                 total_supply_incomes += total_supply_income
-                producers_supply_incomes += (f"{total_supply_income:.2f}",)
+                producers_supply_incomes += (f"{total_supply_income:.2f}".replace(".", ","),)
             else:
                 producers_supply_incomes.append(Decimal("0"))
 
@@ -430,7 +430,7 @@ class OrderBoxReportView(OrderBoxListView):
         context["order_cost"] = calculate_order_cost(orderitems)
         context[
             "order_cost_with_fund"
-        ] = f'{context["order_cost"] * context["fund"]:.2f}'
+        ] = f'{context["order_cost"] * context["fund"]:.2f}'.replace(".", ",")
 
         producer_short = []
         orderitems_names = []
@@ -681,7 +681,7 @@ class MassOrderBoxReportDownloadView(TemplateView):
             orderitems = OrderItem.objects.filter(order=order).select_related("product", "product__producer")
 
             order_cost = calculate_order_cost(orderitems)
-            order_cost_with_fund = f"{order_cost * fund:.2f}"
+            order_cost_with_fund = f"{order_cost * fund:.2f}".replace(".", ",")
 
             producer_short = []
             orderitems_names = []
