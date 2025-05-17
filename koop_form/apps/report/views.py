@@ -27,6 +27,7 @@ from apps.form.services import (
 
 from apps.form.views import ProducersView
 from apps.user.models import UserProfile
+from apps.user.services import get_user_fund
 
 logger = logging.getLogger("django.server")
 
@@ -509,29 +510,21 @@ class UsersFinanceReportView(TemplateView):
         order_number_list = []
         user_fund_list = []
         order_cost_fund_list = []
+        order_paid_list = []
+        order_balance_list = []
 
         for user in users:
-            try:
-                order = (
-                    Order.objects.filter(date_created__gte=calculate_previous_weekday())
-                    .get(user=user)
-                )
-            except ObjectDoesNotExist:
+            order = (
+                Order.objects.filter(date_created__gte=calculate_previous_weekday(), user=user)
+                .select_related("user__userprofile__fund").first()
+            )
+            if not order:
                 continue
-            except Order.MultipleObjectsReturned:
-                continue
-            else:
-                orderitems = order.orderitems.select_related("product")
-                try:
-                    user_fund = user.userprofile.fund.value
-                except UserProfile.DoesNotExist:
-                    user_fund = Decimal("1.3")
-                order_cost = calculate_order_cost(orderitems)
-                order_cost_fund = order_cost * user_fund
-
-            user_fund_list.append(user_fund)
-            order_cost_list.append(order_cost)
-            order_cost_fund_list.append(str(format(order_cost_fund, ".1f")).replace(".", ","))
+            user_fund_list.append(order.user_fund)
+            order_cost_list.append(order.order_cost)
+            order_cost_fund_list.append(str(format(order.order_cost_with_fund, ".1f")).replace(".", ","))
+            order_paid_list.append(str(format(order.get_paid_amount(), ".1f")).replace(".", ","))
+            order_balance_list.append(str(format(order.order_balance, ".1f")).replace(".", ","))
 
             email_list.append(user.email)
             name_list += (f"{user.last_name} {user.first_name}",)
@@ -543,7 +536,17 @@ class UsersFinanceReportView(TemplateView):
         context["order_cost_list"] = order_cost_list
         context["user_fund_list"] = user_fund_list
         context["order_cost_fund_list"] = order_cost_fund_list
-        context["zipped"] = zip(name_list, email_list, order_number_list, order_cost_list, user_fund_list, order_cost_fund_list)
+        context["order_paid_list"] = order_paid_list
+        context["order_balance_list"] = order_balance_list
+        context["zipped"] = zip(
+            name_list,
+            email_list,
+            order_number_list,
+            order_cost_list,
+            user_fund_list,
+            order_cost_fund_list,
+            order_paid_list,
+            order_balance_list)
 
         return context
 
@@ -624,13 +627,15 @@ class UsersFinanceReportDownloadView(UsersFinanceReportView):
             headers=headers,
         )
         writer = csv.writer(response)
-        writer.writerow(["imie nazwisko", "koop ID", "kwota zamowienia", "fundusz", "kwota z funduszem", "numer skrzynki"])
-        for name, email, order_cost, fund, order_fund, number in zip(
+        writer.writerow(["imie nazwisko", "koop ID", "kwota zamowienia", "fundusz", "kwota z funduszem", "zapłacono", "bilans", "numer skrzynki"])
+        for name, email, order_cost, fund, order_fund, order_paid, order_balance, number in zip(
             context["name_list"],
             context["email_list"],
             context["order_cost_list"],
             context["user_fund_list"],
             context["order_cost_fund_list"],
+            context["order_paid_list"],
+            context["order_balance_list"],
             context["order_number_list"],
         ):
             writer.writerow([
@@ -639,6 +644,8 @@ class UsersFinanceReportDownloadView(UsersFinanceReportView):
                 str(order_cost).replace(".", ","),
                 str(fund).replace(".", ","),
                 str(order_fund).replace(".", ","),
+                str(order_paid).replace(".", ","),
+                str(order_balance).replace(".", ","),
                 number,
             ])
 

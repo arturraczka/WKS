@@ -259,6 +259,7 @@ class OrderCreateView(FormOpenMixin, SuccessMessageMixin, CreateView):
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
 )
 class OrderUpdateFormView(FormOpenMixin, FormView):
+    # TODO TOTALNIE DO REFAKTOROWANIA
     model = OrderItem
     form_class = None
     template_name = "form/order_update_form.html"

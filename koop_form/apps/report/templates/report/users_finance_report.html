@@ -13,7 +13,33 @@
       <div class="row">
 
         <table class="td-user-finance">
-            {% for username, email, number, cost, fund, cost_fund in zipped %}
+              <tr class="row1">
+                <td>
+                    <div>Imię i nazwisko</div>
+                </td>
+                <td>
+                    <div>Adres email</div>
+                </td>
+                <td>
+                    <div>Num</div>
+                </td>
+                <td>
+                    <div>Kwota</div>
+                </td>
+                <td>
+                    <div>Fund</div>
+                </td>
+                <td>
+                    <div>Kwota*fund</div>
+                </td>
+                <td>
+                    <div>Zapłacono</div>
+                </td>
+                <td>
+                    <div>Bilans</div>
+                </td>
+              </tr>
+            {% for username, email, number, cost, fund, cost_fund, paid, balance in zipped %}
               <tr class="row1">
                 <td>
                     <div>{{ username }}</div>
@@ -32,6 +58,12 @@
                 </td>
                 <td>
                     <div>{{ cost_fund }} zł</div>
+                </td>
+                <td>
+                    <div>{{ paid }} zł</div>
+                </td>
+                <td>
+                    <div>{{ balance }} zł</div>
                 </td>
               </tr>
             {% endfor %}

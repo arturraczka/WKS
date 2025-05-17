@@ -1,5 +1,6 @@
 import logging
 import os
+from decimal import Decimal
 from os import path
 from environ import Env
 from pathlib import Path
@@ -217,3 +218,5 @@ AXES_LOCKOUT_PARAMETERS = [["ip_address", "username"],]
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 
 # na ten moment walidacje idą jako INFO i są nierozróżnialne od prawidłowych requestów hmmmm
+
+DEFAULT_USER_FUND = Decimal("1.3")
