@@ -12,15 +12,16 @@ class UserProfile(models.Model):
         (Decimal("1.3"), 1.3),
     ]
     user = models.OneToOneField(ModelUser, on_delete=models.CASCADE)
-    fund = models.DecimalField(
-        max_digits=3,
-        decimal_places=1,
-        choices=FUND_CHOICES,
-        blank=True,
-        default=Decimal("1.3"),
-    )
+    fund = models.ForeignKey("UserProfileFund", on_delete=models.PROTECT, verbose_name="Fundusz")
     phone_number = models.PositiveIntegerField(blank=True, null=True)
     koop_id = models.PositiveIntegerField(null=False, unique=True)
 
     def __str__(self):
         return f"Profil: {self.user.first_name} {self.user.last_name}"
+
+
+class UserProfileFund(models.Model):
+    value = models.DecimalField(max_digits=3, decimal_places=2, verbose_name="Wartość funduszu.", unique=True)
+
+    def __str__(self):
+        return str(self.value)
