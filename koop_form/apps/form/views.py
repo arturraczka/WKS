@@ -302,7 +302,7 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
 
     def get_user_fund(self):
         try:
-            user_fund = self.request.user.userprofile.fund
+            user_fund = self.request.user.userprofile.fund.value
         except UserProfile.DoesNotExist:
             user_fund = Decimal("1.3")
         if user_fund is None:
