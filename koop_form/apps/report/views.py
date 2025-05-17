@@ -416,7 +416,7 @@ class OrderBoxReportView(OrderBoxListView):
         order = get_object_or_404(Order, id=self.kwargs["pk"])
         context["order"] = order
         try:
-            context["fund"] = order.user.userprofile.fund
+            context["fund"] = order.user.userprofile.fund.value
         except UserProfile.DoesNotExist:
             context["fund"] = Decimal("1.3")
         context["username"] = order.user.first_name + " " + order.user.last_name
@@ -523,7 +523,7 @@ class UsersFinanceReportView(TemplateView):
             else:
                 orderitems = order.orderitems.select_related("product")
                 try:
-                    user_fund = user.userprofile.fund
+                    user_fund = user.userprofile.fund.value
                 except UserProfile.DoesNotExist:
                     user_fund = Decimal("1.3")
                 order_cost = calculate_order_cost(orderitems)

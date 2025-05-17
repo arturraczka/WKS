@@ -7,10 +7,6 @@ ModelUser = get_user_model()
 
 
 class UserProfile(models.Model):
-    FUND_CHOICES = [
-        (Decimal("1.1"), 1.1),
-        (Decimal("1.3"), 1.3),
-    ]
     user = models.OneToOneField(ModelUser, on_delete=models.CASCADE)
     fund = models.ForeignKey("UserProfileFund", on_delete=models.PROTECT, verbose_name="Fundusz")
     phone_number = models.PositiveIntegerField(blank=True, null=True)
