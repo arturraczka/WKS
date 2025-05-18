@@ -157,12 +157,14 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 class OrderAdmin(admin.ModelAdmin):
     list_select_related = True
+    fields = ["user", "pick_up_day", "order_number", "order_cost_with_fund", "paid_amount", "payment_balance"]
     list_filter = ["date_created", "order_number", "user__last_name"]
     list_display = ["user_last_name", "order_number", "date_created"]
     search_fields = [
         "user__last_name",
     ]
     inlines = (OrderItemEmptyInLine, OrderItemInLine,)
+    readonly_fields = ["order_cost_with_fund", "payment_balance"]
 
     @admin.display(description="User last name")
     def user_last_name(self, obj):
@@ -183,6 +185,16 @@ class OrderAdmin(admin.ModelAdmin):
         if not change:
             obj.order_number = calculate_order_number(Order)
         super().save_model(request, obj, form, change)
+
+    def order_cost_with_fund(self, obj):
+        return f"{obj.order_cost_with_fund:.2f} zł"
+
+    order_cost_with_fund.short_description = "Kwota zamówienia z funduszem"
+
+    def payment_balance(self, obj):
+        return f"{obj.order_balance:.2f} zł"
+
+    payment_balance.short_description = "Nadpłata/niedopłata"
 
 
 class OrderItemAdmin(admin.ModelAdmin):

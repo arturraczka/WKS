@@ -31,6 +31,7 @@ CRONTAB_COMMAND_PREFIX=f"ENV_CONFIG_PATH={ENV_CONFIG_PATH}"
 
 CRONJOBS = [
     ('0 0 * * FRI', 'django.core.management.call_command', ['set_product_order_deadline']),
+    ('5 20 * * MON', 'django.core.management.call_command', ['send_order_summary_to_users']),
     # Add more cron jobs as needed
 ]
 
@@ -43,7 +44,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # "axes.middleware.AxesMiddleware",  # should be the last middleware
+    "axes.middleware.AxesMiddleware",  # should be the last middleware
 ]
 
 sentry_sdk.init(
@@ -63,3 +64,5 @@ CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+DEFAULT_FROM_EMAIL = "'Koopowy automat' <koophost@gmail.com>"

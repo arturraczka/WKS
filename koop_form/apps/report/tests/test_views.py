@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.test import TestCase
 from django.utils import timezone
 
+from apps.user.models import UserProfileFund
 from apps.form.models import Producer, Product
 from apps.form.services import (
     get_producers_list,
@@ -148,7 +149,7 @@ class TestProducerProductsReportView(TestCase):
         assert context_data["producers"] == get_producers_list(Producer)
         assert sorted(context_data["product_names_list"]) == ["cebula", "warzywo"]
         assert sorted(context_data["order_quantities_list"]) == [4.5, 5.5]
-        assert sorted(context_data["order_incomes_list"]) == ["24.75", "77.00"]
+        assert sorted(context_data["order_incomes_list"]) == ["24,75", "77,00"]
         assert context_data["total_order_income"] == 101.75
 
     def test_user_is_not_staff(self):
@@ -208,8 +209,9 @@ class TestUsersReportView(TestCase):
         self.user1 = UserFactory(first_name="Kamil", last_name="K")
         self.user2 = UserFactory(first_name="Marek", last_name="M")
         self.user3 = UserFactory(first_name="Wojtek", last_name="W")
-        ProfileFactory(koop_id=1, user=self.user1, phone_number=444555666)
-        ProfileFactory(koop_id=2, user=self.user2, phone_number=777666555)
+        fund = UserProfileFund.objects.get(value=Decimal("1.1"))
+        ProfileFactory(koop_id=1, user=self.user1, phone_number=444555666, fund=fund)
+        ProfileFactory(koop_id=2, user=self.user2, phone_number=777666555, fund=fund)
         OrderFactory(user=self.user1, pick_up_day="środa")
         OrderFactory(user=self.user2, pick_up_day="czwartek")
 

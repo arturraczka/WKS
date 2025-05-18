@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.conf import settings
 
 from apps.form.models import Order, OrderItem, Producer, Product
+from apps.user.models import UserProfileFund
 from apps.form.services import (
     list_messages,
 )
@@ -23,6 +24,7 @@ from factories.model_factories import (
     OrderItemFactory,
     OrderFactory,
     ProfileFactory,
+    UserProfileFundFactory,
 )
 
 logger = logging.getLogger("django.server")
@@ -378,7 +380,8 @@ class TestOrderUpdateFormView(TestCase):
 
         self.url = reverse("order-update-form")
         self.user = UserFactory()
-        self.profile = ProfileFactory(user=self.user, fund=Decimal("1.1"))
+        fund = UserProfileFund.objects.get(value=Decimal("1.1"))
+        self.profile = ProfileFactory(user=self.user, fund=fund)
         self.client.force_login(self.user)
 
         self.order1 = OrderFactory(user=self.user)
@@ -422,7 +425,8 @@ class TestOrderUpdateFormView(TestCase):
 @pytest.mark.django_db
 class TestOrderUpdateView(TestCase):
     def setUp(self):
-        self.profile = ProfileFactory()
+        fund = UserProfileFund.objects.get(value=Decimal("1.1"))
+        self.profile = ProfileFactory(fund=fund)
         self.user = self.profile.user
         self.client.force_login(self.user)
         self.order = OrderFactory(user=self.user, pick_up_day="środa")

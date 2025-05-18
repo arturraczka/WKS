@@ -1,4 +1,5 @@
 import random
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from factory import Faker, SubFactory, post_generation, RelatedFactory
@@ -6,7 +7,8 @@ from factory.django import DjangoModelFactory
 import pytz
 from apps.form.models import Producer, Product, Status, WeightScheme, Order, OrderItem
 from django.utils import timezone
-from apps.user.models import UserProfile
+from apps.user.models import UserProfile, UserProfileFund
+
 
 ModelUser = get_user_model()
 
@@ -48,11 +50,19 @@ class UserFactory(DjangoModelFactory):
     password = Faker("password")
 
 
+class UserProfileFundFactory(DjangoModelFactory):
+    class Meta:
+        model = UserProfileFund
+
+    value = Faker('pydecimal', left_digits=1, right_digits=2, min_value=Decimal("1.1"), max_value=Decimal("1.3"))
+
+
 class ProfileFactory(DjangoModelFactory):
     class Meta:
         model = UserProfile
 
     user = SubFactory(UserFactory)
+    fund = SubFactory(UserProfileFundFactory)
     koop_id = Faker("random_int", min=1, max=1000)
     phone_number = Faker("random_int", min=500000000, max=899999999)
 

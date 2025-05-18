@@ -70,38 +70,6 @@ def recalculate_order_numbers(order_model, order_instance_date_created):
     orders_qs.update(order_number=F("order_number") - 1)
 
 
-def reduce_order_quantity(orderitem_model, product_pk, delivered_quantity):
-    """In a freezer right now. Client is not sure if this functionality is needed.
-    Given "this week's delivered quantity" of a product checks ordered quantity this week for that product.
-    If ordered quantity is higher than delivered quantity - deletes orders until delivered quantity >= ordered quantity"
-    """
-    previous_friday = calculate_previous_weekday()
-
-    delivered_quantity_lower_than_ordered_quantity = True
-    while delivered_quantity_lower_than_ordered_quantity:
-        orderitems = (
-            orderitem_model.objects.filter(product=product_pk)
-            .filter(Q(item_ordered_date__gte=previous_friday))
-            .order_by("-item_ordered_date")
-        )
-        ordered_quantity = 0
-        for item in orderitems:
-            ordered_quantity += item.quantity
-
-        if delivered_quantity < ordered_quantity:
-            last_item = orderitems[0]
-            if delivered_quantity < ordered_quantity - last_item.quantity:
-                last_item.delete()
-            else:
-                diff_quantity = (
-                    delivered_quantity - ordered_quantity + last_item.quantity
-                )
-                last_item.quantity = diff_quantity
-                last_item.save()
-        else:
-            delivered_quantity_lower_than_ordered_quantity = False
-
-
 # TODO obviously suboptimal function. But used only in a reporting phase, so terrible performance should be acceptable.
 def create_order_data_list(products):
     """For each ordered product this week globally creates a formatted list of orders with order number and ordered quantity."""
@@ -120,13 +88,6 @@ def create_order_data_list(products):
         order_data_list.append(order_data)
     return order_data_list
 
-# NOT IN USE
-# def switch_products_isactive_bool_value(producer_instance):
-#     """For a given producer instances sync related products is_active with producer's is_active"""
-#     product_qs = producer_instance.products.all()
-#     operator = True if producer_instance.is_active else False
-#     product_qs.update(is_active=operator)
-
 
 def get_quantity_choices():
     """Generates choices for OrderItem quantity field."""
@@ -142,15 +103,9 @@ def get_quantity_choices():
         choices.append((Decimal(f"0.0{x}0"), f"0.0{x}"))
         choices.append((Decimal(f"1.{x}00"), f"1.{x}"))
         choices.append((Decimal(f"2.{x}00"), f"2.{x}"))
-        # choices.append((Decimal(f"3.{x}00"), f"3.{x}"))
-        # choices.append((Decimal(f"4.{x}00"), f"4.{x}"))
-        # choices.append((Decimal(f"5.{x}00"), f"5.{x}"))
-        # choices.append((Decimal(f"6.{x}00"), f"6.{x}"))
         choices.append((Decimal(f"{x}.000"), f"{x}"))
         choices.append((Decimal(f"1{x}.000"), f"1{x}"))
         choices.append((Decimal(f"{x}0.000"), f"{x}0"))
-        # for y in range(1, 10):
-        #     choices.append((Decimal(f"{x}.{y}00"), f"{x}.{y}"))
 
     for x in range(3, 10):  # od 3 do 9
         choices.append((Decimal(f"{x}.500"), f"{x}.5"))

@@ -6,6 +6,7 @@ from import_export import resources
 
 from apps.form.admin import OrderInLine
 from apps.user.models import UserProfile
+from apps.user.models import UserProfileFund
 
 
 class UserProfileInline(admin.StackedInline):
@@ -61,3 +62,8 @@ class UserProfileAdmin(ImportExportModelAdmin):
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)
+
+
+@admin.register(UserProfileFund)
+class UserProfileFundAdmin(admin.ModelAdmin):
+    pass
