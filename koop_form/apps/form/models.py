@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.text import slugify
 
+from apps.form.managers import OrderManager
 from apps.form.services import get_quantity_choices
 from apps.user.services import get_user_fund
 
@@ -166,6 +167,8 @@ class Order(models.Model):
     order_number = models.IntegerField(blank=True, verbose_name="Numer zamówienia")
     paid_amount = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Zapłacono", null=True, blank=True)
 
+    objects = OrderManager()
+
     class Meta:
         verbose_name = "Zamówienie"
         verbose_name_plural = "Zamówienia"
@@ -223,3 +226,7 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"Zamówiono: {self.product}"
+
+    @cached_property
+    def item_cost(self):
+        return self.quantity * self.product.price

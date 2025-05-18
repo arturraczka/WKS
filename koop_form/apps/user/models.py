@@ -11,6 +11,7 @@ class UserProfile(models.Model):
     fund = models.ForeignKey("UserProfileFund", on_delete=models.PROTECT, verbose_name="Fundusz")
     phone_number = models.PositiveIntegerField(blank=True, null=True)
     koop_id = models.PositiveIntegerField(null=False, unique=True)
+    allow_emails = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Profil: {self.user.first_name} {self.user.last_name}"

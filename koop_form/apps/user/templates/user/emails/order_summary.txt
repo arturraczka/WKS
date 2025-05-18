@@ -1,0 +1,16 @@
+{% load custom_filters %}
+
+Podsumowanie zamówienia
+
+{{ order }}
+Fundusz: {{ order.user_fund }}
+Kwota zamówienia: {{ order.order_cost|format_decimal:2 }} zł
+Kwota z funduszem: {{ order.order_cost_with_fund|format_decimal:2 }} zł
+Dzień odbioru: {{ order.pick_up_day }}
+
+
+Lista zamówionych produktów:
+{% for item in order.orderitems.all %}
+  {{ item.product }}, cena: {{ item.product.price }} zł
+  zamówiono: {{ item.quantity|format_decimal:3 }}; kwota: {{ item.item_cost|format_decimal:2 }} zł
+{% endfor %}
