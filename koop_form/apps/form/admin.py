@@ -157,14 +157,14 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 class OrderAdmin(admin.ModelAdmin):
     list_select_related = True
-    fields = ["user", "pick_up_day", "order_number", "order_cost_with_fund", "paid_amount", "payment_balance"]
+    fields = ["user", "pick_up_day", "order_number", "order_cost_with_fund", "user_balance", "paid_amount", "order_payment_balance"]
     list_filter = ["date_created", "order_number", "user__last_name"]
     list_display = ["user_last_name", "order_number", "date_created"]
     search_fields = [
         "user__last_name",
     ]
     inlines = (OrderItemEmptyInLine, OrderItemInLine,)
-    readonly_fields = ["order_cost_with_fund", "payment_balance"]
+    readonly_fields = ["order_cost_with_fund", "user_balance", "order_payment_balance"]
 
     @admin.display(description="User last name")
     def user_last_name(self, obj):
@@ -181,7 +181,30 @@ class OrderAdmin(admin.ModelAdmin):
                 reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
         queryset.delete()
 
+    # TODO 1: TESTS
+    # TODO 2: DISPLAY USER BALANCE IN ORDER SUMMARY
+    # TODO 3: ADD USER BALANCE TO FINANCE REPORT
+    # TODO 4: WYŁĄCZ LIST EDTIABLE Z PRODUKTÓW NA PRICE I STOCK
+    # TODO 5: DODAJ INLINE PRODUKTÓW DO PRODUCER INLINE
+    @staticmethod
+    def update_user_balance(obj):
+        db_obj = Order.objects.get(id=obj.id)
+
+        if db_obj.paid_amount is None and obj.paid_amount is None:
+            return
+        if db_obj.paid_amount is not None and obj.paid_amount is None:
+            obj.user.userprofile.apply_order_balance(-db_obj.order_balance)
+            return
+        elif db_obj.paid_amount is None and obj.paid_amount is not None:
+            obj.user.userprofile.apply_order_balance(obj.order_balance)
+            return
+        if db_obj.paid_amount == obj.paid_amount:
+            return
+        order_balance_diff = obj.order_balance - db_obj.order_balance
+        obj.user.userprofile.apply_order_balance(order_balance_diff)
+
     def save_model(self, request, obj, form, change):
+        self.update_user_balance(obj)
         if not change:
             obj.order_number = calculate_order_number(Order)
         super().save_model(request, obj, form, change)
@@ -191,10 +214,15 @@ class OrderAdmin(admin.ModelAdmin):
 
     order_cost_with_fund.short_description = "Kwota zamówienia z funduszem"
 
-    def payment_balance(self, obj):
+    def order_payment_balance(self, obj):
         return f"{obj.order_balance:.2f} zł"
 
-    payment_balance.short_description = "Nadpłata/niedopłata"
+    order_payment_balance.short_description = "Dług / nadpłata zamówienia"
+
+    def user_balance(self, obj):
+        return f"{obj.user_balance:.2f} zł"
+
+    user_balance.short_description = "Dług / nadpłata koopowicza"
 
 
 class OrderItemAdmin(admin.ModelAdmin):

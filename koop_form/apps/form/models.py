@@ -201,6 +201,10 @@ class Order(models.Model):
     def get_paid_amount(self):
         return self.paid_amount or 0
 
+    @cached_property
+    def user_balance(self):
+        return self.user.userprofile.payment_balance
+
 
 class OrderItem(models.Model):
     QUANTITY_CHOICES = get_quantity_choices()
