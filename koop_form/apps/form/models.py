@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -186,9 +187,16 @@ class Order(models.Model):
 
     @cached_property
     def order_cost(self):
-        return self.orderitems.annotate(
+        if self.pk is None:
+            return Decimal("0.00")
+        total = self.orderitems.annotate(
             item_cost=F("quantity") * F("product__price")
-        ).aggregate(order_cost=Sum("item_cost"))["order_cost"] or 0
+        ).aggregate(order_cost=Sum("item_cost"))["order_cost"]
+
+        if total is None:
+            return Decimal("0.00")
+
+        return Decimal(str(total)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     @cached_property
     def order_cost_with_fund(self):
@@ -199,7 +207,7 @@ class Order(models.Model):
         return self.get_paid_amount() - self.order_cost_with_fund
 
     def get_paid_amount(self):
-        return self.paid_amount or 0
+        return self.paid_amount or Decimal("0.00")
 
     @cached_property
     def user_balance(self):

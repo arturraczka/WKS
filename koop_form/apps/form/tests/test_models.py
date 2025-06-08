@@ -140,6 +140,10 @@ class TestOrder:
     def test_order_cost(self, order):
         assert order.order_cost == self.expected_cost
 
+    def test_order_cost_unsaved_order(self):
+        order = OrderFactory.build()
+        assert order.order_cost == 0
+
     def test_order_cost_no_items(self):
         order = OrderFactory()
         assert order.order_cost == 0

@@ -1,4 +1,5 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.utils.translation import ngettext
 
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources, fields, widgets
@@ -164,7 +165,7 @@ class OrderAdmin(admin.ModelAdmin):
         "user__last_name",
     ]
     inlines = (OrderItemEmptyInLine, OrderItemInLine,)
-    readonly_fields = ["order_cost_with_fund", "user_balance", "order_payment_balance"]
+    readonly_fields = ["order_cost_with_fund", "user_balance", "order_payment_balance", "order_number"]
 
     @admin.display(description="User last name")
     def user_last_name(self, obj):
@@ -181,31 +182,47 @@ class OrderAdmin(admin.ModelAdmin):
                 reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
         queryset.delete()
 
-    # TODO 1: TESTS
-    # TODO 2: DISPLAY USER BALANCE IN ORDER SUMMARY
-    # TODO 3: ADD USER BALANCE TO FINANCE REPORT
-    # TODO 4: WYŁĄCZ LIST EDTIABLE Z PRODUKTÓW NA PRICE I STOCK
-    # TODO 5: DODAJ INLINE PRODUKTÓW DO PRODUCER INLINE
     @staticmethod
-    def update_user_balance(obj):
-        db_obj = Order.objects.get(id=obj.id)
+    def update_user_balance(order):
+        try:
+            db_order = Order.objects.get(id=order.id)
+            db_paid = db_order.paid_amount
+            db_balance = db_order.order_balance
+        except Order.DoesNotExist:
+            db_paid = None
+            db_balance = -order.order_cost_with_fund
 
-        if db_obj.paid_amount is None and obj.paid_amount is None:
+        new_paid = order.paid_amount
+        new_balance = order.order_balance
+
+        payments_stay_the_same = db_paid == new_paid
+        if payments_stay_the_same:
             return
-        if db_obj.paid_amount is not None and obj.paid_amount is None:
-            obj.user.userprofile.apply_order_balance(-db_obj.order_balance)
+
+        new_payment_is_none = new_paid is None
+        if new_payment_is_none:
+            order.user.userprofile.apply_order_balance(-db_balance)
             return
-        elif db_obj.paid_amount is None and obj.paid_amount is not None:
-            obj.user.userprofile.apply_order_balance(obj.order_balance)
+
+        old_payment_is_none = db_paid is None
+        if old_payment_is_none:
+            order.user.userprofile.apply_order_balance(new_balance)
             return
-        if db_obj.paid_amount == obj.paid_amount:
-            return
-        order_balance_diff = obj.order_balance - db_obj.order_balance
-        obj.user.userprofile.apply_order_balance(order_balance_diff)
+
+        balance_delta = new_balance - db_balance
+        order.user.userprofile.apply_order_balance(balance_delta)
 
     def save_model(self, request, obj, form, change):
-        self.update_user_balance(obj)
+        if change:
+            self.update_user_balance(order=obj)
         if not change:
+            if obj.paid_amount is not None:
+                obj.paid_amount = None
+                self.message_user(
+                    request,
+                    "Nie zapisano płatności podczas tworzenia zamówienia. Płatność możesz zapisać jedynie aktualizując zamówienie.",
+                    messages.ERROR,
+                )
             obj.order_number = calculate_order_number(Order)
         super().save_model(request, obj, form, change)
 
