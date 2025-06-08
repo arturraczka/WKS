@@ -41,3 +41,9 @@ def request_factory():
 @pytest.fixture
 def admin_site():
     return AdminSite()
+
+
+@pytest.fixture()
+def bare_order():
+    return OrderFactory()
+

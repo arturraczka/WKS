@@ -106,57 +106,53 @@ class TestOrderItem:
         assert item.item_cost == item.product.price * item.quantity
 
 
-@pytest.fixture()
-def order():
-    return OrderFactory()
-
-
 class TestOrder:
     @pytest.fixture(autouse=True)
-    def _setup(self, order):
+    def _setup(self, bare_order):
         self.product_1 = ProductFactory()
         self.product_2 = ProductFactory()
-        self.item_1 = OrderItemFactory(product=self.product_1, order=order, quantity=2.5)
-        self.item_2 = OrderItemFactory(product=self.product_2, order=order, quantity=4)
+        self.item_1 = OrderItemFactory(product=self.product_1, order=bare_order, quantity=2.5)
+        self.item_2 = OrderItemFactory(product=self.product_2, order=bare_order, quantity=4)
         self.fund = UserProfileFund.objects.first()
-        self.profile = ProfileFactory(user=order.user, fund=self.fund)
+        self.profile = ProfileFactory(user=bare_order.user, fund=self.fund)
         self.expected_cost = (
                 self.product_1.price * self.item_1.quantity +
                 + self.product_2.price * self.item_2.quantity
         )
         self.expected_cost_with_fund = Decimal(self.expected_cost) * self.profile.fund.value
         self.paid = 100
-        order.paid_amount = self.paid
-        order.save(update_fields=["paid_amount"])
+        bare_order.paid_amount = self.paid
+        bare_order.save(update_fields=["paid_amount"])
 
-    def test_user_fund_when_user_has_no_profile(self):
-        order = OrderFactory()
-        assert not hasattr(order.user, "userprofile")
-        assert order.user_fund == settings.DEFAULT_USER_FUND
+    def test_user_fund_when_user_has_no_profile(self, bare_order):
+        bare_order.user.userprofile = None
+        bare_order.user.save()
+        assert bare_order.user_fund == settings.DEFAULT_USER_FUND
 
-    def test_user_fund(self, order):
-        assert order.user_fund == self.profile.fund.value
+    def test_user_fund(self, bare_order):
+        assert bare_order.user_fund == self.profile.fund.value
 
-    def test_order_cost(self, order):
-        assert order.order_cost == self.expected_cost
+    def test_order_cost(self, bare_order):
+        assert bare_order.order_cost == self.expected_cost
 
     def test_order_cost_unsaved_order(self):
         order = OrderFactory.build()
         assert order.order_cost == 0
 
     def test_order_cost_no_items(self):
-        order = OrderFactory()
+        order = OrderFactory.build()
         assert order.order_cost == 0
 
-    def test_order_cost_with_fund(self, order):
-        assert order.order_cost_with_fund == self.expected_cost_with_fund
+    def test_order_cost_with_fund(self, bare_order):
+        assert bare_order.order_cost_with_fund == self.expected_cost_with_fund
 
-    def test_get_paid_amount_no_paid_amount(self):
-        order = OrderFactory()
-        assert order.get_paid_amount() == 0
+    def test_get_paid_amount_no_paid_amount(self, bare_order):
+        bare_order.paid_amount = None
+        bare_order.save()
+        assert bare_order.get_paid_amount() == 0
 
-    def test_get_paid_amount(self, order):
-        assert order.get_paid_amount() == self.paid
+    def test_get_paid_amount(self, bare_order):
+        assert bare_order.get_paid_amount() == self.paid
 
-    def test_order_balance(self, order):
-        assert order.order_balance == self.paid - self.expected_cost_with_fund
+    def test_order_balance(self, bare_order):
+        assert bare_order.order_balance == self.paid - self.expected_cost_with_fund
