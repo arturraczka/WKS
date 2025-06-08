@@ -24,7 +24,7 @@
                     <div>Num</div>
                 </td>
                 <td>
-                    <div>Kwota</div>
+                    <div>Kwota zam.</div>
                 </td>
                 <td>
                     <div>Fund</div>
@@ -33,13 +33,16 @@
                     <div>Kwota*fund</div>
                 </td>
                 <td>
-                    <div>Zapłacono</div>
+                    <div>Zapł.</div>
                 </td>
                 <td>
-                    <div>Bilans</div>
+                    <div>Bilans zam.</div>
+                </td>
+                <td>
+                    <div>Bilans łączny</div>
                 </td>
               </tr>
-            {% for username, email, number, cost, fund, cost_fund, paid, balance in zipped %}
+            {% for username, email, number, cost, fund, cost_fund, paid, balance, user_balance in zipped %}
               <tr class="row1">
                 <td>
                     <div>{{ username }}</div>
@@ -64,6 +67,9 @@
                 </td>
                 <td>
                     <div>{{ balance }} zł</div>
+                </td>
+                <td>
+                    <div>{{ user_balance }} zł</div>
                 </td>
               </tr>
             {% endfor %}

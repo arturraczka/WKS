@@ -259,6 +259,7 @@ class OrderCreateView(FormOpenMixin, SuccessMessageMixin, CreateView):
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
 )
 class OrderUpdateFormView(FormOpenMixin, FormView):
+    # TODO 2: DISPLAY USER BALANCE IN ORDER SUMMARY
     # TODO TOTALNIE DO REFAKTOROWANIA
     model = OrderItem
     form_class = None

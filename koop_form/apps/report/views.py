@@ -512,6 +512,7 @@ class UsersFinanceReportView(TemplateView):
         order_cost_fund_list = []
         order_paid_list = []
         order_balance_list = []
+        user_balance_list = []
 
         for user in users:
             order = (
@@ -523,8 +524,12 @@ class UsersFinanceReportView(TemplateView):
             user_fund_list.append(order.user_fund)
             order_cost_list.append(order.order_cost)
             order_cost_fund_list.append(str(format(order.order_cost_with_fund, ".1f")).replace(".", ","))
-            order_paid_list.append(str(format(order.get_paid_amount(), ".1f")).replace(".", ","))
+            if order.paid_amount is not None:
+                order_paid_list.append(str(format(order.paid_amount, ".1f")).replace(".", ","))
+            else:
+                order_paid_list.append("-")
             order_balance_list.append(str(format(order.order_balance, ".1f")).replace(".", ","))
+            user_balance_list.append(str(format(order.user_balance, ".1f")).replace(".", ","))
 
             email_list.append(user.email)
             name_list += (f"{user.last_name} {user.first_name}",)
@@ -538,6 +543,7 @@ class UsersFinanceReportView(TemplateView):
         context["order_cost_fund_list"] = order_cost_fund_list
         context["order_paid_list"] = order_paid_list
         context["order_balance_list"] = order_balance_list
+        context["user_balance_list"] = user_balance_list
         context["zipped"] = zip(
             name_list,
             email_list,
@@ -546,7 +552,8 @@ class UsersFinanceReportView(TemplateView):
             user_fund_list,
             order_cost_fund_list,
             order_paid_list,
-            order_balance_list)
+            order_balance_list,
+            user_balance_list)
 
         return context
 
@@ -627,8 +634,8 @@ class UsersFinanceReportDownloadView(UsersFinanceReportView):
             headers=headers,
         )
         writer = csv.writer(response)
-        writer.writerow(["imie nazwisko", "koop ID", "kwota zamowienia", "fundusz", "kwota z funduszem", "zapłacono", "bilans", "numer skrzynki"])
-        for name, email, order_cost, fund, order_fund, order_paid, order_balance, number in zip(
+        writer.writerow(["imie nazwisko", "koop ID", "kwota zamowienia", "fundusz", "kwota z funduszem", "zapłacono", "bilans zamówienia", "bilans koopowicza", "numer skrzynki"])
+        for name, email, order_cost, fund, order_fund, order_paid, order_balance, user_balance, number in zip(
             context["name_list"],
             context["email_list"],
             context["order_cost_list"],
@@ -636,6 +643,7 @@ class UsersFinanceReportDownloadView(UsersFinanceReportView):
             context["order_cost_fund_list"],
             context["order_paid_list"],
             context["order_balance_list"],
+            context["user_balance_list"],
             context["order_number_list"],
         ):
             writer.writerow([
@@ -646,6 +654,7 @@ class UsersFinanceReportDownloadView(UsersFinanceReportView):
                 str(order_fund).replace(".", ","),
                 str(order_paid).replace(".", ","),
                 str(order_balance).replace(".", ","),
+                str(user_balance).replace(".", ","),
                 number,
             ])
 

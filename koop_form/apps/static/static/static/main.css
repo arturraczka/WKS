@@ -356,3 +356,7 @@ table tr:nth-child(odd) {
 .td-user-finance td:nth-child(8) {
     width: 70px;
 }
+
+.td-user-finance td:nth-child(9) {
+    width: 70px;
+}

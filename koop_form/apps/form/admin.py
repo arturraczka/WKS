@@ -1,5 +1,4 @@
 from django.contrib import admin, messages
-from django.utils.translation import ngettext
 
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources, fields, widgets
@@ -72,6 +71,17 @@ class ProducerResource(resources.ModelResource):
         )
 
 
+class ProductInline(admin.TabularInline):
+    model = Product
+    extra = 0
+    fields = [
+        "name",
+        "is_active",
+        "price",
+        "quantity_in_stock",
+    ]
+
+
 class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [ProducerResource]
     list_display = [
@@ -83,6 +93,7 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "manager_phone",
     ]
     list_editable = ["is_active"]
+    inlines = [ProductInline]
 
     def set_order_deadline_to_related_products(self, instance):
         products = instance.products.all()
@@ -150,7 +161,6 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "quantity_in_stock",
         "is_active",
     ]
-    list_editable = ["price", "is_active", "quantity_in_stock"]
     search_fields = [
         "name",
     ]

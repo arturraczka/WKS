@@ -73,10 +73,6 @@ class TestOrderAdmin:
 
         assert user_profile.payment_balance == order.order_balance + old_balance
 
-    # TODO 2: DISPLAY USER BALANCE IN ORDER SUMMARY
-    # TODO 3: ADD USER BALANCE TO FINANCE REPORT
-    # TODO 4: WYŁĄCZ LIST EDTIABLE Z PRODUKTÓW NA PRICE I STOCK
-    # TODO 5: DODAJ INLINE PRODUKTÓW DO PRODUCER INLINE
     def test_update_user_balance_new_paid_is_none(self, user, user_profile, order):
         old_paid = order.paid_amount
         old_balance = user_profile.payment_balance
