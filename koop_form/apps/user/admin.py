@@ -49,6 +49,7 @@ class UserProfileResource(resources.ModelResource):
             "phone_number",
             "user",
             "koop_id",
+            "payment_balance",
         )
 
 

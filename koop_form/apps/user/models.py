@@ -18,7 +18,7 @@ class UserProfile(models.Model):
         return f"Profil: {self.user.first_name} {self.user.last_name}"
 
     def apply_order_balance(self, balance_delta: Decimal):
-        self.payment_balance = self.payment_balance + balance_delta
+        self.payment_balance += balance_delta
         self.save(update_fields=["payment_balance"])
 
 
