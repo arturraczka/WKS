@@ -334,11 +334,11 @@ table tr:nth-child(odd) {
 }
 
 .td-user-finance td:nth-child(3) {
-    width: 50px;
+    width: 40px;
 }
 
 .td-user-finance td:nth-child(4) {
-    width: 100px;
+    width: 70px;
 }
 
 .td-user-finance td:nth-child(5) {
@@ -346,5 +346,17 @@ table tr:nth-child(odd) {
 }
 
 .td-user-finance td:nth-child(6) {
-    width: 100px;
+    width: 70px;
+}
+
+.td-user-finance td:nth-child(7) {
+    width: 70px;
+}
+
+.td-user-finance td:nth-child(8) {
+    width: 70px;
+}
+
+.td-user-finance td:nth-child(9) {
+    width: 70px;
 }

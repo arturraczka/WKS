@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources, fields, widgets
@@ -71,6 +71,17 @@ class ProducerResource(resources.ModelResource):
         )
 
 
+class ProductInline(admin.TabularInline):
+    model = Product
+    extra = 0
+    fields = [
+        "name",
+        "is_active",
+        "price",
+        "quantity_in_stock",
+    ]
+
+
 class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [ProducerResource]
     list_display = [
@@ -82,6 +93,7 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "manager_phone",
     ]
     list_editable = ["is_active"]
+    inlines = [ProductInline]
 
     def set_order_deadline_to_related_products(self, instance):
         products = instance.products.all()
@@ -149,7 +161,6 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "quantity_in_stock",
         "is_active",
     ]
-    list_editable = ["price", "is_active", "quantity_in_stock"]
     search_fields = [
         "name",
     ]
@@ -157,12 +168,14 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 class OrderAdmin(admin.ModelAdmin):
     list_select_related = True
+    fields = ["user", "pick_up_day", "order_number", "order_cost_with_fund", "user_balance", "paid_amount", "order_payment_balance"]
     list_filter = ["date_created", "order_number", "user__last_name"]
     list_display = ["user_last_name", "order_number", "date_created"]
     search_fields = [
         "user__last_name",
     ]
     inlines = (OrderItemEmptyInLine, OrderItemInLine,)
+    readonly_fields = ["order_cost_with_fund", "user_balance", "order_payment_balance", "order_number"]
 
     @admin.display(description="User last name")
     def user_last_name(self, obj):
@@ -179,10 +192,64 @@ class OrderAdmin(admin.ModelAdmin):
                 reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
         queryset.delete()
 
+    @staticmethod
+    def update_user_balance(order):
+        try:
+            db_order = Order.objects.get(id=order.id)
+            db_paid = db_order.paid_amount
+            db_balance = db_order.order_balance
+        except Order.DoesNotExist:
+            db_paid = None
+            db_balance = -order.order_cost_with_fund
+
+        new_paid = order.paid_amount
+        new_balance = order.order_balance
+
+        payments_stay_the_same = db_paid == new_paid
+        if payments_stay_the_same:
+            return
+
+        new_payment_is_none = new_paid is None
+        if new_payment_is_none:
+            order.user.userprofile.apply_order_balance(-db_balance)
+            return
+
+        old_payment_is_none = db_paid is None
+        if old_payment_is_none:
+            order.user.userprofile.apply_order_balance(new_balance)
+            return
+
+        balance_delta = new_balance - db_balance
+        order.user.userprofile.apply_order_balance(balance_delta)
+
     def save_model(self, request, obj, form, change):
+        if change:
+            self.update_user_balance(order=obj)
         if not change:
+            if obj.paid_amount is not None:
+                obj.paid_amount = None
+                self.message_user(
+                    request,
+                    "Nie zapisano płatności podczas tworzenia zamówienia. Płatność możesz zapisać jedynie aktualizując zamówienie.",
+                    messages.ERROR,
+                )
             obj.order_number = calculate_order_number(Order)
         super().save_model(request, obj, form, change)
+
+    def order_cost_with_fund(self, obj):
+        return f"{obj.order_cost_with_fund:.2f} zł"
+
+    order_cost_with_fund.short_description = "Kwota zamówienia z funduszem"
+
+    def order_payment_balance(self, obj):
+        return f"{obj.order_balance:.2f} zł"
+
+    order_payment_balance.short_description = "Dług / nadpłata zamówienia"
+
+    def user_balance(self, obj):
+        return f"{obj.user_balance:.2f} zł"
+
+    user_balance.short_description = "Dług / nadpłata koopowicza"
 
 
 class OrderItemAdmin(admin.ModelAdmin):
