@@ -54,6 +54,7 @@ class UserProfileResource(resources.ModelResource):
 
 
 class UserProfileAdmin(ImportExportModelAdmin):
+    list_display = ["__str__", "user", "user_id", "koop_id", "fund", "payment_balance"]
     resource_classes = [UserProfileResource]
     search_fields = [
         "user__last_name",
