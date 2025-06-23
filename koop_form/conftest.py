@@ -6,7 +6,8 @@ from django.test import RequestFactory
 from django.contrib.auth.models import User
 
 from apps.user.models import UserProfileFund
-from factories.model_factories import UserFactory, ProfileFactory, OrderFactory, OrderItemFactory
+from factories.model_factories import UserFactory, ProfileFactory, OrderFactory, OrderItemFactory, \
+    UserProfileFundFactory
 
 
 @pytest.fixture
