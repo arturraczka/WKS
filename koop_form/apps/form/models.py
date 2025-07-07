@@ -179,7 +179,7 @@ class Order(models.Model):
         ]
 
     def __str__(self):
-        return f"Zam: {self.order_number} - {self.user.last_name} - {str(self.date_created)[:19]}"
+        return f"Zam {self.order_number} {self.user.get_full_name() or self.user.username}"
 
     @cached_property
     def user_fund(self):

@@ -32,11 +32,12 @@ class UserResource(resources.ModelResource):
 class UserAdmin(ImportExportModelAdmin):
     resource_classes = [UserResource]
     inlines = [UserProfileInline, OrderInLine]
-    list_display = ["last_name", "first_name", "email", "is_active", "is_staff"]
-    list_editable = []
+    list_display = ["username", "last_name", "first_name", "email", "is_active", "is_staff"]
     search_fields = [
         "last_name",
+        "first_name",
         "email",
+        "username",
     ]
 
 
@@ -57,7 +58,19 @@ class UserProfileAdmin(ImportExportModelAdmin):
     resource_classes = [UserProfileResource]
     search_fields = [
         "user__last_name",
+        "user__first_name",
+        "user__email",
+        "user__username",
     ]
+    list_display = ["__str__", "get_user_email", "get_fund_value", "payment_balance"]
+
+    @admin.display(description="Email")
+    def get_user_email(self, obj):
+        return obj.user.email
+
+    @admin.display(description="Fundusz")
+    def get_fund_value(self, obj):
+        return obj.fund.value
 
 
 admin.site.unregister(User)

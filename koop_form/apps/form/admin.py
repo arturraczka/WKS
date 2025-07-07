@@ -168,18 +168,38 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 class OrderAdmin(admin.ModelAdmin):
     list_select_related = True
-    fields = ["user", "pick_up_day", "order_number", "order_cost_with_fund", "user_balance", "paid_amount", "order_payment_balance"]
+    fields = ["user", "pick_up_day", "order_number", "user_fund", "order_cost", "order_cost_with_fund", "user_balance", "user_and_order_balance", "paid_amount"]
     list_filter = ["date_created", "order_number", "user__last_name"]
-    list_display = ["user_last_name", "order_number", "date_created"]
+    list_display = ["__str__", "order_number", "order_cost_with_fund", "user_balance", "is_settled", "paid_amount", "date_created"]
     search_fields = [
         "user__last_name",
+        "user__first_name",
+        "user__email",
+        "user__username",
     ]
     inlines = (OrderItemEmptyInLine, OrderItemInLine,)
-    readonly_fields = ["order_cost_with_fund", "user_balance", "order_payment_balance", "order_number"]
+    readonly_fields = ["order_cost_with_fund", "user_balance", "order_number", "user_fund", "order_cost", "user_and_order_balance"]
+    autocomplete_fields = ["user"]
 
-    @admin.display(description="User last name")
-    def user_last_name(self, obj):
-        return f"{obj.user.last_name}"
+    @admin.display(description="czy rozliczone?")
+    def is_settled(self, obj):
+        if obj.paid_amount is not None:
+            return "Tak"
+        return "-"
+
+    @admin.display(description="Fundusz")
+    def user_fund(self, obj):
+        return obj.user_fund
+
+    @admin.display(description="Kwota zamówienia bez funduszu")
+    def order_cost(self, obj):
+        return obj.order_cost
+
+    @admin.display(description="DO ZAPŁATY. Wartość zamówienia + dług / nadpłata koopowicza")
+    def user_and_order_balance(self, obj):
+        if obj.paid_amount is None:
+            return f"{- obj.order_balance - obj.user_balance:.2f} zł"
+        return f"{- obj.user_balance:.2f} zł"
 
     def delete_model(self, request, obj):
         for item in obj.orderitems.all():
@@ -240,11 +260,6 @@ class OrderAdmin(admin.ModelAdmin):
         return f"{obj.order_cost_with_fund:.2f} zł"
 
     order_cost_with_fund.short_description = "Kwota zamówienia z funduszem"
-
-    def order_payment_balance(self, obj):
-        return f"{obj.order_balance:.2f} zł"
-
-    order_payment_balance.short_description = "Dług / nadpłata zamówienia"
 
     def user_balance(self, obj):
         return f"{obj.user_balance:.2f} zł"
