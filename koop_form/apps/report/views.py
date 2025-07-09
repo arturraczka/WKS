@@ -688,17 +688,11 @@ class MassOrderBoxReportDownloadView(TemplateView):
         df = pd.DataFrame(data)
 
         for order in orders_queryset:
-            try:
-                fund = order.user.userprofile.fund
-            except UserProfile.DoesNotExist:
-                fund = Decimal("1.3")
+            fund = get_user_fund(order.user)
             username = order.user.first_name + " " + order.user.last_name
-
             orderitems = OrderItem.objects.filter(order=order).select_related("product", "product__producer")
-
             order_cost = calculate_order_cost(orderitems)
             order_cost_with_fund = f"{order_cost * fund:.2f}".replace(".", ",")
-
             producer_short = []
             orderitems_names = []
             orderitems_quantity = []

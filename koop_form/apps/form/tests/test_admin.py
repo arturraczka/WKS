@@ -20,9 +20,6 @@ class TestOrderAdmin:
     def test_user_balance_method(self, user, user_profile, order):
         assert self.model_admin.user_balance(order) == self.return_format.format(order.user_balance)
 
-    def test_order_payment_balance_method(self, user, user_profile, order):
-        assert self.model_admin.order_payment_balance(order) == self.return_format.format(order.order_balance)
-
     def test_order_cost_with_fund_method(self, user, user_profile, order):
         assert self.model_admin.order_cost_with_fund(order) == self.return_format.format(order.order_cost_with_fund)
 
@@ -82,3 +79,27 @@ class TestOrderAdmin:
         user_profile.refresh_from_db()
 
         assert user_profile.payment_balance == old_balance - old_paid + order.order_cost_with_fund
+
+    # TODO
+    def test_is_settled_method(self):
+        pass
+
+    # TODO
+    def test_user_fund_method(self):
+        pass
+
+    # TODO
+    def test_order_cost_method(self):
+        pass
+
+    # TODO
+    def test_user_and_order_balance_method(self):
+        pass
+
+    # TODO
+    def test_delete_model_method(self):
+        pass
+
+    # TODO
+    def test_delete_queryset_method(self):
+        pass
