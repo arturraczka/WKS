@@ -193,13 +193,13 @@ class OrderAdmin(admin.ModelAdmin):
 
     @admin.display(description="Kwota zamówienia bez funduszu")
     def order_cost(self, obj):
-        return obj.order_cost
+        return f"{obj.order_cost:.1f} zł".replace(".", ",")
 
     @admin.display(description="DO ZAPŁATY. Wartość zamówienia + dług / nadpłata koopowicza")
     def user_and_order_balance(self, obj):
         if obj.paid_amount is None:
-            return f"{- obj.order_balance - obj.user_balance:.2f} zł"
-        return f"{- obj.user_balance:.2f} zł"
+            return f"{- obj.order_balance - obj.user_balance:.1f} zł".replace(".", ",")
+        return f"{- obj.user_balance:.1f} zł".replace(".", ",")
 
     def delete_model(self, request, obj):
         for item in obj.orderitems.all():
@@ -257,12 +257,12 @@ class OrderAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
     def order_cost_with_fund(self, obj):
-        return f"{obj.order_cost_with_fund:.2f} zł"
+        return f"{obj.order_cost_with_fund:.1f} zł".replace(".", ",")
 
     order_cost_with_fund.short_description = "Kwota zamówienia z funduszem"
 
     def user_balance(self, obj):
-        return f"{obj.user_balance:.2f} zł"
+        return f"{obj.user_balance:.1f} zł".replace(".", ",")
 
     user_balance.short_description = "Dług / nadpłata koopowicza"
 

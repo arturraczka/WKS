@@ -504,15 +504,23 @@ class UsersFinanceReportView(TemplateView):
             .filter(orders__date_created__gte=calculate_previous_weekday())
         )
 
-        name_list = []
-        order_cost_list = []
-        email_list = []
-        order_number_list = []
-        user_fund_list = []
-        order_cost_fund_list = []
-        order_paid_list = []
-        order_balance_list = []
-        user_balance_list = []
+        report_data = {
+            "name_list": [],
+            "email_list": [],
+            "order_number_list": [],
+            "order_cost_list": [],
+            "user_fund_list": [],
+            "order_cost_fund_list": [],
+            "order_paid_list": [],
+            "order_balance_list": [],
+            "user_balance_list": [],
+        }
+
+        order_cost_sum = 0
+        order_cost_fund_sum = 0
+        order_paid_sum = 0
+        order_balance_sum = 0
+        user_balance_sum = 0
 
         for user in users:
             order = (
@@ -521,40 +529,44 @@ class UsersFinanceReportView(TemplateView):
             )
             if not order:
                 continue
-            user_fund_list.append(order.user_fund)
-            order_cost_list.append(order.order_cost)
-            order_cost_fund_list.append(str(format(order.order_cost_with_fund, ".1f")).replace(".", ","))
+            report_data["user_fund_list"].append(order.user_fund)
+            report_data["order_cost_list"].append(order.order_cost)
+            report_data["order_cost_fund_list"].append(str(format(order.order_cost_with_fund, ".1f")).replace(".", ","))
             if order.paid_amount is not None:
-                order_paid_list.append(str(format(order.paid_amount, ".1f")).replace(".", ","))
+                report_data["order_paid_list"].append(str(format(order.paid_amount, ".1f")).replace(".", ","))
             else:
-                order_paid_list.append("-")
-            order_balance_list.append(str(format(order.order_balance, ".1f")).replace(".", ","))
-            user_balance_list.append(str(format(order.user_balance, ".1f")).replace(".", ","))
+                report_data["order_paid_list"].append("-")
+            report_data["order_balance_list"].append(str(format(order.order_balance, ".1f")).replace(".", ","))
+            report_data["user_balance_list"].append(str(format(order.user_balance, ".1f")).replace(".", ","))
 
-            email_list.append(user.email)
-            name_list += (f"{user.last_name} {user.first_name}",)
-            order_number_list.append(order.order_number)
+            report_data["email_list"].append(user.email)
+            report_data["name_list"] += (f"{user.last_name} {user.first_name}",)
+            report_data["order_number_list"].append(order.order_number)
 
-        context["name_list"] = name_list
-        context["email_list"] = email_list
-        context["order_number_list"] = order_number_list
-        context["order_cost_list"] = order_cost_list
-        context["user_fund_list"] = user_fund_list
-        context["order_cost_fund_list"] = order_cost_fund_list
-        context["order_paid_list"] = order_paid_list
-        context["order_balance_list"] = order_balance_list
-        context["user_balance_list"] = user_balance_list
+            order_cost_sum += order.order_cost
+            order_cost_fund_sum += order.order_cost_with_fund
+            order_paid_sum += order.paid_amount if order.paid_amount is not None else 0
+            order_balance_sum += order.order_balance
+            user_balance_sum += order.user_balance
+
+        order_cost_fund_sum = str(format(order_cost_fund_sum, ".1f")).replace(".", ",")
+        order_paid_sum = str(format(order_paid_sum, ".1f")).replace(".", ",")
+        order_balance_sum = str(format(order_balance_sum, ".1f")).replace(".", ",")
+        user_balance_sum = str(format(-user_balance_sum, ".1f")).replace(".", ",")
+
+        for item in ["name_list", "email_list", "order_number_list", "user_fund_list"]:
+            report_data[item].append("")
+
+        report_data["order_cost_list"].append(order_cost_sum)
+        report_data["order_cost_fund_list"].append(order_cost_fund_sum)
+        report_data["order_paid_list"].append(order_paid_sum)
+        report_data["order_balance_list"].append(order_balance_sum)
+        report_data["user_balance_list"].append(user_balance_sum)
+
+        context.update(**report_data)
         context["zipped"] = zip(
-            name_list,
-            email_list,
-            order_number_list,
-            order_cost_list,
-            user_fund_list,
-            order_cost_fund_list,
-            order_paid_list,
-            order_balance_list,
-            user_balance_list)
-
+            *report_data.values()
+        )
         return context
 
 
