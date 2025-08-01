@@ -216,31 +216,24 @@ class OrderAdmin(admin.ModelAdmin):
     def update_user_balance(order):
         try:
             db_order = Order.objects.get(id=order.id)
-            db_paid = db_order.paid_amount
-            db_balance = db_order.order_balance
+            old_payment = db_order.paid_amount
+            old_balance = db_order.order_balance
         except Order.DoesNotExist:
-            db_paid = None
-            db_balance = -order.order_cost_with_fund
+            old_payment = None
+            old_balance = -order.order_cost_with_fund
 
-        new_paid = order.paid_amount
+        new_payment = order.paid_amount
         new_balance = order.order_balance
 
-        payments_stay_the_same = db_paid == new_paid
-        if payments_stay_the_same:
+        if old_payment == new_payment:
             return
-
-        new_payment_is_none = new_paid is None
-        if new_payment_is_none:
-            order.user.userprofile.apply_order_balance(-db_balance)
-            return
-
-        old_payment_is_none = db_paid is None
-        if old_payment_is_none:
-            order.user.userprofile.apply_order_balance(new_balance)
-            return
-
-        balance_delta = new_balance - db_balance
-        order.user.userprofile.apply_order_balance(balance_delta)
+        elif new_payment is None:
+            balance_to_apply = -old_balance
+        elif old_payment is None:
+            balance_to_apply = new_balance
+        else:
+            balance_to_apply = new_balance - old_balance
+        order.user.userprofile.apply_order_balance(balance_to_apply)
 
     def save_model(self, request, obj, form, change):
         if change:
@@ -265,6 +258,11 @@ class OrderAdmin(admin.ModelAdmin):
         return f"{obj.user_balance:.1f} zł".replace(".", ",")
 
     user_balance.short_description = "Dług / nadpłata koopowicza"
+
+    def has_change_permission(self, request, obj=None):
+        if obj and obj.paid_amount is not None:
+            return False
+        return True
 
 
 class OrderItemAdmin(admin.ModelAdmin):

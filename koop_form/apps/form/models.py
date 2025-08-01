@@ -200,7 +200,7 @@ class Order(models.Model):
 
     @cached_property
     def order_cost_with_fund(self):
-        return self.order_cost * self.user_fund
+        return round(self.order_cost * self.user_fund, 2)
 
     @cached_property
     def order_balance(self):

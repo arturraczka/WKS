@@ -12,7 +12,7 @@ from apps.form.views import (
     OrderItemFormView,
     product_search_view,
     main_page_redirect,
-    OrderProductsAllFormView, OrderCategoriesFormView,
+    OrderProductsAllFormView, OrderCategoriesFormView, OrderAdminRedirectView,
 )
 
 
@@ -65,5 +65,10 @@ urlpatterns = [
         "zamowienie/produkty/",
         OrderProductsAllFormView.as_view(),
         name="order-products-all-form",
+    ),
+    path(
+        "zamowienie/admin/cofnij-rozliczenie/<int:pk>/",
+        OrderAdminRedirectView.as_view(),
+        name="undo-order-settlement",
     ),
 ]
