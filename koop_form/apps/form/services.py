@@ -302,3 +302,11 @@ def alter_product_stock(
     product_instance.update(
         quantity_in_stock=F("quantity_in_stock") - quantity_difference
     )
+
+
+def display_as_zloty(value: Decimal) -> str:
+    """
+    Converts decimal value to string with precision to the first decimal place, adds currency zł,
+    replaces dot for comma.
+    """
+    return f"{value:.1f} zł".replace(".", ",")

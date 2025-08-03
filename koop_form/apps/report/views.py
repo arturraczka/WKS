@@ -25,7 +25,7 @@ from apps.form.services import (
     filter_products_with_supplies_quantity,
 )
 
-from apps.form.views import ProducersView
+from apps.form.views import BaseProducersView
 from apps.user.models import UserProfile
 from apps.user.services import get_user_fund
 
@@ -192,12 +192,12 @@ class UsersReportView(TemplateView):
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerSuppliesListView(ProducersView):
+class ProducerSuppliesListView(BaseProducersView):
     template_name = "report/producer_supplies_list.html"
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerOrdersListView(ProducersView):
+class ProducerOrdersListView(BaseProducersView):
     template_name = "report/producer_orders_list.html"
 
 

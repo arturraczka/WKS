@@ -17,7 +17,7 @@ from apps.form.models import (
 from apps.form.services import (
     calculate_previous_weekday,
     reduce_product_stock,
-    alter_product_stock, calculate_order_number,
+    alter_product_stock, calculate_order_number, display_as_zloty,
 )
 
 
@@ -193,13 +193,14 @@ class OrderAdmin(admin.ModelAdmin):
 
     @admin.display(description="Kwota zamówienia bez funduszu")
     def order_cost(self, obj):
-        return f"{obj.order_cost:.1f} zł".replace(".", ",")
+        return display_as_zloty(obj.order_cost)
 
     @admin.display(description="DO ZAPŁATY. Wartość zamówienia + dług / nadpłata koopowicza")
     def user_and_order_balance(self, obj):
+        value_to_pay = -obj.user_balance
         if obj.paid_amount is None:
-            return f"{- obj.order_balance - obj.user_balance:.1f} zł".replace(".", ",")
-        return f"{- obj.user_balance:.1f} zł".replace(".", ",")
+            value_to_pay -= obj.order_balance
+        return display_as_zloty(value_to_pay)
 
     def delete_model(self, request, obj):
         for item in obj.orderitems.all():
@@ -214,17 +215,16 @@ class OrderAdmin(admin.ModelAdmin):
 
     @staticmethod
     def update_user_balance(order):
-        try:
-            db_order = Order.objects.get(id=order.id)
-            old_payment = db_order.paid_amount
-            old_balance = db_order.order_balance
-        except Order.DoesNotExist:
-            old_payment = None
-            old_balance = -order.order_cost_with_fund
+        db_order = Order.objects.get(id=order.id)
+        old_payment = db_order.paid_amount
+        old_balance = db_order.order_balance
 
         new_payment = order.paid_amount
         new_balance = order.order_balance
 
+        # po zmianie logiki tak, że nie można edytować zamówienia te wszystkie warunki są niepotrzebne
+        # dlatego że jedyna możliwa zmiana paid_amount to z None na not None czyli warunek old_payment is None
+        # zablokowanie edycji zamówienia handlowane jest w OrderAdminRedirectView
         if old_payment == new_payment:
             return
         elif new_payment is None:
@@ -235,10 +235,11 @@ class OrderAdmin(admin.ModelAdmin):
             balance_to_apply = new_balance - old_balance
         order.user.userprofile.apply_order_balance(balance_to_apply)
 
+    # TODO TEST
     def save_model(self, request, obj, form, change):
         if change:
             self.update_user_balance(order=obj)
-        if not change:
+        else:
             if obj.paid_amount is not None:
                 obj.paid_amount = None
                 self.message_user(
@@ -250,12 +251,12 @@ class OrderAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
     def order_cost_with_fund(self, obj):
-        return f"{obj.order_cost_with_fund:.1f} zł".replace(".", ",")
+        return display_as_zloty(obj.order_cost_with_fund)
 
     order_cost_with_fund.short_description = "Kwota zamówienia z funduszem"
 
     def user_balance(self, obj):
-        return f"{obj.user_balance:.1f} zł".replace(".", ",")
+        return display_as_zloty(obj.user_balance)
 
     user_balance.short_description = "Dług / nadpłata koopowicza"
 

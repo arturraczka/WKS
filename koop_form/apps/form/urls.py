@@ -4,7 +4,6 @@ from apps.form.views import (
     ProductsView,
     OrderCreateView,
     OrderProductsFormView,
-    ProducersView,
     OrderUpdateView,
     OrderDeleteView,
     OrderProducersView,
@@ -18,7 +17,6 @@ from apps.form.views import (
 
 urlpatterns = [
     path("", main_page_redirect, name="main-page"),
-    path("producenci/", ProducersView.as_view(), name="producers"),
     path(
         "producenci/<str:slug>/",
         ProductsView.as_view(),

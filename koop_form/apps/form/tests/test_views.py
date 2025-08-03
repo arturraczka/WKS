@@ -54,24 +54,6 @@ def factor_producers():
 producers_list = [["adam-pritz", "Adam Pritz"], ["karol-jung", "Karol Jung"]]
 
 
-#this test is probably incorrect because producers view does not work, porducer_list.html is in archive and maybe it this test and whole produers view should be deleted
-#TODO get confirmation from Artur
-# @pytest.mark.usefixtures("producers")
-# @pytest.mark.django_db
-# class TestProducersView(TestCase):
-#     def setUp(self):
-#         self.user = UserFactory()
-#         self.client.force_login(self.user)
-#         self.url = reverse("producers")
-#
-#     def test_response_and_context(self):
-#         response = self.client.get(self.url)
-#         context_data = response.context
-#
-#         assert response.status_code == 200
-#         assert sorted(list(context_data["producers"])) == producers_list
-
-
 @pytest.mark.usefixtures("producers")
 @pytest.mark.django_db
 class TestProductsView(TestCase):

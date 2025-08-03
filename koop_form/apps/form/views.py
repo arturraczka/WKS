@@ -60,10 +60,9 @@ logger = logging.getLogger("django.server")
 
 
 @method_decorator(login_required, name="dispatch")
-class ProducersView(ListView):
+class BaseProducersView(ListView):
     model = Producer
     context_object_name = "producers"
-    template_name = "form/producer_list.html"
     paginate_by = 100
 
     def get_queryset(self):
@@ -103,7 +102,7 @@ class ProductsView(DetailView):
 @method_decorator(
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
 )
-class OrderProducersView(ProducersView):
+class OrderProducersView(BaseProducersView):
     template_name = "form/order_producers.html"
 
 
@@ -610,7 +609,7 @@ class OrderCategoriesFormView(OrderProductsFormView):
         context["categories"] = Category.objects.all()
         return context
 
-
+# TO DO TESTYYY
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class OrderAdminRedirectView(RedirectView):
     def get(self, request, *args, **kwargs):
