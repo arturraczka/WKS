@@ -3,9 +3,11 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.conf import settings
-from django.db.models import Sum, Prefetch
+from django.db.models import Sum
 from django.contrib.messages import get_messages
 from django.db.models import Case, When, F, Q
+
+from apps.core.models import AppConfig
 
 logger = logging.getLogger("django.server")
 
@@ -13,6 +15,9 @@ logger = logging.getLogger("django.server")
 def calculate_previous_weekday(day=3, hour=1):
     """Returns datetime object of a chosen day of a week within last 7 days. Defaults to Saturday 1:00 AM. Monday: 1, Tuesday: 7, Wednesday: 6,
     Thursday: 5, Friday: 4, Saturday: 3, Sunday: 2"""
+    custom_reports_start_date = AppConfig.load().reports_start_day
+    if custom_reports_start_date:
+        return custom_reports_start_date
     today = (
         datetime.now()
         .astimezone()
