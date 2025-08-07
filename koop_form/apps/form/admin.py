@@ -15,10 +15,12 @@ from apps.form.models import (
     Category,
 )
 from apps.form.services import (
-    calculate_previous_weekday,
     reduce_product_stock,
-    alter_product_stock, calculate_order_number, display_as_zloty,
+    alter_product_stock,
+    calculate_order_number,
+    display_as_zloty,
 )
+from apps.form.helpers import calculate_previous_weekday
 
 
 class ProductWeightSchemeInLine(admin.TabularInline):

@@ -1,4 +1,8 @@
+from datetime import timedelta
+
 from django.db import models
+
+from apps.form.helpers import calculate_previous_weekday
 
 
 class SingletonModel(models.Model):
@@ -37,3 +41,11 @@ class AppConfig(SingletonModel):
 
 	def __str__(self):
 		return "Konfiguracja Aplikacji"
+
+	@property
+	def report_interval_start(self):
+		return self.reports_start_day or calculate_previous_weekday()
+
+	@property
+	def report_interval_end(self):
+		return self.report_interval_start + timedelta(days=7)

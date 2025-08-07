@@ -16,7 +16,6 @@ from django.views.generic import (
 
 from apps.form.models import Producer, Order, OrderItem, Product
 from apps.form.services import (
-    calculate_previous_weekday,
     calculate_order_cost,
     create_order_data_list,
     staff_check,
@@ -24,7 +23,7 @@ from apps.form.services import (
     filter_products_with_ordered_quantity_income_and_supply_income, filter_products_with_ordered_quantity,
     filter_products_with_supplies_quantity,
 )
-
+from apps.form.helpers import calculate_previous_weekday
 from apps.form.views import BaseProducersView
 from apps.user.models import UserProfile
 from apps.user.services import get_user_fund

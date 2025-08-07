@@ -5,10 +5,8 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from apps.form.models import Product
-from apps.form.services import (
-    calculate_previous_weekday,
-    order_check,
-)
+from apps.form.services import order_check
+from apps.form.helpers import calculate_previous_weekday
 
 
 def validate_product_already_in_order(product, request, order_model):
@@ -26,6 +24,7 @@ def validate_product_already_in_order(product, request, order_model):
             request, f"{product.name}: Dodałeś już ten produkt do zamówienia."
         )
         return True
+    return False
 
 
 def validate_order_max_quantity(product, product_instance, form_instance, request):
