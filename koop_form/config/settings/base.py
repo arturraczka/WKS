@@ -7,6 +7,9 @@ from pathlib import Path
 import json
 import traceback
 
+from apps.core.constants import IntervalWeekdayMap
+
+
 def is_list_of_strings(data):
   """Checks if a variable is a list of strings."""
   return isinstance(data, list) and all(isinstance(item, str) for item in data)
@@ -220,3 +223,11 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 # na ten moment walidacje idą jako INFO i są nierozróżnialne od prawidłowych requestów hmmmm
 
 DEFAULT_USER_FUND = Decimal("1.3")
+
+
+KOOP_WEEK_INTERVAL_START_WEEKDAY = IntervalWeekdayMap.SATURDAY
+KOOP_WEEK_INTERVAL_START_HOUR = 1
+
+KOOP_ORDERING_INTERVAL_START_WEEKDAY = IntervalWeekdayMap.SATURDAY
+KOOP_ORDERING_INTERVAL_START_HOUR = 12
+KOOP_ORDERING_INTERVAL_LENGTH = 56

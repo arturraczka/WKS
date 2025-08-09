@@ -20,7 +20,7 @@ from apps.form.services import (
     calculate_order_number,
     display_as_zloty,
 )
-from apps.form.helpers import calculate_previous_weekday
+from apps.form.helpers import koop_default_interval_start
 
 
 class ProductWeightSchemeInLine(admin.TabularInline):
@@ -107,7 +107,7 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         products = instance.products.all()
         for product in products:
             orderitems = OrderItem.objects.filter(
-                product=product, item_ordered_date__gt=calculate_previous_weekday()
+                product=product, item_ordered_date__gt=koop_default_interval_start()
             )
             for item in orderitems:
                 reduce_product_stock(Product, item.product.id, item.quantity, negative=True)

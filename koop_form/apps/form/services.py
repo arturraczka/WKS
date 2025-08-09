@@ -2,10 +2,10 @@ import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from django.conf import settings
 from django.db.models import Sum
 from django.contrib.messages import get_messages
 from django.db.models import Case, When, F, Q
+from django.conf import settings
 
 from apps.form.helpers import calculate_previous_weekday, koop_default_interval_start
 from apps.core.models import AppConfig
@@ -13,8 +13,11 @@ from apps.core.models import AppConfig
 logger = logging.getLogger("django.server")
 
 
+# TODO potestować manualnie czy wszystko działa jak należy, szczególnie raporty
+
+
 def calculate_order_cost(orderitems):
-    """Returns sum of order_item.quantity times product.price for given QS of OrderItem model."""
+    """Returns sum of order_item.quantity times product.price for a given QS of OrderItem model."""
     order_cost = orderitems.annotate(
         item_cost=F("quantity") * F("product__price")
     ).aggregate(order_cost=Sum("item_cost"))["order_cost"]
@@ -208,15 +211,13 @@ def filter_products_with_ordered_quantity(product_model):
 def filter_products_with_supplies_quantity(product_model):
     """Returns a Product QS with annotated: supply_quantity and supply_income.
     Limits resulting QS to fields: name, supplyitems__quantity and annotations."""
-    report_interval_start = calculate_previous_weekday()
-    report_interval_end = report_interval_start + timedelta(days=7)
-
+    config = AppConfig.load()
     products = product_model.objects.only("name", "supplyitems__quantity")
 
     annotated_products = products.annotate(
             supply_quantity=Sum(
                 "supplyitems__quantity",
-                filter=Q(supplyitems__date_created__gte=report_interval_start) & Q(supplyitems__date_created__lte=report_interval_end),
+                filter=Q(supplyitems__date_created__gte=config.report_interval_start) & Q(supplyitems__date_created__lte=config.report_interval_end),
                 default=0,
             ),
             supply_income=F("supply_quantity") * F("price"),
@@ -226,7 +227,7 @@ def filter_products_with_supplies_quantity(product_model):
 
 
 def get_users_last_order(order_model, request_user):
-    return order_model.objects.get(user=request_user, date_created__gte=calculate_previous_weekday())
+    return order_model.objects.get(user=request_user, date_created__gte=koop_default_interval_start())
 
 
 def get_orderitems_query(orderitem_model, order_id):
@@ -253,15 +254,15 @@ def get_orderitems_query_with_related_order(orderitem_model, order_id):
     )
 
 
-def check_if_form_is_open():
+def check_if_form_is_open() -> bool:
     """Returns True if calling now() is between Saturday 12:00 and Monday 20:00. Used as indicator to blocking POST
     requests for Orders and OrderItems."""
     if settings.DEBUG:
         return True
     else:
-        form_open = calculate_previous_weekday(3, 12)
-        form_closed = form_open + timedelta(hours=56)
-        today = datetime.now().astimezone()
+        form_open: datetime = calculate_previous_weekday(day=settings.KOOP_ORDERING_INTERVAL_START_WEEKDAY, hour=settings.KOOP_ORDERING_INTERVAL_START_HOUR)
+        form_closed: datetime = form_open + timedelta(hours=settings.KOOP_ORDERING_INTERVAL_LENGTH)
+        today: datetime = datetime.now().astimezone()
         return form_open < today < form_closed
 
 
