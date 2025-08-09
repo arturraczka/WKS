@@ -1,7 +1,8 @@
 from decimal import Decimal
-from time import sleep
-
 import pytest
+
+from django.contrib import messages
+from django.contrib.admin.options import ModelAdmin as DjangoModelAdmin
 
 from apps.form.admin import OrderAdmin
 from apps.form.models import Order, Product
@@ -176,13 +177,91 @@ class TestOrderAdmin:
         user_profile.refresh_from_db()
         assert user_profile.payment_balance == old_user_balance + increase_value
 
-    def test_save_model__change_is_true(self):
-        # TODO dodatkowo weryfikuj call super()
-        assert False
+    def test_save_model__change_is_true_calls_update_and_super(self, monkeypatch, order):
+        # arrange
+        called = {"update_called": False, "super_called": False}
 
-    def test_save_model__change_is_false(self):
-        # TODO dodatkowo weryfikuj call super()
-        assert False
+        def fake_update_user_balance(*, order):
+            called["update_called"] = True
+
+        def fake_super_save_model(self, request, obj, form, change):
+            called["super_called"] = True
+            # simulate DB save like the real super() would do
+            obj.save()
+
+        monkeypatch.setattr(OrderAdmin, "update_user_balance", staticmethod(fake_update_user_balance))
+        monkeypatch.setattr(DjangoModelAdmin, "save_model", fake_super_save_model, raising=True)
+
+        # act
+        self.model_admin.save_model(self.request, order, form=None, change=True)
+
+        # assert
+        assert called["update_called"] is True
+        assert called["super_called"] is True
+
+    def test_save_model__change_is_false_sets_number_calls_super_when_no_paid(self, monkeypatch, user):
+        # arrange
+        order = OrderFactory.build(order_number=None, user=user, paid_amount=None)
+
+        calculated_number = 123
+        called = {"super_called": False}
+
+        def fake_calculate_order_number(_Order):
+            return calculated_number
+
+        def fake_super_save_model(self, request, obj, form, change):
+            called["super_called"] = True
+            obj.save()
+
+        # patch helpers and super
+        from apps.form import admin as admin_module
+        monkeypatch.setattr(admin_module, "calculate_order_number", fake_calculate_order_number, raising=True)
+        monkeypatch.setattr(DjangoModelAdmin, "save_model", fake_super_save_model, raising=True)
+
+        # act
+        self.model_admin.save_model(self.request, order, form=None, change=False)
+
+        # assert
+        order.refresh_from_db()
+        assert order.order_number == calculated_number
+        assert called["super_called"] is True
+
+    def test_save_model__change_is_false_nulls_paid_and_shows_message(self, monkeypatch, user):
+        # arrange
+        order = OrderFactory.build(order_number=None, user=user, paid_amount=Decimal("10"))
+
+        calculated_number = 777
+        messages_logged = []
+
+        def fake_calculate_order_number(_Order):
+            return calculated_number
+
+        def fake_message_user(request, message, level):
+            messages_logged.append((message, level))
+
+        def fake_super_save_model(self, request, obj, form, change):
+            obj.save()
+
+        # patch helpers, message_user and super
+        from apps.form import admin as admin_module
+        monkeypatch.setattr(admin_module, "calculate_order_number", fake_calculate_order_number, raising=True)
+        monkeypatch.setattr(self.model_admin, "message_user", fake_message_user, raising=True)
+        monkeypatch.setattr(DjangoModelAdmin, "save_model", fake_super_save_model, raising=True)
+
+        # act
+        self.model_admin.save_model(self.request, order, form=None, change=False)
+
+        # assert
+        order.refresh_from_db()
+        # paid should be nulled on create
+        assert order.paid_amount is None
+        # order number assigned from calculator
+        assert order.order_number == calculated_number
+        # one error message with the expected text
+        assert len(messages_logged) == 1
+        msg, level = messages_logged[0]
+        assert "Nie zapisano płatności podczas tworzenia zamówienia" in msg
+        assert level == messages.ERROR
 
     def test_order_cost_with_fund(self, order):
         assert self.model_admin.order_cost_with_fund(order) == display_as_zloty(order.order_cost_with_fund)

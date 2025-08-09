@@ -1,11 +1,11 @@
 import random
 from decimal import Decimal
 
-import django.contrib.staticfiles.storage
 import pytest
 import datetime
 import logging
 
+from django.contrib.messages import get_messages
 from django.urls import reverse
 from django.test import TestCase
 from django.utils import timezone
@@ -24,10 +24,11 @@ from factories.model_factories import (
     OrderItemFactory,
     OrderFactory,
     ProfileFactory,
-    UserProfileFundFactory,
 )
 
 logger = logging.getLogger("django.server")
+
+pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture()
@@ -55,7 +56,6 @@ producers_list = [["adam-pritz", "Adam Pritz"], ["karol-jung", "Karol Jung"]]
 
 
 @pytest.mark.usefixtures("producers")
-@pytest.mark.django_db
 class TestProductsView(TestCase):
     def setUp(self):
         self.user = UserFactory()
@@ -110,7 +110,6 @@ class TestProductsView(TestCase):
 #         assert response.status_code == 302
 
 
-@pytest.mark.django_db
 class TestOrderProductsFormView(TestCase):
     def setUp(self):
         factor_producers()
@@ -302,7 +301,6 @@ class TestOrderProductsFormView(TestCase):
         )
 
 
-@pytest.mark.django_db
 class TestOrderCreateView(TestCase):
     def setUp(self):
         #TODO fix in future - refactor whole DEBUG dependency in app tests are always run with DEBUG=false https://docs.djangoproject.com/en/5.0/topics/testing/overview/#other-test-conditions
@@ -353,7 +351,6 @@ class TestOrderCreateView(TestCase):
         assert response.status_code == 200
 
 
-@pytest.mark.django_db
 class TestOrderUpdateFormView(TestCase):
     def setUp(self):
         factor_producers()
@@ -404,7 +401,6 @@ class TestOrderUpdateFormView(TestCase):
         assert list(context["products"]) == [self.product0, self.product1]
 
 
-@pytest.mark.django_db
 class TestOrderUpdateView(TestCase):
     def setUp(self):
         fund = UserProfileFund.objects.get(value=Decimal("1.1"))
@@ -429,7 +425,6 @@ class TestOrderUpdateView(TestCase):
         assert response.status_code == 200
 
 
-@pytest.mark.django_db
 class TestOrderDeleteView(TestCase):
     def setUp(self):
         self.user = UserFactory()
@@ -457,3 +452,55 @@ class TestOrderDeleteView(TestCase):
         url = reverse("order-delete", kwargs={"pk": pk})
         response = self.client.delete(url)
         assert response.status_code == 404
+
+
+class TestOrderAdminRedirectView:
+    @pytest.fixture(autouse=True)
+    def _setup(self, client):
+        self.client = client
+
+    def _reverse_url(self, order: Order) -> str:
+        return reverse("undo-order-settlement", kwargs={"pk": order.id})
+
+    def test_non_staff_is_redirected_and_no_changes(self, order, user):
+        assert user.is_staff is False
+        self.client.force_login(user)
+        url = self._reverse_url(order)
+
+        response = self.client.get(url, HTTP_REFERER="/previous/")
+
+        assert response.status_code == 302
+        order.refresh_from_db()
+        assert order.paid_amount is not None
+
+    def test_staff_revert_payment_and_redirects_back(self, order, user_profile):
+        assert order.paid_amount is not None
+        paid_amount = Decimal(order.paid_amount)
+        expected_delta = Decimal(order.order_cost_with_fund) - paid_amount
+        old_balance = user_profile.payment_balance
+
+        staff = UserFactory(is_staff=True)
+        self.client.force_login(staff)
+        url = self._reverse_url(order)
+        referer = "/admin/orders/"
+
+        response = self.client.get(url, HTTP_REFERER=referer)
+
+        assert response.status_code == 302
+        assert response.url == referer
+
+        order.refresh_from_db()
+        assert order.paid_amount is None
+
+        user_profile.refresh_from_db()
+        assert user_profile.payment_balance == old_balance + expected_delta
+
+        session = self.client.session
+        assert session["paid_amount"] == str(paid_amount)
+        assert session["order_id"] == order.id
+
+        msgs = list(get_messages(response.wsgi_request))
+        assert any(
+            "cofnięto rozliczenie zamówienia" in m.message and str(paid_amount) in m.message
+            for m in msgs
+        )

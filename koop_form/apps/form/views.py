@@ -609,7 +609,7 @@ class OrderCategoriesFormView(OrderProductsFormView):
         context["categories"] = Category.objects.all()
         return context
 
-# TO DO TESTYYY
+
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class OrderAdminRedirectView(RedirectView):
     def get(self, request, *args, **kwargs):
