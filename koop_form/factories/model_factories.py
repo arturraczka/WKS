@@ -7,6 +7,8 @@ from factory.django import DjangoModelFactory
 import pytz
 from apps.form.models import Producer, Product, Status, WeightScheme, Order, OrderItem
 from django.utils import timezone
+
+from apps.supply.models import Supply, SupplyItem
 from apps.user.models import UserProfile, UserProfileFund
 
 
@@ -140,3 +142,47 @@ class OrderWithProductFactory(OrderFactory):
         OrderItemFactory,
         factory_related_name="order",
     )
+
+
+class SupplyFactory(DjangoModelFactory):
+    class Meta:
+        model = Supply
+
+    producer = SubFactory(ProducerFactory)
+    user = SubFactory(UserFactory)
+
+    @post_generation
+    def product(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for product in extracted:
+                self.product.add(product)
+
+    @post_generation
+    def date_created(self, create, extracted, **kwargs):
+        if not create:
+            return
+        if extracted:
+            # write directly to DB to bypass auto_now_add
+            type(self).objects.filter(pk=self.pk).update(date_created=extracted)
+            self.refresh_from_db()
+
+
+class SupplyItemFactory(DjangoModelFactory):
+    class Meta:
+        model = SupplyItem
+
+    supply = SubFactory(SupplyFactory)
+    product = SubFactory(ProductFactory)
+    quantity = Faker("random_int", min=3, max=20)
+
+    @post_generation
+    def date_created(self, create, extracted, **kwargs):
+        if not create:
+            return
+        if extracted:
+            # write directly to DB to bypass auto_now_add
+            type(self).objects.filter(pk=self.pk).update(date_created=extracted)
+            self.refresh_from_db()

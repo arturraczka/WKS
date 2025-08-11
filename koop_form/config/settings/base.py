@@ -66,6 +66,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.core.context_processors.app_config",
             ],
         },
     },
@@ -225,9 +226,11 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 DEFAULT_USER_FUND = Decimal("1.3")
 
 
+# For logic that iterates each week
 KOOP_WEEK_INTERVAL_START_WEEKDAY = IntervalWeekdayMap.SATURDAY
 KOOP_WEEK_INTERVAL_START_HOUR = 1
 
+# Used mainly as a interval when it is possible to create a new order
 KOOP_ORDERING_INTERVAL_START_WEEKDAY = IntervalWeekdayMap.SATURDAY
 KOOP_ORDERING_INTERVAL_START_HOUR = 12
 KOOP_ORDERING_INTERVAL_LENGTH = 56

@@ -14,6 +14,7 @@ from django.views.generic import (
     TemplateView,
 )
 
+from apps.core.models import AppConfig
 from apps.form.models import Producer, Order, OrderItem, Product
 from apps.form.services import (
     calculate_order_cost,
@@ -125,14 +126,14 @@ class ProducerBoxReportView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        previous_friday = calculate_previous_weekday()
+        config = AppConfig.load()
 
         producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
         context["producer"] = producer
 
         products_qs = (
             Product.objects.prefetch_related("orderitems", "orders")
-            .filter(Q(orders__date_created__gte=previous_friday))
+            .filter(Q(orders__date_created__gte=config.report_interval_start) & Q(orders__date_created__lte=config.report_interval_end))
             .filter(producer=producer)
             .annotate(ordered_quantity=Sum("orderitems__quantity"))
             .distinct()
@@ -140,8 +141,7 @@ class ProducerBoxReportView(TemplateView):
 
         context["producers"] = get_producers_list(Producer)
         context["products"] = products_qs
-        order_data_list = create_order_data_list(context["products"])
-        context["order_data"] = order_data_list
+        context["order_data"] = create_order_data_list(context["products"])
         return context
 
 
@@ -151,19 +151,20 @@ class UsersReportView(TemplateView):
 
     def __init__(self):
         super().__init__()
-        self.previous_friday = calculate_previous_weekday()
         self.user_phone_number_list = []
         self.user_pickup_day_list = []
         self.user_order_number_list = []
         self.user_name_list = []
 
     def get_users_queryset(self):
-        newest_orders = Order.objects.filter(date_created__gte=self.previous_friday)
+        config = AppConfig.load()
+
+        newest_orders = Order.objects.filter(date_created__gte=config.report_interval_start, date_created__lte=config.report_interval_end)
         prefetch = Prefetch("orders", queryset=newest_orders, to_attr="order")
 
         users_qs = (
             get_user_model()
-            .objects.filter(Q(orders__date_created__gte=self.previous_friday))
+            .objects.filter(Q(orders__date_created__gte=config.report_interval_start, orders__date_created__lte=config.report_interval_end))
             .select_related("userprofile")
             .prefetch_related(prefetch)
             .order_by("last_name")
@@ -396,8 +397,9 @@ class OrderBoxListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        previous_friday = calculate_previous_weekday()
-        orders = Order.objects.filter(date_created__gte=previous_friday).order_by(
+        config = AppConfig.load()
+
+        orders = Order.objects.filter(date_created__gte=config.report_interval_start, date_created__lte=config.report_interval_end).order_by(
             "date_created"
         )
 
@@ -494,13 +496,14 @@ class UsersFinanceReportView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        config = AppConfig.load()
 
         users = (
             get_user_model()
             .objects.all()
             .select_related("userprofile")
             .order_by("orders__order_number")
-            .filter(orders__date_created__gte=calculate_previous_weekday())
+            .filter(orders__date_created__gte=config.report_interval_start, orders__date_created__lte=config.report_interval_end)
         )
 
         report_data = {
@@ -523,7 +526,7 @@ class UsersFinanceReportView(TemplateView):
 
         for user in users:
             order = (
-                Order.objects.filter(date_created__gte=calculate_previous_weekday(), user=user)
+                Order.objects.filter(date_created__gte=config.report_interval_start, date_created__lte=config.report_interval_end, user=user)
                 .select_related("user__userprofile__fund").first()
             )
             if not order:
@@ -577,11 +580,12 @@ class MassProducerBoxReportDownloadView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        previous_friday = calculate_previous_weekday()
+        config = AppConfig.load()
         products_qs = (
             Product.objects.prefetch_related("orderitems", "orders")
             .select_related("producer")
-            .filter(Q(orders__date_created__gte=previous_friday))
+            .filter(Q(orders__date_created__gte=config.report_interval_start))
+            .filter(Q(orders__date_created__lte=config.report_interval_end))
             .annotate(ordered_quantity=Sum("orderitems__quantity"))
             .distinct()
             .order_by("producer__short")
@@ -688,11 +692,11 @@ class MassOrderBoxReportDownloadView(TemplateView):
             headers=headers,
         )
 
-        # writer = csv.writer(response)
+        config = AppConfig.load()
 
-        previous_friday = calculate_previous_weekday()
         orders_queryset = Order.objects.filter(
-            date_created__gt=previous_friday
+            date_created__gt=config.report_interval_start,
+            date_created__lt=config.report_interval_end,
         ).order_by("order_number")
 
         data = {}
