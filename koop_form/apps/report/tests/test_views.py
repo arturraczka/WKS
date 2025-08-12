@@ -27,9 +27,9 @@ from io import StringIO
 
 logger = logging.getLogger("django.server")
 
+pytestmark = pytest.mark.django_db
 
 
-@pytest.mark.django_db
 class MassOrderBoxReportDownloadView(TestCase):
     def setUp(self):
         self.url = reverse(
@@ -114,7 +114,6 @@ class MassOrderBoxReportDownloadView(TestCase):
         self.assertTrue((pd.isna(df[[8,9,10,11]][2:])).all().all()) # every value for order 3 is Nan
 
 
-@pytest.mark.django_db
 class TestProducerProductsReportView(TestCase):
     def setUp(self):
         self.user = UserFactory(is_staff=True)
@@ -159,7 +158,6 @@ class TestProducerProductsReportView(TestCase):
         assert response.status_code == 302
 
 
-@pytest.mark.django_db
 class TestProducerBoxReportView(TestCase):
     def setUp(self):
         self.user = UserFactory(is_staff=True)
@@ -199,7 +197,6 @@ class TestProducerBoxReportView(TestCase):
         assert response.status_code == 302
 
 
-@pytest.mark.django_db
 class TestUsersReportView(TestCase):
     def setUp(self):
         self.user = UserFactory(is_staff=True)
@@ -231,7 +228,6 @@ class TestUsersReportView(TestCase):
         assert response.status_code == 302
 
 
-@pytest.mark.django_db
 class TestProducerProductsListView(TestCase):
     def setUp(self):
         self.user = UserFactory()
@@ -272,3 +268,55 @@ class TestProducerBoxListView(TestCase):
         response = self.client.get(self.url)
 
         assert response.status_code == 200
+
+
+class TestUserDebtsReportView:
+    @pytest.fixture
+    def url(self):
+        return reverse("debts-report")
+
+    def test_redirect_when_user_not_logged_in(self, client, url):
+        response = client.get(url)
+        assert response.status_code == 302
+
+    def test_redirect_when_user_not_staff(self, client, url):
+        user = UserFactory(is_staff=False)
+        client.force_login(user)
+        response = client.get(url)
+        assert response.status_code == 302
+
+    def test_ok_for_staff(self, client, url):
+        staff_user = UserFactory(is_staff=True)
+        client.force_login(staff_user)
+
+        response = client.get(url)
+        assert response.status_code == 200
+        assert "users_list" in response.context
+
+    def test_users_queryset_filters_and_orders(self, client, url, user_profile):
+        staff_user = UserFactory(is_staff=True)
+        client.force_login(staff_user)
+
+        fund = UserProfileFund.objects.first()
+
+        u1 = UserFactory()
+        ProfileFactory(user=u1, payment_balance=Decimal("-2"), fund=fund)
+
+        u2 = UserFactory()
+        ProfileFactory(user=u2, payment_balance=Decimal("-1"), fund=fund)  # boundary, should be excluded
+
+        u3 = UserFactory()
+        ProfileFactory(user=u3, payment_balance=Decimal("-5"), fund=fund)
+
+        u4 = UserFactory()
+        ProfileFactory(user=u4, payment_balance=Decimal("0"), fund=fund)  # positive, excluded
+
+
+        response = client.get(url)
+        assert response.status_code == 200
+
+        users_qs = response.context["users_list"]
+        returned_ids = list(users_qs.values_list("id", flat=True))
+
+        # Only users with payment_balance < -1, ordered by payment_balance ascending (more negative first)
+        assert returned_ids == [u3.id, u1.id]

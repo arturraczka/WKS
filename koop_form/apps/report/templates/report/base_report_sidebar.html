@@ -6,6 +6,7 @@
 
 {% block sidebar %}
   <div class="content-section sticky-element">
+    {% url 'debts-report' as debts_report %}
     {% url 'producer-orders-list' as producer_orders_list_url %}
     {% url 'producer-supplies-list' as producer_supplies_list_url %}
     {% url 'producer-box-list' as producer_box_list_url %}
@@ -17,6 +18,7 @@
     <p>Raporty za okres od {{ report_interval_start|date:"d.m.Y" }} do {{ report_interval_end|date:"d.m.Y" }}.</p>
     <h3>Wybierz raport:</h3>
     <ul class="list-group">
+      <li class="list-group-item list-group-item-light"><a class="{% if request.path == debts_report %}{% else %}article-title{% endif %}" href="{{ debts_report }}">Kooperanci Długi</a></li>
       <li class="list-group-item list-group-item-light"><a class="{% if producer_orders_list_url in request.path %}{% else %}article-title{% endif %}" href="{{ producer_orders_list_url }}">Producenci Zamówienia</a></li>
       <li class="list-group-item list-group-item-light"><a class="{% if producer_supplies_list_url in request.path %}{% else %}article-title{% endif %}" href="{{ producer_supplies_list_url }}">Producenci Dostawy</a></li>
       <li class="list-group-item list-group-item-light"><a class="{% if producer_box_list_url in request.path %}{% else %}article-title{% endif %}" href="{{ producer_box_list_url }}">Producenci Skrzynki</a></li>

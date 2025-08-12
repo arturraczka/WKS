@@ -17,7 +17,6 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"Profil: {self.user.first_name} {self.user.last_name}"
 
-    # TODO TEST
     def apply_order_balance(self, balance_delta: Decimal):
         self.payment_balance += balance_delta
         self.save(update_fields=["payment_balance"])

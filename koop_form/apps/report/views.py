@@ -809,3 +809,23 @@ class ProductsExcessReportView(TemplateView):
         self.get_products()
         context["products"] = self.products
         return context
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class UserDebtsReportView(TemplateView):
+    template_name = "report/user_debts_report.html"
+
+    @staticmethod
+    def get_users_queryset():
+        users_qs = (
+            get_user_model()
+            .objects.filter(userprofile__payment_balance__lt=-1)
+            .select_related("userprofile")
+            .order_by("userprofile__payment_balance")
+        )
+        return users_qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["users_list"] = self.get_users_queryset()
+        return context
