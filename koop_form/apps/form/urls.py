@@ -10,13 +10,11 @@ from apps.form.views import (
     OrderUpdateFormView,
     OrderItemFormView,
     product_search_view,
-    main_page_redirect,
     OrderProductsAllFormView, OrderCategoriesFormView, OrderAdminRedirectView,
 )
 
 
 urlpatterns = [
-    path("", main_page_redirect, name="main-page"),
     path(
         "producenci/<str:slug>/",
         ProductsView.as_view(),

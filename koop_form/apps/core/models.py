@@ -34,6 +34,7 @@ class SingletonModel(models.Model):
 
 class AppConfig(SingletonModel):
 	reports_start_day = models.DateTimeField("Początkowa data raportów", null=True, blank=True, help_text="Użyj tego pola, aby zmienić początkową datę i godzinę 7-dniowego przedziału dla którego generowane są raporty. Domyślna data i godzina rozpoczęcia przedziału to ostatnia sobota o 1 w nocy. Chcąc sprawdzić raport dla archiwalnego tygodnia należy wybrać sobotę, od której zacznie się raport, oraz godzinę 1:00 w nocy i zapisać. Po sprawdzeniu archiwalnego tygodnia należy wykasować wartość tego pola i zapisać, aby przywrócić funkcjonowanie raportów!!!")
+	homepage_info = models.TextField("Info na stronie głównej", default="", blank=True)
 
 	class Meta:
 		verbose_name = "Konfiguracja Aplikacji"

@@ -9,7 +9,7 @@ from apps.core.models import AppConfig
 
 @admin.register(AppConfig)
 class AppConfigAdmin(admin.ModelAdmin):
-	fields = ["reports_start_day",]
+	fields = ["reports_start_day", "homepage_info"]
 
 	def changelist_view(
 		self,

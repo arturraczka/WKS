@@ -1,0 +1,12 @@
+{% extends "templates/base_one.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="mx-a col-md-8">
+    <div class="content-section">
+        <h3>Witaj w aplikacji Wawelskiej Kooperatywy Spożywczej</h3>
+        <p>Zapoznaj się z poniższymi informacjami:</p>
+        {{ app_config.homepage_info|linebreaksbr }}
+    </div>
+</div>
+{% endblock content%}

@@ -535,12 +535,6 @@ def product_search_view(request):
     return render(request, "form/product_search.html", context)
 
 
-def main_page_redirect(request):
-    obj = Producer.objects.filter(is_active=True).first()
-    response = redirect(obj)
-    return response
-
-
 @method_decorator(login_required, name="dispatch")
 @method_decorator(
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
