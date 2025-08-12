@@ -237,7 +237,6 @@ class OrderAdmin(admin.ModelAdmin):
             balance_to_apply = new_balance - old_balance
         order.user.userprofile.apply_order_balance(balance_to_apply)
 
-    # TODO TEST
     def save_model(self, request, obj, form, change):
         if change:
             self.update_user_balance(order=obj)
@@ -311,7 +310,19 @@ class OrderItemAdmin(admin.ModelAdmin):
     def producer_short(self, obj):
         return f"{obj.product.producer.short}"
 
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.order.paid_amount is not None:
+            return False
+        return True
+
     def save_model(self, request, obj, form, change):
+        if obj.order.paid_amount is not None:
+            self.message_user(
+                request,
+                "Nie możesz dodawać/edytować produktów w rozliczonym zamówieniu!",
+                messages.ERROR,
+            )
+            return
         if change:
             alter_product_stock(
                 Product, obj.product.id, obj.quantity, obj.id, OrderItem

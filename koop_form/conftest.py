@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 
 from apps.user.models import UserProfileFund
 from factories.model_factories import UserFactory, ProfileFactory, OrderFactory, OrderItemFactory, \
-    UserProfileFundFactory
+    UserProfileFundFactory, ProductFactory
 
 
 @pytest.fixture
@@ -19,6 +19,11 @@ def user(db):
 def user_profile(db, user):
     fund, _ = UserProfileFund.objects.get_or_create(value=Decimal("1.3"))
     return ProfileFactory(user=user, fund=fund)
+
+
+@pytest.fixture
+def product(db):
+    return ProductFactory()
 
 
 @pytest.fixture

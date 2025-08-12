@@ -13,9 +13,6 @@ from apps.core.models import AppConfig
 logger = logging.getLogger("django.server")
 
 
-# TODO potestować manualnie czy wszystko działa jak należy, szczególnie raporty
-
-
 def calculate_order_cost(orderitems):
     """Returns sum of order_item.quantity times product.price for a given QS of OrderItem model."""
     order_cost = orderitems.annotate(

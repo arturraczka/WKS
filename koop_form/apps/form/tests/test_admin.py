@@ -1,11 +1,12 @@
 from decimal import Decimal
 import pytest
+from unittest.mock import patch
 
 from django.contrib import messages
 from django.contrib.admin.options import ModelAdmin as DjangoModelAdmin
 
-from apps.form.admin import OrderAdmin
-from apps.form.models import Order, Product
+from apps.form.admin import OrderAdmin, OrderItemAdmin
+from apps.form.models import Order, Product, OrderItem
 from apps.form.services import display_as_zloty
 from factories.model_factories import OrderFactory, OrderItemFactory, ProductFactory
 
@@ -283,3 +284,81 @@ class TestOrderAdmin:
         order.save(update_fields=["paid_amount"])
         assert self.model_admin.has_change_permission(rf.get("/"), order) is False
 
+
+class TestOrderItemAdmin:
+    @pytest.fixture(autouse=True)
+    def _setup(self, admin_user, request_factory, admin_site):
+        self.model_admin = OrderItemAdmin(OrderItem, admin_site)
+        self.request = request_factory.post("/")
+        self.request.user = admin_user
+
+    def test_order_number(self, order, product):
+        item = OrderItemFactory.create(order=order, product=product, quantity=1)
+        assert self.model_admin.order_number(item) == f"{order.order_number}"
+
+    def test_order_user(self, order, product):
+        item = OrderItemFactory.create(order=order, product=product, quantity=1)
+        assert self.model_admin.order_user(item) == f"{order.user.last_name}"
+
+    def test_product_name(self, order, product):
+        item = OrderItemFactory.create(order=order, product=product, quantity=1)
+        assert self.model_admin.product_name(item) == f"{product.name}"
+
+    def test_producer_short(self, order, product):
+        item = OrderItemFactory.create(order=order, product=product, quantity=1)
+        assert self.model_admin.producer_short(item) == f"{product.producer.short}"
+
+    def test_has_delete_permission__no_obj(self, rf):
+        assert self.model_admin.has_delete_permission(rf.get("/"), obj=None) is True
+
+    def test_has_delete_permission__order_not_settled(self, rf, order, product):
+        order.paid_amount = None
+        order.save(update_fields=["paid_amount"])
+        item = OrderItemFactory.create(order=order, product=product, quantity=1)
+        assert self.model_admin.has_delete_permission(rf.get("/"), obj=item) is True
+
+    def test_has_delete_permission__order_settled(self, rf, order, product):
+        assert order.paid_amount is not None
+        item = OrderItemFactory.create(order=order, product=product, quantity=1)
+        assert self.model_admin.has_delete_permission(rf.get("/"), obj=item) is False
+
+
+    def test_delete_queryset__restores_stock_for_each_and_deletes(self, order, product, rf):
+        # Given
+        order.paid_amount = None
+        order.save(update_fields=["paid_amount"])
+        item1 = OrderItemFactory.create(order=order, product=product, quantity=2)
+        item2 = OrderItemFactory.create(order=order, product=product, quantity=4)
+        qs = OrderItem.objects.filter(id__in=[item1.id, item2.id])
+
+        with patch("apps.form.admin.reduce_product_stock") as reduce_patch:
+            # When
+            self.model_admin.delete_queryset(rf.post("/"), qs)
+
+            # Then: called for each item and items deleted
+            expected_calls = {
+                (Product, item1.product.id, item1.quantity, True),
+                (Product, item2.product.id, item2.quantity, True),
+            }
+            actual_calls = {
+                (
+                    call.args[0],
+                    call.args[1],
+                    call.args[2],
+                    call.kwargs.get("negative", False),
+                )
+                for call in reduce_patch.call_args_list
+            }
+            assert expected_calls == actual_calls
+            assert not OrderItem.objects.filter(id__in=[item1.id, item2.id]).exists()
+
+    def test_delete_model__restores_stock_and_deletes(self, order, product, rf):
+        # Given
+        item = OrderItemFactory.create(order=order, product=product, quantity=3)
+        with patch("apps.form.admin.reduce_product_stock") as reduce_patch:
+            # When
+            self.model_admin.delete_model(rf.post("/"), item)
+
+            # Then
+            reduce_patch.assert_called_once_with(Product, item.product.id, item.quantity, negative=True)
+            assert not OrderItem.objects.filter(id=item.id).exists()
