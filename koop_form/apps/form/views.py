@@ -5,8 +5,9 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db import transaction
 from django.db.models import Q
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
@@ -18,7 +19,7 @@ from django.views.generic import (
     DetailView,
     UpdateView,
     DeleteView,
-    FormView,
+    FormView, RedirectView,
 )
 
 from apps.form.custom_mixins import FormOpenMixin
@@ -44,7 +45,7 @@ from apps.form.services import (
     add_producer_list_to_context,
     reduce_product_stock,
     alter_product_stock,
-    calculate_order_number,
+    calculate_order_number, staff_check,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -59,10 +60,9 @@ logger = logging.getLogger("django.server")
 
 
 @method_decorator(login_required, name="dispatch")
-class ProducersView(ListView):
+class BaseProducersView(ListView):
     model = Producer
     context_object_name = "producers"
-    template_name = "form/producer_list.html"
     paginate_by = 100
 
     def get_queryset(self):
@@ -102,7 +102,7 @@ class ProductsView(DetailView):
 @method_decorator(
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
 )
-class OrderProducersView(ProducersView):
+class OrderProducersView(BaseProducersView):
     template_name = "form/order_producers.html"
 
 
@@ -365,6 +365,7 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
             context["form"], self.products_weight_schemes
         )
         context["available_quantities_list"] = self.available_quantities_list
+        context["user_balance"] = self.request.user.userprofile.payment_balance
 
         return context
 
@@ -535,12 +536,6 @@ def product_search_view(request):
     return render(request, "form/product_search.html", context)
 
 
-def main_page_redirect(request):
-    obj = Producer.objects.filter(is_active=True).first()
-    response = redirect(obj)
-    return response
-
-
 @method_decorator(login_required, name="dispatch")
 @method_decorator(
     user_passes_test(order_check, login_url="/zamowienie/nowe/"), name="dispatch"
@@ -608,3 +603,22 @@ class OrderCategoriesFormView(OrderProductsFormView):
         context["category"] = self.category
         context["categories"] = Category.objects.all()
         return context
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class OrderAdminRedirectView(RedirectView):
+    def get(self, request, *args, **kwargs):
+        url = self.request.headers.get("Referer")
+        order = Order.objects.get(id=self.kwargs.get("pk"))
+        paid_amount = order.paid_amount
+        messages.warning(
+            self.request,
+            f"{order.__str__()}: cofnięto rozliczenie zamówienia. Usunięto zapłaconą kwotę: {paid_amount} zł",
+        )
+        self.request.session["paid_amount"] = str(paid_amount)
+        self.request.session["order_id"] = order.id
+        order.paid_amount = None
+        with transaction.atomic():
+            order.save(update_fields=["paid_amount"])
+            order.user.userprofile.apply_order_balance(order.order_cost_with_fund - paid_amount)
+        return HttpResponseRedirect(url)

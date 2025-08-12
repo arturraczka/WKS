@@ -18,7 +18,7 @@ from apps.report.views import (
     MassProducerBoxReportDownloadView,
     UsersFinanceReportDownloadView,
     MassOrderBoxReportDownloadView, ProducerOrdersReportView, ProducerOrdersReportDownloadView,
-    ProducerOrdersListView, ProductsExcessReportView,
+    ProducerOrdersListView, ProductsExcessReportView, UserDebtsReportView,
 )
 
 
@@ -127,5 +127,10 @@ urlpatterns = [
         "nadwyzki/",
         ProductsExcessReportView.as_view(),
         name="excess-report",
+    ),
+    path(
+        "dlugi/",
+        UserDebtsReportView.as_view(),
+        name="debts-report",
     ),
 ]

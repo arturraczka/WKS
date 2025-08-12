@@ -6,16 +6,27 @@
 
 {% block sidebar %}
   <div class="content-section sticky-element">
+    {% url 'debts-report' as debts_report %}
+    {% url 'producer-orders-list' as producer_orders_list_url %}
+    {% url 'producer-supplies-list' as producer_supplies_list_url %}
+    {% url 'producer-box-list' as producer_box_list_url %}
+    {% url 'producers-finance' as producers_finance_url %}
+    {% url 'order-box-list' as order_box_list_url %}
+    {% url 'users-report' as users_report_url %}
+    {% url 'users-finance-report' as users_finance_report_url %}
+    {% url 'excess-report' as excess_report_url %}
+    <p>Raporty za okres od {{ report_interval_start|date:"d.m.Y" }} do {{ report_interval_end|date:"d.m.Y" }}.</p>
     <h3>Wybierz raport:</h3>
     <ul class="list-group">
-      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'producer-orders-list' %}">Producenci Zamówienia</a></li>
-      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'producer-supplies-list' %}">Producenci Dostawy</a></li>
-      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'producer-box-list' %}">Producenci Skrzynki</a></li>
-      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'producers-finance' %}">Producenci Finanse</a></li>
-      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'order-box-list' %}">Zamówienia Skrzynki</a></li>
-      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'users-report' %}">Kooperanci Lista</a></li>
-      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'users-finance-report' %}">Kooperanci Finanse</a></li>
-      <li class="list-group-item list-group-item-light"><a class="article-title" href="{% url 'excess-report' %}">Nadwyżki</a></li>
+      <li class="list-group-item list-group-item-light"><a class="{% if request.path == debts_report %}{% else %}article-title{% endif %}" href="{{ debts_report }}">Kooperanci Długi</a></li>
+      <li class="list-group-item list-group-item-light"><a class="{% if producer_orders_list_url in request.path %}{% else %}article-title{% endif %}" href="{{ producer_orders_list_url }}">Producenci Zamówienia</a></li>
+      <li class="list-group-item list-group-item-light"><a class="{% if producer_supplies_list_url in request.path %}{% else %}article-title{% endif %}" href="{{ producer_supplies_list_url }}">Producenci Dostawy</a></li>
+      <li class="list-group-item list-group-item-light"><a class="{% if producer_box_list_url in request.path %}{% else %}article-title{% endif %}" href="{{ producer_box_list_url }}">Producenci Skrzynki</a></li>
+      <li class="list-group-item list-group-item-light"><a class="{% if request.path == producers_finance_url %}{% else %}article-title{% endif %}" href="{{ producers_finance_url }}">Producenci Finanse</a></li>
+      <li class="list-group-item list-group-item-light"><a class="{% if order_box_list_url in request.path %}{% else %}article-title{% endif %}" href="{{ order_box_list_url }}">Zamówienia Skrzynki</a></li>
+      <li class="list-group-item list-group-item-light"><a class="{% if request.path == users_report_url %}{% else %}article-title{% endif %}" href="{{ users_report_url }}">Kooperanci Lista</a></li>
+      <li class="list-group-item list-group-item-light"><a class="{% if request.path == users_finance_report_url %}{% else %}article-title{% endif %}" href="{{ users_finance_report_url }}">Kooperanci Finanse</a></li>
+      <li class="list-group-item list-group-item-light"><a class="{% if request.path == excess_report_url %}{% else %}article-title{% endif %}" href="{{ excess_report_url }}">Nadwyżki</a></li>
     </ul>
   </div>
 {% endblock sidebar %}

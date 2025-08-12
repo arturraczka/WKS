@@ -4,21 +4,17 @@ from apps.form.views import (
     ProductsView,
     OrderCreateView,
     OrderProductsFormView,
-    ProducersView,
     OrderUpdateView,
     OrderDeleteView,
     OrderProducersView,
     OrderUpdateFormView,
     OrderItemFormView,
     product_search_view,
-    main_page_redirect,
-    OrderProductsAllFormView, OrderCategoriesFormView,
+    OrderProductsAllFormView, OrderCategoriesFormView, OrderAdminRedirectView,
 )
 
 
 urlpatterns = [
-    path("", main_page_redirect, name="main-page"),
-    path("producenci/", ProducersView.as_view(), name="producers"),
     path(
         "producenci/<str:slug>/",
         ProductsView.as_view(),
@@ -65,5 +61,10 @@ urlpatterns = [
         "zamowienie/produkty/",
         OrderProductsAllFormView.as_view(),
         name="order-products-all-form",
+    ),
+    path(
+        "zamowienie/admin/cofnij-rozliczenie/<int:pk>/",
+        OrderAdminRedirectView.as_view(),
+        name="undo-order-settlement",
     ),
 ]

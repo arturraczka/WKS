@@ -1,0 +1,5 @@
+DEBUG=on
+SECRET_KEY=
+DATABASE_URL=postgresql://user:pass@localhost:5432/db_name
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=

@@ -38,6 +38,10 @@ Future features:
 - order history
 - supply history
 
+## Development
+go to:
+`./DEV.md`
+
 ## About the Author
 
 My name is Artur Rączka and I am a Kooperatywa member myself. I was really tired and irritated using the old spreadsheet system so I decided to use my growing web dev skills and build a new, efficient system from scratch. 

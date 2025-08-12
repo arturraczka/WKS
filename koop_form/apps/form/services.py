@@ -2,30 +2,19 @@ import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from django.conf import settings
-from django.db.models import Sum, Prefetch
+from django.db.models import Sum
 from django.contrib.messages import get_messages
 from django.db.models import Case, When, F, Q
+from django.conf import settings
+
+from apps.form.helpers import calculate_previous_weekday, koop_default_interval_start
+from apps.core.models import AppConfig
 
 logger = logging.getLogger("django.server")
 
 
-def calculate_previous_weekday(day=3, hour=1):
-    """Returns datetime object of a chosen day of a week within last 7 days. Defaults to Saturday 1:00 AM. Monday: 1, Tuesday: 7, Wednesday: 6,
-    Thursday: 5, Friday: 4, Saturday: 3, Sunday: 2"""
-    today = (
-        datetime.now()
-        .astimezone()
-        .replace(hour=hour, minute=0, second=0, microsecond=0)
-    )
-    weekday = day
-    days_until_previous_day = (weekday + today.weekday() - 1) % 7
-    previous_day = today - timedelta(days=days_until_previous_day)
-    return previous_day
-
-
 def calculate_order_cost(orderitems):
-    """Returns sum of order_item.quantity times product.price for given QS of OrderItem model."""
+    """Returns sum of order_item.quantity times product.price for a given QS of OrderItem model."""
     order_cost = orderitems.annotate(
         item_cost=F("quantity") * F("product__price")
     ).aggregate(order_cost=Sum("item_cost"))["order_cost"]
@@ -35,9 +24,8 @@ def calculate_order_cost(orderitems):
 
 
 def order_check(user):
-    """Returns True if the user has an order created this week (counted from last Friday)."""
-    previous_friday = calculate_previous_weekday()
-    return user.orders.filter(date_created__gte=previous_friday).exists()
+    """Returns True if the user has an order created this week (counted from last Saturday 1:00 AM CEST)."""
+    return user.orders.filter(date_created__gte=koop_default_interval_start()).exists()
 
 
 def staff_check(user):
@@ -53,16 +41,14 @@ def list_messages(response):
 
 def calculate_order_number(order_model):
     """Returns order number as a sum of orders from this week + 1. Used for newly created Order instances."""
-    previous_friday = calculate_previous_weekday()
-    return order_model.objects.filter(date_created__gte=previous_friday).count() + 1
+    return order_model.objects.filter(date_created__gte=koop_default_interval_start()).count() + 1
 
 
 def recalculate_order_numbers(order_model, order_instance_date_created):
     """Retrieves queryset of Order instances newer than given date. Decrements order_number by 1
     for all instances. Used in signals in case of Order instance deletion to avoid order_number step other than 1.
     """
-    previous_friday = calculate_previous_weekday()
-    if order_instance_date_created < previous_friday:
+    if order_instance_date_created < koop_default_interval_start():
         return
     orders_qs = order_model.objects.filter(
         date_created__gt=order_instance_date_created
@@ -73,12 +59,12 @@ def recalculate_order_numbers(order_model, order_instance_date_created):
 # TODO obviously suboptimal function. But used only in a reporting phase, so terrible performance should be acceptable.
 def create_order_data_list(products):
     """For each ordered product this week globally creates a formatted list of orders with order number and ordered quantity."""
-    previous_friday = calculate_previous_weekday()
+    config = AppConfig.load()
     order_data_list = []
 
     for product in products:
         orderitems_qs = (
-            product.orderitems.filter(item_ordered_date__gte=previous_friday)
+            product.orderitems.filter(item_ordered_date__gte=config.report_interval_start, item_ordered_date__lte=config.report_interval_end)
             .order_by("order__order_number")
             .select_related("order")
         )
@@ -171,9 +157,8 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
     """Returns a Product QS filtered for a given Producer instance, ordered by name, with annotated: ordered_quantity,
     income, supply_quantity, supply_income and excess. Limits resulting QS to fields: name, orderitems__quantity and
     supplyitems__quantity."""
-    previous_friday = calculate_previous_weekday()
+    config = AppConfig.load()
     products = product_model.objects.only("name", "orderitems__quantity", "supplyitems__quantity")
-
     if filter_producer:
         products = products.filter(producer=producer_id)
 
@@ -181,7 +166,7 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
             ordered_quantity=Sum(
                 Case(
                     When(
-                        orderitems__item_ordered_date__gte=previous_friday,
+                        Q(orderitems__item_ordered_date__gte=config.report_interval_start) & Q(orderitems__item_ordered_date__lte=config.report_interval_end),
                         then=F("orderitems__quantity"),
                     ),
                     default=Decimal(0),
@@ -190,7 +175,7 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
             income=F("ordered_quantity") * F("price"),
             supply_quantity=Case(
                 When(
-                    supplyitems__date_created__gte=previous_friday,
+                    Q(supplyitems__date_created__gte=config.report_interval_start) & Q(supplyitems__date_created__lte=config.report_interval_end),
                     then=F("supplyitems__quantity"),
                 ),
                 default=Decimal(0),
@@ -205,13 +190,13 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
 def filter_products_with_ordered_quantity(product_model):
     """Returns a Product QS with annotated: ordered_quantity and income.
     Limits resulting QS to fields: name, orderitems__quantity and annotations."""
-    previous_friday = calculate_previous_weekday()
+    config = AppConfig.load()
     products = product_model.objects.only("name", "is_stocked", "orderitems__quantity")
 
     annotated_products = products.annotate(
             ordered_quantity=Sum(
                 "orderitems__quantity",
-                filter=Q(orderitems__item_ordered_date__gte=previous_friday),
+                filter=Q(orderitems__item_ordered_date__gte=config.report_interval_start) & Q(orderitems__item_ordered_date__lte=config.report_interval_end),
                 default=0,
             ),
             income=F("ordered_quantity") * F("price"),
@@ -223,13 +208,13 @@ def filter_products_with_ordered_quantity(product_model):
 def filter_products_with_supplies_quantity(product_model):
     """Returns a Product QS with annotated: supply_quantity and supply_income.
     Limits resulting QS to fields: name, supplyitems__quantity and annotations."""
-    previous_friday = calculate_previous_weekday()
+    config = AppConfig.load()
     products = product_model.objects.only("name", "supplyitems__quantity")
 
     annotated_products = products.annotate(
             supply_quantity=Sum(
                 "supplyitems__quantity",
-                filter=Q(supplyitems__date_created__gte=previous_friday),
+                filter=Q(supplyitems__date_created__gte=config.report_interval_start) & Q(supplyitems__date_created__lte=config.report_interval_end),
                 default=0,
             ),
             supply_income=F("supply_quantity") * F("price"),
@@ -239,8 +224,7 @@ def filter_products_with_supplies_quantity(product_model):
 
 
 def get_users_last_order(order_model, request_user):
-    previous_friday = calculate_previous_weekday()
-    return order_model.objects.get(user=request_user, date_created__gte=previous_friday)
+    return order_model.objects.get(user=request_user, date_created__gte=koop_default_interval_start())
 
 
 def get_orderitems_query(orderitem_model, order_id):
@@ -267,15 +251,15 @@ def get_orderitems_query_with_related_order(orderitem_model, order_id):
     )
 
 
-def check_if_form_is_open():
+def check_if_form_is_open() -> bool:
     """Returns True if calling now() is between Saturday 12:00 and Monday 20:00. Used as indicator to blocking POST
     requests for Orders and OrderItems."""
     if settings.DEBUG:
         return True
     else:
-        form_open = calculate_previous_weekday(3, 12)
-        form_closed = form_open + timedelta(hours=56)
-        today = datetime.now().astimezone()
+        form_open: datetime = calculate_previous_weekday(day=settings.KOOP_ORDERING_INTERVAL_START_WEEKDAY, hour=settings.KOOP_ORDERING_INTERVAL_START_HOUR)
+        form_closed: datetime = form_open + timedelta(hours=settings.KOOP_ORDERING_INTERVAL_LENGTH)
+        today: datetime = datetime.now().astimezone()
         return form_open < today < form_closed
 
 
@@ -302,3 +286,11 @@ def alter_product_stock(
     product_instance.update(
         quantity_in_stock=F("quantity_in_stock") - quantity_difference
     )
+
+
+def display_as_zloty(value: Decimal) -> str:
+    """
+    Converts decimal value to string with precision to the first decimal place, adds currency zł,
+    replaces dot for comma.
+    """
+    return f"{value:.1f} zł".replace(".", ",")

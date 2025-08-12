@@ -14,9 +14,9 @@ from django.views.generic import (
     TemplateView,
 )
 
+from apps.core.models import AppConfig
 from apps.form.models import Producer, Order, OrderItem, Product
 from apps.form.services import (
-    calculate_previous_weekday,
     calculate_order_cost,
     create_order_data_list,
     staff_check,
@@ -24,8 +24,8 @@ from apps.form.services import (
     filter_products_with_ordered_quantity_income_and_supply_income, filter_products_with_ordered_quantity,
     filter_products_with_supplies_quantity,
 )
-
-from apps.form.views import ProducersView
+from apps.form.helpers import calculate_previous_weekday
+from apps.form.views import BaseProducersView
 from apps.user.models import UserProfile
 from apps.user.services import get_user_fund
 
@@ -126,14 +126,14 @@ class ProducerBoxReportView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        previous_friday = calculate_previous_weekday()
+        config = AppConfig.load()
 
         producer = get_object_or_404(Producer, slug=self.kwargs["slug"])
         context["producer"] = producer
 
         products_qs = (
             Product.objects.prefetch_related("orderitems", "orders")
-            .filter(Q(orders__date_created__gte=previous_friday))
+            .filter(Q(orders__date_created__gte=config.report_interval_start) & Q(orders__date_created__lte=config.report_interval_end))
             .filter(producer=producer)
             .annotate(ordered_quantity=Sum("orderitems__quantity"))
             .distinct()
@@ -141,8 +141,7 @@ class ProducerBoxReportView(TemplateView):
 
         context["producers"] = get_producers_list(Producer)
         context["products"] = products_qs
-        order_data_list = create_order_data_list(context["products"])
-        context["order_data"] = order_data_list
+        context["order_data"] = create_order_data_list(context["products"])
         return context
 
 
@@ -152,19 +151,20 @@ class UsersReportView(TemplateView):
 
     def __init__(self):
         super().__init__()
-        self.previous_friday = calculate_previous_weekday()
         self.user_phone_number_list = []
         self.user_pickup_day_list = []
         self.user_order_number_list = []
         self.user_name_list = []
 
     def get_users_queryset(self):
-        newest_orders = Order.objects.filter(date_created__gte=self.previous_friday)
+        config = AppConfig.load()
+
+        newest_orders = Order.objects.filter(date_created__gte=config.report_interval_start, date_created__lte=config.report_interval_end)
         prefetch = Prefetch("orders", queryset=newest_orders, to_attr="order")
 
         users_qs = (
             get_user_model()
-            .objects.filter(Q(orders__date_created__gte=self.previous_friday))
+            .objects.filter(Q(orders__date_created__gte=config.report_interval_start, orders__date_created__lte=config.report_interval_end))
             .select_related("userprofile")
             .prefetch_related(prefetch)
             .order_by("last_name")
@@ -192,12 +192,12 @@ class UsersReportView(TemplateView):
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerSuppliesListView(ProducersView):
+class ProducerSuppliesListView(BaseProducersView):
     template_name = "report/producer_supplies_list.html"
 
 
 @method_decorator(user_passes_test(staff_check), name="dispatch")
-class ProducerOrdersListView(ProducersView):
+class ProducerOrdersListView(BaseProducersView):
     template_name = "report/producer_orders_list.html"
 
 
@@ -397,8 +397,9 @@ class OrderBoxListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        previous_friday = calculate_previous_weekday()
-        orders = Order.objects.filter(date_created__gte=previous_friday).order_by(
+        config = AppConfig.load()
+
+        orders = Order.objects.filter(date_created__gte=config.report_interval_start, date_created__lte=config.report_interval_end).order_by(
             "date_created"
         )
 
@@ -495,66 +496,79 @@ class UsersFinanceReportView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        config = AppConfig.load()
 
         users = (
             get_user_model()
             .objects.all()
             .select_related("userprofile")
             .order_by("orders__order_number")
-            .filter(orders__date_created__gte=calculate_previous_weekday())
+            .filter(orders__date_created__gte=config.report_interval_start, orders__date_created__lte=config.report_interval_end)
         )
 
-        name_list = []
-        order_cost_list = []
-        email_list = []
-        order_number_list = []
-        user_fund_list = []
-        order_cost_fund_list = []
-        order_paid_list = []
-        order_balance_list = []
-        user_balance_list = []
+        report_data = {
+            "name_list": [],
+            "email_list": [],
+            "order_number_list": [],
+            "order_cost_list": [],
+            "user_fund_list": [],
+            "order_cost_fund_list": [],
+            "order_paid_list": [],
+            "order_balance_list": [],
+            "user_balance_list": [],
+        }
+
+        order_cost_sum = 0
+        order_cost_fund_sum = 0
+        order_paid_sum = 0
+        order_balance_sum = 0
+        user_balance_sum = 0
 
         for user in users:
             order = (
-                Order.objects.filter(date_created__gte=calculate_previous_weekday(), user=user)
+                Order.objects.filter(date_created__gte=config.report_interval_start, date_created__lte=config.report_interval_end, user=user)
                 .select_related("user__userprofile__fund").first()
             )
             if not order:
                 continue
-            user_fund_list.append(order.user_fund)
-            order_cost_list.append(order.order_cost)
-            order_cost_fund_list.append(str(format(order.order_cost_with_fund, ".1f")).replace(".", ","))
+            report_data["user_fund_list"].append(order.user_fund)
+            report_data["order_cost_list"].append(order.order_cost)
+            report_data["order_cost_fund_list"].append(str(format(order.order_cost_with_fund, ".1f")).replace(".", ","))
             if order.paid_amount is not None:
-                order_paid_list.append(str(format(order.paid_amount, ".1f")).replace(".", ","))
+                report_data["order_paid_list"].append(str(format(order.paid_amount, ".1f")).replace(".", ","))
             else:
-                order_paid_list.append("-")
-            order_balance_list.append(str(format(order.order_balance, ".1f")).replace(".", ","))
-            user_balance_list.append(str(format(order.user_balance, ".1f")).replace(".", ","))
+                report_data["order_paid_list"].append("-")
+            report_data["order_balance_list"].append(str(format(order.order_balance, ".1f")).replace(".", ","))
+            report_data["user_balance_list"].append(str(format(order.user_balance, ".1f")).replace(".", ","))
 
-            email_list.append(user.email)
-            name_list += (f"{user.last_name} {user.first_name}",)
-            order_number_list.append(order.order_number)
+            report_data["email_list"].append(user.email)
+            report_data["name_list"] += (f"{user.last_name} {user.first_name}",)
+            report_data["order_number_list"].append(order.order_number)
 
-        context["name_list"] = name_list
-        context["email_list"] = email_list
-        context["order_number_list"] = order_number_list
-        context["order_cost_list"] = order_cost_list
-        context["user_fund_list"] = user_fund_list
-        context["order_cost_fund_list"] = order_cost_fund_list
-        context["order_paid_list"] = order_paid_list
-        context["order_balance_list"] = order_balance_list
-        context["user_balance_list"] = user_balance_list
+            order_cost_sum += order.order_cost
+            order_cost_fund_sum += order.order_cost_with_fund
+            order_paid_sum += order.paid_amount if order.paid_amount is not None else 0
+            order_balance_sum += order.order_balance
+            user_balance_sum += order.user_balance
+
+        order_cost_fund_sum = str(format(order_cost_fund_sum, ".1f")).replace(".", ",")
+        order_paid_sum = str(format(order_paid_sum, ".1f")).replace(".", ",")
+        order_balance_sum = str(format(order_balance_sum, ".1f")).replace(".", ",")
+        user_balance_sum = str(format(-user_balance_sum, ".1f")).replace(".", ",")
+
+        for item in ["name_list", "email_list", "order_number_list", "user_fund_list"]:
+            report_data[item].append("")
+
+        report_data["order_cost_list"].append(order_cost_sum)
+        report_data["order_cost_fund_list"].append(order_cost_fund_sum)
+        report_data["order_paid_list"].append(order_paid_sum)
+        report_data["order_balance_list"].append(order_balance_sum)
+        report_data["user_balance_list"].append(user_balance_sum)
+
+        context.update(**report_data)
         context["zipped"] = zip(
-            name_list,
-            email_list,
-            order_number_list,
-            order_cost_list,
-            user_fund_list,
-            order_cost_fund_list,
-            order_paid_list,
-            order_balance_list,
-            user_balance_list)
-
+            *report_data.values()
+        )
         return context
 
 
@@ -566,11 +580,12 @@ class MassProducerBoxReportDownloadView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        previous_friday = calculate_previous_weekday()
+        config = AppConfig.load()
         products_qs = (
             Product.objects.prefetch_related("orderitems", "orders")
             .select_related("producer")
-            .filter(Q(orders__date_created__gte=previous_friday))
+            .filter(Q(orders__date_created__gte=config.report_interval_start))
+            .filter(Q(orders__date_created__lte=config.report_interval_end))
             .annotate(ordered_quantity=Sum("orderitems__quantity"))
             .distinct()
             .order_by("producer__short")
@@ -677,11 +692,11 @@ class MassOrderBoxReportDownloadView(TemplateView):
             headers=headers,
         )
 
-        # writer = csv.writer(response)
+        config = AppConfig.load()
 
-        previous_friday = calculate_previous_weekday()
         orders_queryset = Order.objects.filter(
-            date_created__gt=previous_friday
+            date_created__gt=config.report_interval_start,
+            date_created__lt=config.report_interval_end,
         ).order_by("order_number")
 
         data = {}
@@ -793,4 +808,24 @@ class ProductsExcessReportView(TemplateView):
         context = super().get_context_data(**kwargs)
         self.get_products()
         context["products"] = self.products
+        return context
+
+
+@method_decorator(user_passes_test(staff_check), name="dispatch")
+class UserDebtsReportView(TemplateView):
+    template_name = "report/user_debts_report.html"
+
+    @staticmethod
+    def get_users_queryset():
+        users_qs = (
+            get_user_model()
+            .objects.filter(userprofile__payment_balance__lt=-1)
+            .select_related("userprofile")
+            .order_by("userprofile__payment_balance")
+        )
+        return users_qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["users_list"] = self.get_users_queryset()
         return context

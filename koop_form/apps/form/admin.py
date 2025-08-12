@@ -15,10 +15,12 @@ from apps.form.models import (
     Category,
 )
 from apps.form.services import (
-    calculate_previous_weekday,
     reduce_product_stock,
-    alter_product_stock, calculate_order_number,
+    alter_product_stock,
+    calculate_order_number,
+    display_as_zloty,
 )
+from apps.form.helpers import koop_default_interval_start
 
 
 class ProductWeightSchemeInLine(admin.TabularInline):
@@ -105,7 +107,7 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         products = instance.products.all()
         for product in products:
             orderitems = OrderItem.objects.filter(
-                product=product, item_ordered_date__gt=calculate_previous_weekday()
+                product=product, item_ordered_date__gt=koop_default_interval_start()
             )
             for item in orderitems:
                 reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
@@ -193,13 +195,14 @@ class OrderAdmin(admin.ModelAdmin):
 
     @admin.display(description="Kwota zamówienia bez funduszu")
     def order_cost(self, obj):
-        return obj.order_cost
+        return display_as_zloty(obj.order_cost)
 
     @admin.display(description="DO ZAPŁATY. Wartość zamówienia + dług / nadpłata koopowicza")
     def user_and_order_balance(self, obj):
+        value_to_pay = -obj.user_balance
         if obj.paid_amount is None:
-            return f"{- obj.order_balance - obj.user_balance:.2f} zł"
-        return f"{- obj.user_balance:.2f} zł"
+            value_to_pay -= obj.order_balance
+        return display_as_zloty(value_to_pay)
 
     def delete_model(self, request, obj):
         for item in obj.orderitems.all():
@@ -214,38 +217,30 @@ class OrderAdmin(admin.ModelAdmin):
 
     @staticmethod
     def update_user_balance(order):
-        try:
-            db_order = Order.objects.get(id=order.id)
-            db_paid = db_order.paid_amount
-            db_balance = db_order.order_balance
-        except Order.DoesNotExist:
-            db_paid = None
-            db_balance = -order.order_cost_with_fund
+        db_order = Order.objects.get(id=order.id)
+        old_payment = db_order.paid_amount
+        old_balance = db_order.order_balance
 
-        new_paid = order.paid_amount
+        new_payment = order.paid_amount
         new_balance = order.order_balance
 
-        payments_stay_the_same = db_paid == new_paid
-        if payments_stay_the_same:
+        # po zmianie logiki tak, że nie można edytować zamówienia te wszystkie warunki są niepotrzebne
+        # dlatego że jedyna możliwa zmiana paid_amount to z None na not None czyli warunek old_payment is None
+        # zablokowanie edycji zamówienia handlowane jest w OrderAdminRedirectView
+        if old_payment == new_payment:
             return
-
-        new_payment_is_none = new_paid is None
-        if new_payment_is_none:
-            order.user.userprofile.apply_order_balance(-db_balance)
-            return
-
-        old_payment_is_none = db_paid is None
-        if old_payment_is_none:
-            order.user.userprofile.apply_order_balance(new_balance)
-            return
-
-        balance_delta = new_balance - db_balance
-        order.user.userprofile.apply_order_balance(balance_delta)
+        elif new_payment is None:
+            balance_to_apply = -old_balance
+        elif old_payment is None:
+            balance_to_apply = new_balance
+        else:
+            balance_to_apply = new_balance - old_balance
+        order.user.userprofile.apply_order_balance(balance_to_apply)
 
     def save_model(self, request, obj, form, change):
         if change:
             self.update_user_balance(order=obj)
-        if not change:
+        else:
             if obj.paid_amount is not None:
                 obj.paid_amount = None
                 self.message_user(
@@ -257,14 +252,19 @@ class OrderAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
     def order_cost_with_fund(self, obj):
-        return f"{obj.order_cost_with_fund:.2f} zł"
+        return display_as_zloty(obj.order_cost_with_fund)
 
     order_cost_with_fund.short_description = "Kwota zamówienia z funduszem"
 
     def user_balance(self, obj):
-        return f"{obj.user_balance:.2f} zł"
+        return display_as_zloty(obj.user_balance)
 
     user_balance.short_description = "Dług / nadpłata koopowicza"
+
+    def has_change_permission(self, request, obj=None):
+        if obj and obj.paid_amount is not None:
+            return False
+        return True
 
 
 class OrderItemAdmin(admin.ModelAdmin):
@@ -310,7 +310,19 @@ class OrderItemAdmin(admin.ModelAdmin):
     def producer_short(self, obj):
         return f"{obj.product.producer.short}"
 
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.order.paid_amount is not None:
+            return False
+        return True
+
     def save_model(self, request, obj, form, change):
+        if obj.order.paid_amount is not None:
+            self.message_user(
+                request,
+                "Nie możesz dodawać/edytować produktów w rozliczonym zamówieniu!",
+                messages.ERROR,
+            )
+            return
         if change:
             alter_product_stock(
                 Product, obj.product.id, obj.quantity, obj.id, OrderItem

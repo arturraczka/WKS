@@ -29,10 +29,9 @@ from apps.form.services import (
     staff_check,
     alter_product_stock,
     reduce_product_stock,
-    calculate_previous_weekday, filter_products_with_ordered_quantity_income_and_supply_income,
     filter_products_with_ordered_quantity,
 )
-
+from apps.form.helpers import calculate_previous_weekday
 
 logger = logging.getLogger("django.server")
 
