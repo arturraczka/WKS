@@ -365,6 +365,7 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
             context["form"], self.products_weight_schemes
         )
         context["available_quantities_list"] = self.available_quantities_list
+        context["user_balance"] = self.request.user.userprofile.payment_balance
 
         return context
 
