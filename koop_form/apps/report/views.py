@@ -461,9 +461,9 @@ class OrderBoxReportView(OrderBoxListView):
         )
 
         context["order_cost"] = calculate_order_cost(orderitems)
-        context["order_cost_with_fund"] = (
-            f'{context["order_cost"] * context["fund"]:.2f}'.replace(".", ",")
-        )
+        context[
+            "order_cost_with_fund"
+        ] = f'{context["order_cost"] * context["fund"]:.2f}'.replace(".", ",")
 
         producer_short = []
         orderitems_names = []

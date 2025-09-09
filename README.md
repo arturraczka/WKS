@@ -6,7 +6,7 @@ WKS (meaning Wawelska Kooperatywa Spożywcza), is a non-profit organization that
 This project is a dedicated application for Krakow's Kooperatywa, but it can certainly be adapted by other similar initiatives.
 The project is in the final development phase, with planned deployment at the end of January 2024.
 
-## What problem does this application solve? 
+## What problem does this application solve?
 
 So far, Kooperatywa has operated on Google Sheets. The growing needs to manage orders, warehouse, deliveries, supplies, dozens of suppliers and over 1,000 products led to the creation of an extremely complex system. Sheets of 100 columns and 1000 rows with formulas referencing other equally complex sheets and files. This system fulfills its basic function, but unfortunately it is very error prone, requires a lot of time to prepare every week and it works very slowly - complex sheets take a long time to load.
 
@@ -18,7 +18,7 @@ The purpose of the application is to replace the old system built on spreadsheet
 
 ## Project Story
 This is at least 5th attempt in the history of WKS to transfer operations from google sheets to a web application. Previous attempts failed because of various reasons:
-- not enough funds for a dedicated web app 
+- not enough funds for a dedicated web app
 - problem to be solved being complicated in it's nature
 - need for lots of functionalities/features
 - not being able to adjust ready-to-use e-commerce solutions
@@ -44,7 +44,7 @@ go to:
 
 ## About the Author
 
-My name is Artur Rączka and I am a Kooperatywa member myself. I was really tired and irritated using the old spreadsheet system so I decided to use my growing web dev skills and build a new, efficient system from scratch. 
-This is my portfolio project I am working on after hours, while aiming to land a software developer job as soon as an opportunity will come. 
+My name is Artur Rączka and I am a Kooperatywa member myself. I was really tired and irritated using the old spreadsheet system so I decided to use my growing web dev skills and build a new, efficient system from scratch.
+This is my portfolio project I am working on after hours, while aiming to land a software developer job as soon as an opportunity will come.
 
-I built this full-stack web app with Python using Django framework. 
+I built this full-stack web app with Python using Django framework.

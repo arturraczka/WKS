@@ -10,4 +10,3 @@ use koop_form/manage.py for runserver command, like: <br>
 
 ### Tests:
 run `pytest` from koop_form/
-

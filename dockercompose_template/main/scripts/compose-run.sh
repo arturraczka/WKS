@@ -33,4 +33,3 @@ else
   sleep 2 #arbitral sleep helps before restart
   ${DOCKER_COMPOSE_COMMAND} -f ${COMPOSE_FILE_PATH} --env-file ${ENV_FILE_PATH} up -d #when compose.yaml does not change but other things must be reinit
 fi
-

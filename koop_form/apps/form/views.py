@@ -352,9 +352,9 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         for price, item in zip(self.product_price_list, self.orderitems):
             self.amounts_list.append(price * item.quantity)
 
-        context["user_name"] = (
-            f"{self.request.user.first_name} {self.request.user.last_name}"
-        )
+        context[
+            "user_name"
+        ] = f"{self.request.user.first_name} {self.request.user.last_name}"
         context["fund"] = self.get_user_fund()
         context["order"] = self.order
         context["orderitems"] = self.orderitems

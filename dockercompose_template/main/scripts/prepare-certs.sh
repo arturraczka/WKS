@@ -18,5 +18,3 @@ else
   echo "create dummy cert for nginx"
   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj "/C=PE/ST=Lima/L=Lima/O=Acme Inc. /OU=IT Department/CN=localhost" -keyout ${NGINX_CERTS_DIR_PATH}/website.key -out ${NGINX_CERTS_DIR_PATH}/website.crt
 fi
-
-

@@ -22,4 +22,3 @@ EXPOSE 8000
 
 # Command to run Gunicorn
 CMD ["./start.sh"]
-

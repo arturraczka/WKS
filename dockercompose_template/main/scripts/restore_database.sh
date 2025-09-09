@@ -30,7 +30,7 @@ if [[ "${FORCE}" -eq 0 ]]; then
     fi
 else
   echo "clear db"
-  #have to add simple FOR in postgress to execut drop table 
+  #have to add simple FOR in postgress to execut drop table
   DROP_TABLES=$(cat <<EOF
 DO \$\$
 DECLARE
