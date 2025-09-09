@@ -14,7 +14,11 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
 from apps.form.models import OrderItem, Order, Product
-from apps.form.services import calculate_order_number, reduce_product_stock, alter_product_stock
+from apps.form.services import (
+    calculate_order_number,
+    reduce_product_stock,
+    alter_product_stock,
+)
 
 
 logger = logging.getLogger("django.server")
@@ -133,18 +137,19 @@ class OrderInlineFormset(BaseInlineFormSet):
 class OrderItemFormInline(ModelForm):
     class Meta:
         model = OrderItem
-        fields = '__all__'
+        fields = "__all__"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['product'].disabled = True
-        instance = getattr(self.instance, 'product', None)
-        instance_representation = str(instance) if instance else ''
-        self.fields['product'].widget.choices = [(instance_representation, instance_representation),]
+        self.fields["product"].disabled = True
+        instance = getattr(self.instance, "product", None)
+        instance_representation = str(instance) if instance else ""
+        self.fields["product"].widget.choices = [
+            (instance_representation, instance_representation),
+        ]
 
 
 class OrderItemInlineFormset(BaseInlineFormSet):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.form = OrderItemFormInline

@@ -14,7 +14,9 @@ from factories.model_factories import (
     ProductFactory,
     OrderItemFactory,
     OrderFactory,
-    ProducerFactory, WeightSchemeFactory, ProfileFactory,
+    ProducerFactory,
+    WeightSchemeFactory,
+    ProfileFactory,
 )
 
 logger = logging.getLogger("django.server")
@@ -38,8 +40,12 @@ class TestWeightScheme:
 class TestProduct(TestCase):
     def setUp(self):
         self.user = UserFactory()
-        self.order = OrderFactory(user=self.user, order_number=calculate_order_number(Order))
-        self.order_second = OrderFactory(user=self.user, order_number=calculate_order_number(Order))
+        self.order = OrderFactory(
+            user=self.user, order_number=calculate_order_number(Order)
+        )
+        self.order_second = OrderFactory(
+            user=self.user, order_number=calculate_order_number(Order)
+        )
         self.product = ProductFactory(order_max_quantity=100)
 
     def test_order_ordering(self):
@@ -47,16 +53,21 @@ class TestProduct(TestCase):
         self.assertEquals(self.order_second.order_number, 2)
 
     def test_signal_add_zero_as_weight_scheme(self):
-        #given
+        # given
         zero_weight_scheme = WeightScheme.objects.get(quantity=0)
-        #when then
+        # when then
         assert zero_weight_scheme in self.product.weight_schemes.all()
+
 
 class Test_product_weight_schemes(TestCase):
     def setUp(self):
         self.user = UserFactory()
-        self.order = OrderFactory(user=self.user, order_number=calculate_order_number(Order))
-        self.order_second = OrderFactory(user=self.user, order_number=calculate_order_number(Order))
+        self.order = OrderFactory(
+            user=self.user, order_number=calculate_order_number(Order)
+        )
+        self.order_second = OrderFactory(
+            user=self.user, order_number=calculate_order_number(Order)
+        )
         self.product = ProductFactory(order_max_quantity=100)
         self.weight_scheme_1 = WeightSchemeFactory(quantity=1)
         self.weight_scheme_2 = WeightSchemeFactory(quantity=2)
@@ -64,7 +75,9 @@ class Test_product_weight_schemes(TestCase):
     def test_save_prevent_update_zero_as_weight_scheme(self):
         # given
         zero_weight_scheme = WeightScheme.objects.get(quantity=0)
-        product_weight_schemes_0 = product_weight_schemes.objects.get(weightscheme_id=zero_weight_scheme.id)
+        product_weight_schemes_0 = product_weight_schemes.objects.get(
+            weightscheme_id=zero_weight_scheme.id
+        )
 
         # when
         product_weight_schemes_0.weightscheme = self.weight_scheme_1
@@ -76,7 +89,9 @@ class Test_product_weight_schemes(TestCase):
     def test_save_update_weight_scheme(self):
         # given
         self.product.weight_schemes.add(self.weight_scheme_1)
-        product_weight_schemes_1 = product_weight_schemes.objects.get(weightscheme_id=self.weight_scheme_1.id)
+        product_weight_schemes_1 = product_weight_schemes.objects.get(
+            weightscheme_id=self.weight_scheme_1.id
+        )
 
         # when
         product_weight_schemes_1.weightscheme = self.weight_scheme_2
@@ -111,15 +126,21 @@ class TestOrder:
     def _setup(self, bare_order):
         self.product_1 = ProductFactory()
         self.product_2 = ProductFactory()
-        self.item_1 = OrderItemFactory(product=self.product_1, order=bare_order, quantity=2.5)
-        self.item_2 = OrderItemFactory(product=self.product_2, order=bare_order, quantity=4)
+        self.item_1 = OrderItemFactory(
+            product=self.product_1, order=bare_order, quantity=2.5
+        )
+        self.item_2 = OrderItemFactory(
+            product=self.product_2, order=bare_order, quantity=4
+        )
         self.fund = UserProfileFund.objects.first()
         self.profile = ProfileFactory(user=bare_order.user, fund=self.fund)
         self.expected_cost = (
-                self.product_1.price * self.item_1.quantity +
-                + self.product_2.price * self.item_2.quantity
+            self.product_1.price * self.item_1.quantity
+            + +self.product_2.price * self.item_2.quantity
         )
-        self.expected_cost_with_fund = Decimal(self.expected_cost) * self.profile.fund.value
+        self.expected_cost_with_fund = (
+            Decimal(self.expected_cost) * self.profile.fund.value
+        )
         self.paid = 100
         bare_order.paid_amount = self.paid
         bare_order.save(update_fields=["paid_amount"])

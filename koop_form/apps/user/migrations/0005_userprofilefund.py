@@ -31,7 +31,10 @@ class Migration(migrations.Migration):
                 (
                     "value",
                     models.DecimalField(
-                        decimal_places=2, max_digits=3, verbose_name="Wartość funduszu.", unique=True
+                        decimal_places=2,
+                        max_digits=3,
+                        verbose_name="Wartość funduszu.",
+                        unique=True,
                     ),
                 ),
             ],

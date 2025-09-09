@@ -3,7 +3,11 @@ from django.contrib import admin, messages
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources, fields, widgets
 
-from apps.form.forms import OrderInlineFormset, OrderItemInlineFormset, OrderItemEmptyInlineFormset
+from apps.form.forms import (
+    OrderInlineFormset,
+    OrderItemInlineFormset,
+    OrderItemEmptyInlineFormset,
+)
 from apps.form.models import (
     Producer,
     WeightScheme,
@@ -81,6 +85,7 @@ class ProductInline(admin.TabularInline):
         "is_active",
         "price",
         "quantity_in_stock",
+        "category",
     ]
 
 
@@ -110,11 +115,13 @@ class ProducerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 product=product, item_ordered_date__gt=koop_default_interval_start()
             )
             for item in orderitems:
-                reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
+                reduce_product_stock(
+                    Product, item.product.id, item.quantity, negative=True
+                )
                 item.delete()
 
     def not_arrived_deletes_related_orderitems(self, instance):
-        """If Producer.not_arrived equal True, then proceeds to remove """
+        """If Producer.not_arrived equal True, then proceeds to remove"""
         if instance.not_arrived:
             self.perform_delete(instance)
             instance.not_arrived = False
@@ -170,17 +177,45 @@ class ProductAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 class OrderAdmin(admin.ModelAdmin):
     list_select_related = True
-    fields = ["user", "pick_up_day", "order_number", "user_fund", "order_cost", "order_cost_with_fund", "user_balance", "user_and_order_balance", "paid_amount"]
+    fields = [
+        "user",
+        "pick_up_day",
+        "order_number",
+        "user_fund",
+        "order_cost",
+        "order_cost_with_fund",
+        "user_balance",
+        "user_and_order_balance",
+        "paid_amount",
+    ]
     list_filter = ["date_created", "order_number", "user__last_name"]
-    list_display = ["__str__", "order_number", "order_cost_with_fund", "user_balance", "is_settled", "paid_amount", "date_created"]
+    list_display = [
+        "__str__",
+        "order_number",
+        "order_cost_with_fund",
+        "user_balance",
+        "is_settled",
+        "paid_amount",
+        "date_created",
+    ]
     search_fields = [
         "user__last_name",
         "user__first_name",
         "user__email",
         "user__username",
     ]
-    inlines = (OrderItemEmptyInLine, OrderItemInLine,)
-    readonly_fields = ["order_cost_with_fund", "user_balance", "order_number", "user_fund", "order_cost", "user_and_order_balance"]
+    inlines = (
+        OrderItemEmptyInLine,
+        OrderItemInLine,
+    )
+    readonly_fields = [
+        "order_cost_with_fund",
+        "user_balance",
+        "order_number",
+        "user_fund",
+        "order_cost",
+        "user_and_order_balance",
+    ]
     autocomplete_fields = ["user"]
 
     @admin.display(description="czy rozliczone?")
@@ -197,7 +232,9 @@ class OrderAdmin(admin.ModelAdmin):
     def order_cost(self, obj):
         return display_as_zloty(obj.order_cost)
 
-    @admin.display(description="DO ZAPŁATY. Wartość zamówienia + dług / nadpłata koopowicza")
+    @admin.display(
+        description="DO ZAPŁATY. Wartość zamówienia + dług / nadpłata koopowicza"
+    )
     def user_and_order_balance(self, obj):
         value_to_pay = -obj.user_balance
         if obj.paid_amount is None:
@@ -212,30 +249,15 @@ class OrderAdmin(admin.ModelAdmin):
     def delete_queryset(self, request, queryset):
         for order in queryset:
             for item in order.orderitems.all():
-                reduce_product_stock(Product, item.product.id, item.quantity, negative=True)
+                reduce_product_stock(
+                    Product, item.product.id, item.quantity, negative=True
+                )
         queryset.delete()
 
     @staticmethod
     def update_user_balance(order):
-        db_order = Order.objects.get(id=order.id)
-        old_payment = db_order.paid_amount
-        old_balance = db_order.order_balance
-
-        new_payment = order.paid_amount
         new_balance = order.order_balance
-
-        # po zmianie logiki tak, że nie można edytować zamówienia te wszystkie warunki są niepotrzebne
-        # dlatego że jedyna możliwa zmiana paid_amount to z None na not None czyli warunek old_payment is None
-        # zablokowanie edycji zamówienia handlowane jest w OrderAdminRedirectView
-        if old_payment == new_payment:
-            return
-        elif new_payment is None:
-            balance_to_apply = -old_balance
-        elif old_payment is None:
-            balance_to_apply = new_balance
-        else:
-            balance_to_apply = new_balance - old_balance
-        order.user.userprofile.apply_order_balance(balance_to_apply)
+        order.user.userprofile.apply_order_balance(new_balance)
 
     def save_model(self, request, obj, form, change):
         if change:

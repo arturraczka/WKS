@@ -41,7 +41,12 @@ def list_messages(response):
 
 def calculate_order_number(order_model):
     """Returns order number as a sum of orders from this week + 1. Used for newly created Order instances."""
-    return order_model.objects.filter(date_created__gte=koop_default_interval_start()).count() + 1
+    return (
+        order_model.objects.filter(
+            date_created__gte=koop_default_interval_start()
+        ).count()
+        + 1
+    )
 
 
 def recalculate_order_numbers(order_model, order_instance_date_created):
@@ -64,7 +69,10 @@ def create_order_data_list(products):
 
     for product in products:
         orderitems_qs = (
-            product.orderitems.filter(item_ordered_date__gte=config.report_interval_start, item_ordered_date__lte=config.report_interval_end)
+            product.orderitems.filter(
+                item_ordered_date__gte=config.report_interval_start,
+                item_ordered_date__lte=config.report_interval_end,
+            )
             .order_by("order__order_number")
             .select_related("order")
         )
@@ -158,15 +166,23 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
     income, supply_quantity, supply_income and excess. Limits resulting QS to fields: name, orderitems__quantity and
     supplyitems__quantity."""
     config = AppConfig.load()
-    products = product_model.objects.only("name", "orderitems__quantity", "supplyitems__quantity")
+    products = product_model.objects.only(
+        "name", "orderitems__quantity", "supplyitems__quantity"
+    )
     if filter_producer:
         products = products.filter(producer=producer_id)
 
-    annotated_products = products.annotate(
+    annotated_products = (
+        products.annotate(
             ordered_quantity=Sum(
                 Case(
                     When(
-                        Q(orderitems__item_ordered_date__gte=config.report_interval_start) & Q(orderitems__item_ordered_date__lte=config.report_interval_end),
+                        Q(
+                            orderitems__item_ordered_date__gte=config.report_interval_start
+                        )
+                        & Q(
+                            orderitems__item_ordered_date__lte=config.report_interval_end
+                        ),
                         then=F("orderitems__quantity"),
                     ),
                     default=Decimal(0),
@@ -175,14 +191,18 @@ def filter_products_with_ordered_quantity_income_and_supply_income(
             income=F("ordered_quantity") * F("price"),
             supply_quantity=Case(
                 When(
-                    Q(supplyitems__date_created__gte=config.report_interval_start) & Q(supplyitems__date_created__lte=config.report_interval_end),
+                    Q(supplyitems__date_created__gte=config.report_interval_start)
+                    & Q(supplyitems__date_created__lte=config.report_interval_end),
                     then=F("supplyitems__quantity"),
                 ),
                 default=Decimal(0),
             ),
             supply_income=F("supply_quantity") * F("price"),
             excess=F("supply_quantity") - F("ordered_quantity"),
-        ).distinct().order_by("name")
+        )
+        .distinct()
+        .order_by("name")
+    )
 
     return annotated_products
 
@@ -193,14 +213,21 @@ def filter_products_with_ordered_quantity(product_model):
     config = AppConfig.load()
     products = product_model.objects.only("name", "is_stocked", "orderitems__quantity")
 
-    annotated_products = products.annotate(
+    annotated_products = (
+        products.annotate(
             ordered_quantity=Sum(
                 "orderitems__quantity",
-                filter=Q(orderitems__item_ordered_date__gte=config.report_interval_start) & Q(orderitems__item_ordered_date__lte=config.report_interval_end),
+                filter=Q(
+                    orderitems__item_ordered_date__gte=config.report_interval_start
+                )
+                & Q(orderitems__item_ordered_date__lte=config.report_interval_end),
                 default=0,
             ),
             income=F("ordered_quantity") * F("price"),
-        ).distinct().order_by("name")
+        )
+        .distinct()
+        .order_by("name")
+    )
 
     return annotated_products
 
@@ -211,20 +238,27 @@ def filter_products_with_supplies_quantity(product_model):
     config = AppConfig.load()
     products = product_model.objects.only("name", "supplyitems__quantity")
 
-    annotated_products = products.annotate(
+    annotated_products = (
+        products.annotate(
             supply_quantity=Sum(
                 "supplyitems__quantity",
-                filter=Q(supplyitems__date_created__gte=config.report_interval_start) & Q(supplyitems__date_created__lte=config.report_interval_end),
+                filter=Q(supplyitems__date_created__gte=config.report_interval_start)
+                & Q(supplyitems__date_created__lte=config.report_interval_end),
                 default=0,
             ),
             supply_income=F("supply_quantity") * F("price"),
-        ).distinct().order_by("name")
+        )
+        .distinct()
+        .order_by("name")
+    )
 
     return annotated_products
 
 
 def get_users_last_order(order_model, request_user):
-    return order_model.objects.get(user=request_user, date_created__gte=koop_default_interval_start())
+    return order_model.objects.get(
+        user=request_user, date_created__gte=koop_default_interval_start()
+    )
 
 
 def get_orderitems_query(orderitem_model, order_id):
@@ -257,8 +291,13 @@ def check_if_form_is_open() -> bool:
     if settings.DEBUG:
         return True
     else:
-        form_open: datetime = calculate_previous_weekday(day=settings.KOOP_ORDERING_INTERVAL_START_WEEKDAY, hour=settings.KOOP_ORDERING_INTERVAL_START_HOUR)
-        form_closed: datetime = form_open + timedelta(hours=settings.KOOP_ORDERING_INTERVAL_LENGTH)
+        form_open: datetime = calculate_previous_weekday(
+            day=settings.KOOP_ORDERING_INTERVAL_START_WEEKDAY,
+            hour=settings.KOOP_ORDERING_INTERVAL_START_HOUR,
+        )
+        form_closed: datetime = form_open + timedelta(
+            hours=settings.KOOP_ORDERING_INTERVAL_LENGTH
+        )
         today: datetime = datetime.now().astimezone()
         return form_open < today < form_closed
 

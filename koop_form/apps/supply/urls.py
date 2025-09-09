@@ -5,7 +5,8 @@ from apps.supply.views import (
     SupplyProductsFormView,
     SupplyUpdateFormView,
     SupplyListView,
-    SupplyDeleteView, SupplyFromOrdersCreateView,
+    SupplyDeleteView,
+    SupplyFromOrdersCreateView,
 )
 
 

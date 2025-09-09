@@ -19,4 +19,3 @@ ExecStart=${APP_PATH}/scripts/compose-run.sh ${APP_PATH}/compose.yaml
 [Install]
 WantedBy=multi-user.target
 EOL
-
