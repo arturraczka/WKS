@@ -8,4 +8,5 @@ class FormConfig(AppConfig):
 
     def ready(self):
         from . import signals
+
         post_migrate.connect(signals.init_weight_scheme_with_zero, sender=self)

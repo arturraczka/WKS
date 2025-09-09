@@ -23,7 +23,8 @@ from apps.supply.forms import (
     CreateSupplyItemFormSet,
     CreateSupplyItemForm,
     UpdateSupplyItemFormSet,
-    UpdateSupplyItemForm, DeleteSupplyForm,
+    UpdateSupplyItemForm,
+    DeleteSupplyForm,
 )
 from apps.form.services import (
     staff_check,
@@ -273,7 +274,6 @@ class SupplyDeleteView(SuccessMessageMixin, DeleteView):
         return HttpResponseRedirect(success_url)
 
 
-
 @method_decorator(user_passes_test(staff_check), name="dispatch")
 class SupplyFromOrdersCreateView(SupplyCreateView):
     success_message = "Dostawa została utworzona."
@@ -291,9 +291,16 @@ class SupplyFromOrdersCreateView(SupplyCreateView):
 
         supply = Supply.objects.get(id=self.object.id)
         producer = Producer.objects.get(id=form.instance.producer.id)
-        products = filter_products_with_ordered_quantity(
-            Product).filter(ordered_quantity__gt=0).filter(producer=form.instance.producer.id)
+        products = (
+            filter_products_with_ordered_quantity(Product)
+            .filter(ordered_quantity__gt=0)
+            .filter(producer=form.instance.producer.id)
+        )
         for product in products:
             if not product.is_stocked:
-                SupplyItem.objects.create(supply=supply, product=product, quantity=product.ordered_quantity)
-        return HttpResponseRedirect(reverse_lazy("supply-update-form", kwargs={"slug": producer.slug}))
+                SupplyItem.objects.create(
+                    supply=supply, product=product, quantity=product.ordered_quantity
+                )
+        return HttpResponseRedirect(
+            reverse_lazy("supply-update-form", kwargs={"slug": producer.slug})
+        )

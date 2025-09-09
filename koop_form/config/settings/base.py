@@ -11,18 +11,21 @@ from apps.core.constants import IntervalWeekdayMap
 
 
 def is_list_of_strings(data):
-  """Checks if a variable is a list of strings."""
-  return isinstance(data, list) and all(isinstance(item, str) for item in data)
+    """Checks if a variable is a list of strings."""
+    return isinstance(data, list) and all(isinstance(item, str) for item in data)
+
 
 def get_allowed_hosts(config_path, default_list):
     if not config_path:
         return default_list
     try:
-        with open(config_path, 'r') as file:
+        with open(config_path, "r") as file:
             hosts = json.load(file)
         print(hosts)
         if not is_list_of_strings(hosts):
-            raise TypeError("Config file with allowed hosts nust be json list of strings")
+            raise TypeError(
+                "Config file with allowed hosts nust be json list of strings"
+            )
         return hosts
     except Exception as e:
         logging.error(traceback.format_exc())
@@ -36,17 +39,16 @@ env = Env(DEBUG=(bool, False))
 # BASE_DIR = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-ENV_CONFIG_PATH=os.environ.get("ENV_CONFIG_PATH", default=path.join(BASE_DIR, ".env"))
+ENV_CONFIG_PATH = os.environ.get("ENV_CONFIG_PATH", default=path.join(BASE_DIR, ".env"))
 
 env.read_env(ENV_CONFIG_PATH)
 
-ALLOWED_HOSTS_CONFIG_PATH=env("ALLOWED_HOSTS_CONFIG_PATH", default=None)
+ALLOWED_HOSTS_CONFIG_PATH = env("ALLOWED_HOSTS_CONFIG_PATH", default=None)
 print(ALLOWED_HOSTS_CONFIG_PATH)
 
 SECRET_KEY = env("SECRET_KEY", default=None)
 
 AUTHENTICATION_BACKENDS = [
-
     # AxesStandaloneBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
     "axes.backends.AxesStandaloneBackend",
     # Django ModelBackend is the default authentication backend.
@@ -58,7 +60,9 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "apps/templates",],
+        "DIRS": [
+            BASE_DIR / "apps/templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -216,7 +220,9 @@ EMAIL_TIMEOUT = 30
 AXES_FAILURE_LIMIT = 25
 AXES_COOLOFF_TIME = 1
 AXES_RESET_ON_SUCCESS = True
-AXES_LOCKOUT_PARAMETERS = [["ip_address", "username"],]
+AXES_LOCKOUT_PARAMETERS = [
+    ["ip_address", "username"],
+]
 
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240

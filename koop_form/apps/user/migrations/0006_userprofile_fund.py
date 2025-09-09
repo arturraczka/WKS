@@ -5,7 +5,6 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
-
 def assign_fund_to_user_profile(apps, schema_editor):
     UserProfileFund = apps.get_model("user", "UserProfileFund")
     fund_1_1 = UserProfileFund.objects.get(value=Decimal("1.1"))
@@ -50,5 +49,5 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name="userprofile",
             name="_fund",
-        )
+        ),
     ]

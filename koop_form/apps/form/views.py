@@ -19,7 +19,8 @@ from django.views.generic import (
     DetailView,
     UpdateView,
     DeleteView,
-    FormView, RedirectView,
+    FormView,
+    RedirectView,
 )
 
 from apps.form.custom_mixins import FormOpenMixin
@@ -45,7 +46,8 @@ from apps.form.services import (
     add_producer_list_to_context,
     reduce_product_stock,
     alter_product_stock,
-    calculate_order_number, staff_check,
+    calculate_order_number,
+    staff_check,
 )
 from apps.form.validations import (
     perform_create_orderitem_validations,
@@ -204,7 +206,9 @@ class OrderProductsFormView(FormOpenMixin, FormView):
         add_weight_schemes_as_choices_to_forms(
             context["form"], self.products_weight_schemes
         )
-        context["zipped"] = zip(self.paginated_products, context["form"], self.available_quantities_list)
+        context["zipped"] = zip(
+            self.paginated_products, context["form"], self.available_quantities_list
+        )
         return context
 
     def form_valid(self, form):
@@ -348,9 +352,9 @@ class OrderUpdateFormView(FormOpenMixin, FormView):
         for price, item in zip(self.product_price_list, self.orderitems):
             self.amounts_list.append(price * item.quantity)
 
-        context[
-            "user_name"
-        ] = f"{self.request.user.first_name} {self.request.user.last_name}"
+        context["user_name"] = (
+            f"{self.request.user.first_name} {self.request.user.last_name}"
+        )
         context["fund"] = self.get_user_fund()
         context["order"] = self.order
         context["orderitems"] = self.orderitems
@@ -620,5 +624,7 @@ class OrderAdminRedirectView(RedirectView):
         order.paid_amount = None
         with transaction.atomic():
             order.save(update_fields=["paid_amount"])
-            order.user.userprofile.apply_order_balance(order.order_cost_with_fund - paid_amount)
+            order.user.userprofile.apply_order_balance(
+                order.order_cost_with_fund - paid_amount
+            )
         return HttpResponseRedirect(url)

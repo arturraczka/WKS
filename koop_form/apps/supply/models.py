@@ -13,13 +13,23 @@ logger = logging.getLogger("django.server")
 
 class Supply(models.Model):
     product = models.ManyToManyField(
-        Product, through="SupplyItem", related_name="supplies", blank=True, verbose_name="produkt"
+        Product,
+        through="SupplyItem",
+        related_name="supplies",
+        blank=True,
+        verbose_name="produkt",
     )
     user = models.ForeignKey(
-        ModelUser, on_delete=models.CASCADE, related_name="supplies", verbose_name="użytkownik"
+        ModelUser,
+        on_delete=models.CASCADE,
+        related_name="supplies",
+        verbose_name="użytkownik",
     )
     producer = models.ForeignKey(
-        Producer, on_delete=models.CASCADE, related_name="supplies", verbose_name="producent"
+        Producer,
+        on_delete=models.CASCADE,
+        related_name="supplies",
+        verbose_name="producent",
     )
     date_created = models.DateTimeField(auto_now_add=True, verbose_name="utworzono")
 
@@ -40,11 +50,16 @@ class Supply(models.Model):
 
 class SupplyItem(models.Model):
     product = models.ForeignKey(
-        Product, on_delete=models.CASCADE, related_name="supplyitems", verbose_name="produkt"
+        Product,
+        on_delete=models.CASCADE,
+        related_name="supplyitems",
+        verbose_name="produkt",
     )
     supply = models.ForeignKey(
-        Supply, on_delete=models.CASCADE, related_name="supplyitems",
-        verbose_name="dostawa"
+        Supply,
+        on_delete=models.CASCADE,
+        related_name="supplyitems",
+        verbose_name="dostawa",
     )
     quantity = models.DecimalField(max_digits=6, decimal_places=3, verbose_name="ilość")
     date_created = models.DateTimeField(auto_now_add=True, verbose_name="utworzono")

@@ -13,8 +13,11 @@ class TestCalculatePreviousWeekday(TestCase):
         custom_hour = 9
         # when
         result = calculate_previous_weekday(day=custom_day, hour=custom_hour)
-        expected = (datetime.now().astimezone().replace(hour=custom_hour, minute=0, second=0, microsecond=0)
-                    - timedelta(days=((custom_day + datetime.now().astimezone().weekday() - 1) % 7)))
+        expected = datetime.now().astimezone().replace(
+            hour=custom_hour, minute=0, second=0, microsecond=0
+        ) - timedelta(
+            days=((custom_day + datetime.now().astimezone().weekday() - 1) % 7)
+        )
         # then
         self.assertEqual(expected, result)
 
@@ -24,8 +27,11 @@ class TestCalculatePreviousWeekday(TestCase):
         custom_hour = 12
         # when
         result = calculate_previous_weekday(day=custom_day, hour=custom_hour)
-        expected = (datetime.now().astimezone().replace(hour=custom_hour, minute=0, second=0, microsecond=0)
-                    - timedelta(days=((custom_day + datetime.now().astimezone().weekday() - 1) % 7)))
+        expected = datetime.now().astimezone().replace(
+            hour=custom_hour, minute=0, second=0, microsecond=0
+        ) - timedelta(
+            days=((custom_day + datetime.now().astimezone().weekday() - 1) % 7)
+        )
         # then
         self.assertEqual(expected, result)
 
@@ -35,7 +41,10 @@ class TestCalculatePreviousWeekday(TestCase):
         custom_hour = 0
         # when
         result = calculate_previous_weekday(day=custom_day, hour=custom_hour)
-        expected = (datetime.now().astimezone().replace(hour=custom_hour, minute=0, second=0, microsecond=0)
-                    - timedelta(days=((custom_day + datetime.now().astimezone().weekday() - 1) % 7)))
+        expected = datetime.now().astimezone().replace(
+            hour=custom_hour, minute=0, second=0, microsecond=0
+        ) - timedelta(
+            days=((custom_day + datetime.now().astimezone().weekday() - 1) % 7)
+        )
         # then
         self.assertEqual(expected, result)

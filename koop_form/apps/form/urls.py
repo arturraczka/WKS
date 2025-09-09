@@ -10,7 +10,9 @@ from apps.form.views import (
     OrderUpdateFormView,
     OrderItemFormView,
     product_search_view,
-    OrderProductsAllFormView, OrderCategoriesFormView, OrderAdminRedirectView,
+    OrderProductsAllFormView,
+    OrderCategoriesFormView,
+    OrderAdminRedirectView,
 )
 
 

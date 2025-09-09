@@ -10,16 +10,17 @@ logger = logging.getLogger("django.server")
 
 
 class Command(BaseCommand):
-    help = (
-        "Sends this week's order summary to users that allows receiving emails"
-    )
+    help = "Sends this week's order summary to users that allows receiving emails"
 
     def handle(self, *args, **options):
-        orders_qs = Order.objects.filter_this_week_orders().select_related("user__userprofile__fund").prefetch_related(
-            "products",
-            Prefetch(
-                'orderitems',
-                queryset=OrderItem.objects.select_related('product')
+        orders_qs = (
+            Order.objects.filter_this_week_orders()
+            .select_related("user__userprofile__fund")
+            .prefetch_related(
+                "products",
+                Prefetch(
+                    "orderitems", queryset=OrderItem.objects.select_related("product")
+                ),
             )
         )
         for order in orders_qs:
@@ -31,11 +32,13 @@ class Command(BaseCommand):
                 "user/emails/order_summary.txt",
                 context={"order": order},
             )
-            subject = "Podsumowanie zamówienia " + now().strftime('%d.%m')
+            subject = "Podsumowanie zamówienia " + now().strftime("%d.%m")
 
             email = EmailMessage(
                 subject=subject,
                 body=text_content,
-                to=[order.user.email,],
+                to=[
+                    order.user.email,
+                ],
             )
             email.send(fail_silently=True)

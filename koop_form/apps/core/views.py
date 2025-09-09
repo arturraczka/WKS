@@ -9,7 +9,6 @@ from apps.core.models import AppConfig
 logger = logging.getLogger("django.server")
 
 
-
 @method_decorator(login_required, name="dispatch")
 class HomepageTemplateView(TemplateView):
     template_name = "core/homepage.html"

@@ -32,35 +32,53 @@ pytestmark = pytest.mark.django_db
 
 class MassOrderBoxReportDownloadView(TestCase):
     def setUp(self):
-        self.url = reverse(
-            "mass-order-box-report-download"
-        )
+        self.url = reverse("mass-order-box-report-download")
         self.user_1 = UserFactory(is_staff=True)
         self.user_2 = UserFactory(is_staff=True)
         self.client.force_login(self.user_1)
         self.client.force_login(self.user_2)
-        self.producer_1 = ProducerFactory(name="yoyoma",short="YOYO")
-        self.producer_2 = ProducerFactory(name="elomaaa",short="EMAA")
-        self.product_1 = ProductFactory(producer=self.producer_1, price=5.5, name="warzywo")
-        self.product_2 = ProductFactory(producer=self.producer_2, price=14, name="cebula")
-        self.product_3 = ProductFactory(producer=self.producer_2, price=21, name="ziemniak")
-        self.order_1 = OrderFactory(order_number=1, user = self.user_1)
+        self.producer_1 = ProducerFactory(name="yoyoma", short="YOYO")
+        self.producer_2 = ProducerFactory(name="elomaaa", short="EMAA")
+        self.product_1 = ProductFactory(
+            producer=self.producer_1, price=5.5, name="warzywo"
+        )
+        self.product_2 = ProductFactory(
+            producer=self.producer_2, price=14, name="cebula"
+        )
+        self.product_3 = ProductFactory(
+            producer=self.producer_2, price=21, name="ziemniak"
+        )
+        self.order_1 = OrderFactory(order_number=1, user=self.user_1)
         self.order_2 = OrderFactory(order_number=2, user=self.user_2)
 
     def test_response_and_content(self):
-        #given
-        OrderItemFactory(order=self.order_1, product=self.product_1, quantity=Decimal(2.5))
-        OrderItemFactory(order=self.order_2, product=self.product_1, quantity=Decimal(2))
-        OrderItemFactory(order=self.order_1, product=self.product_2, quantity=Decimal(5))
-        OrderItemFactory(order=self.order_2, product=self.product_2, quantity=Decimal(0.5))
-        OrderItemFactory(order=self.order_1, product=self.product_3, quantity=Decimal(10))
-        OrderItemFactory(order=self.order_2, product=self.product_3, quantity=Decimal(20))
-        #when
+        # given
+        OrderItemFactory(
+            order=self.order_1, product=self.product_1, quantity=Decimal(2.5)
+        )
+        OrderItemFactory(
+            order=self.order_2, product=self.product_1, quantity=Decimal(2)
+        )
+        OrderItemFactory(
+            order=self.order_1, product=self.product_2, quantity=Decimal(5)
+        )
+        OrderItemFactory(
+            order=self.order_2, product=self.product_2, quantity=Decimal(0.5)
+        )
+        OrderItemFactory(
+            order=self.order_1, product=self.product_3, quantity=Decimal(10)
+        )
+        OrderItemFactory(
+            order=self.order_2, product=self.product_3, quantity=Decimal(20)
+        )
+        # when
         response = self.client.get(self.url)
-        #then
-        df = pd.read_csv(StringIO(response.content.decode("utf-8")), sep=",", header=None)
+        # then
+        df = pd.read_csv(
+            StringIO(response.content.decode("utf-8")), sep=",", header=None
+        )
         self.assertEquals(response.status_code, 200)
-        self.assertTrue(((df[1] == "cebula" ) & (df[2] == "5" ) ).any())
+        self.assertTrue(((df[1] == "cebula") & (df[2] == "5")).any())
         self.assertTrue(((df[1] == "warzywo") & (df[2] == "2,5")).any())
         self.assertTrue(((df[1] == "ziemniak") & (df[2] == "10")).any())
         self.assertTrue(((df[5] == "cebula") & (df[6] == "0,5")).any())
@@ -69,17 +87,33 @@ class MassOrderBoxReportDownloadView(TestCase):
 
     def test_response_and_content_duplicated_item(self):
         # given
-        OrderItemFactory(order=self.order_1, product=self.product_1, quantity=Decimal(2.5))
-        OrderItemFactory(order=self.order_2, product=self.product_1, quantity=Decimal(2))
-        OrderItemFactory(order=self.order_1, product=self.product_2, quantity=Decimal(5))
-        OrderItemFactory(order=self.order_2, product=self.product_2, quantity=Decimal(0.5))
-        OrderItemFactory(order=self.order_2, product=self.product_2, quantity=Decimal(3.5)) # duplicated cebula
-        OrderItemFactory(order=self.order_1, product=self.product_3, quantity=Decimal(10))
-        OrderItemFactory(order=self.order_2, product=self.product_3, quantity=Decimal(20))
+        OrderItemFactory(
+            order=self.order_1, product=self.product_1, quantity=Decimal(2.5)
+        )
+        OrderItemFactory(
+            order=self.order_2, product=self.product_1, quantity=Decimal(2)
+        )
+        OrderItemFactory(
+            order=self.order_1, product=self.product_2, quantity=Decimal(5)
+        )
+        OrderItemFactory(
+            order=self.order_2, product=self.product_2, quantity=Decimal(0.5)
+        )
+        OrderItemFactory(
+            order=self.order_2, product=self.product_2, quantity=Decimal(3.5)
+        )  # duplicated cebula
+        OrderItemFactory(
+            order=self.order_1, product=self.product_3, quantity=Decimal(10)
+        )
+        OrderItemFactory(
+            order=self.order_2, product=self.product_3, quantity=Decimal(20)
+        )
         # when
         response = self.client.get(self.url)
         # then
-        df = pd.read_csv(StringIO(response.content.decode("utf-8")), sep=",", header=None)
+        df = pd.read_csv(
+            StringIO(response.content.decode("utf-8")), sep=",", header=None
+        )
         self.assertEquals(response.status_code, 200)
         self.assertTrue(((df[1] == "cebula") & (df[2] == "5")).any())
         self.assertTrue(((df[1] == "warzywo") & (df[2] == "2,5")).any())
@@ -93,17 +127,31 @@ class MassOrderBoxReportDownloadView(TestCase):
         # given
         self.user_3 = UserFactory(is_staff=True)
         self.client.force_login(self.user_3)
-        OrderItemFactory(order=self.order_1, product=self.product_1, quantity=Decimal(2.5))
-        OrderItemFactory(order=self.order_2, product=self.product_1, quantity=Decimal(2))
-        OrderItemFactory(order=self.order_1, product=self.product_2, quantity=Decimal(5))
-        OrderItemFactory(order=self.order_2, product=self.product_2, quantity=Decimal(0.5))
-        OrderItemFactory(order=self.order_1, product=self.product_3, quantity=Decimal(10))
-        OrderItemFactory(order=self.order_2, product=self.product_3, quantity=Decimal(20))
+        OrderItemFactory(
+            order=self.order_1, product=self.product_1, quantity=Decimal(2.5)
+        )
+        OrderItemFactory(
+            order=self.order_2, product=self.product_1, quantity=Decimal(2)
+        )
+        OrderItemFactory(
+            order=self.order_1, product=self.product_2, quantity=Decimal(5)
+        )
+        OrderItemFactory(
+            order=self.order_2, product=self.product_2, quantity=Decimal(0.5)
+        )
+        OrderItemFactory(
+            order=self.order_1, product=self.product_3, quantity=Decimal(10)
+        )
+        OrderItemFactory(
+            order=self.order_2, product=self.product_3, quantity=Decimal(20)
+        )
         self.order_3 = OrderFactory(order_number=3, user=self.user_3)
         # when
         response = self.client.get(self.url)
         # then
-        df = pd.read_csv(StringIO(response.content.decode("utf-8")), sep=",", header=None)
+        df = pd.read_csv(
+            StringIO(response.content.decode("utf-8")), sep=",", header=None
+        )
         self.assertEquals(response.status_code, 200)
         self.assertTrue(((df[1] == "cebula") & (df[2] == "5")).any())
         self.assertTrue(((df[1] == "warzywo") & (df[2] == "2,5")).any())
@@ -111,7 +159,9 @@ class MassOrderBoxReportDownloadView(TestCase):
         self.assertTrue(((df[5] == "cebula") & (df[6] == "0,5")).any())
         self.assertTrue(((df[5] == "warzywo") & (df[6] == "2")).any())
         self.assertTrue(((df[5] == "ziemniak") & (df[6] == "20")).any())
-        self.assertTrue((pd.isna(df[[8,9,10,11]][2:])).all().all()) # every value for order 3 is Nan
+        self.assertTrue(
+            (pd.isna(df[[8, 9, 10, 11]][2:])).all().all()
+        )  # every value for order 3 is Nan
 
 
 class TestProducerProductsReportView(TestCase):
@@ -303,14 +353,17 @@ class TestUserDebtsReportView:
         ProfileFactory(user=u1, payment_balance=Decimal("-2"), fund=fund)
 
         u2 = UserFactory()
-        ProfileFactory(user=u2, payment_balance=Decimal("-1"), fund=fund)  # boundary, should be excluded
+        ProfileFactory(
+            user=u2, payment_balance=Decimal("-1"), fund=fund
+        )  # boundary, should be excluded
 
         u3 = UserFactory()
         ProfileFactory(user=u3, payment_balance=Decimal("-5"), fund=fund)
 
         u4 = UserFactory()
-        ProfileFactory(user=u4, payment_balance=Decimal("0"), fund=fund)  # positive, excluded
-
+        ProfileFactory(
+            user=u4, payment_balance=Decimal("0"), fund=fund
+        )  # positive, excluded
 
         response = client.get(url)
         assert response.status_code == 200

@@ -18,18 +18,30 @@ logger = logging.getLogger("django.server")
 
 class Producer(models.Model):
     name = models.CharField(unique=True, max_length=100, verbose_name="Nazwa")
-    short = models.CharField(default="test", max_length=16, verbose_name="Nazwa skrócona")  # to powinno być unique and indexed
+    short = models.CharField(
+        default="test", max_length=16, verbose_name="Nazwa skrócona"
+    )  # to powinno być unique and indexed
     slug = models.CharField(unique=True, blank=True, max_length=100)
     description = models.TextField(max_length=1000, verbose_name="Opis")
     order = models.IntegerField(
         default=10, verbose_name="Kolejność"
     )  # Default order or use choices for specific values
     is_active = models.BooleanField(default=True, verbose_name="Czy aktywny")
-    not_arrived = models.BooleanField(default=False, blank=True, verbose_name="Nie dojechał?")
-    manager_name = models.CharField(blank=True, null=True, max_length=100, verbose_name="Nazwa koordynatora")
-    manager_email = models.EmailField(blank=True, null=True, verbose_name="Email koordynatora")
-    manager_phone = models.PositiveIntegerField(blank=True, null=True, verbose_name="Numer koordynatora")
-    order_deadline = models.DateTimeField(null=True, blank=True, verbose_name="Deadline zamawiania")
+    not_arrived = models.BooleanField(
+        default=False, blank=True, verbose_name="Nie dojechał?"
+    )
+    manager_name = models.CharField(
+        blank=True, null=True, max_length=100, verbose_name="Nazwa koordynatora"
+    )
+    manager_email = models.EmailField(
+        blank=True, null=True, verbose_name="Email koordynatora"
+    )
+    manager_phone = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name="Numer koordynatora"
+    )
+    order_deadline = models.DateTimeField(
+        null=True, blank=True, verbose_name="Deadline zamawiania"
+    )
 
     class Meta:
         verbose_name = "Producent"
@@ -48,7 +60,9 @@ class Producer(models.Model):
 
 
 class WeightScheme(models.Model):
-    quantity = models.DecimalField(max_digits=6, decimal_places=3, unique=True, verbose_name="Ilość")
+    quantity = models.DecimalField(
+        max_digits=6, decimal_places=3, unique=True, verbose_name="Ilość"
+    )
 
     class Meta:
         verbose_name = "Schemat wagowy"
@@ -94,34 +108,71 @@ class Product(models.Model):
         ("G", "G"),
     ]
     producer = models.ForeignKey(
-        Producer, on_delete=models.CASCADE, related_name="products", verbose_name="Producent"
+        Producer,
+        on_delete=models.CASCADE,
+        related_name="products",
+        verbose_name="Producent",
     )
     name = models.CharField(max_length=100, unique=True, verbose_name="Nazwa")
-    description = models.TextField(max_length=250, null=True, blank=True, verbose_name="Opis")
+    description = models.TextField(
+        max_length=250, null=True, blank=True, verbose_name="Opis"
+    )
 
     order_max_quantity = models.DecimalField(
-        max_digits=9, decimal_places=3, blank=True, null=True, verbose_name="Ile maksymalnie można zamówić"
+        max_digits=9,
+        decimal_places=3,
+        blank=True,
+        null=True,
+        verbose_name="Ile maksymalnie można zamówić",
     )
     quantity_in_stock = models.DecimalField(
-        max_digits=9, decimal_places=3, null=True, blank=True, verbose_name="Ilość na magazynie"
+        max_digits=9,
+        decimal_places=3,
+        null=True,
+        blank=True,
+        verbose_name="Ilość na magazynie",
     )
     price = models.DecimalField(max_digits=7, decimal_places=2, verbose_name="Cena")
-    order_deadline = models.DateTimeField(null=True, blank=True, verbose_name="Deadline zamawiania")
+    order_deadline = models.DateTimeField(
+        null=True, blank=True, verbose_name="Deadline zamawiania"
+    )
     quantity_delivered_this_week = models.DecimalField(
-        max_digits=9, decimal_places=3, default=0, null=True, blank=True, verbose_name="Dostarczona ilość w tym tygodniu"
+        max_digits=9,
+        decimal_places=3,
+        default=0,
+        null=True,
+        blank=True,
+        verbose_name="Dostarczona ilość w tym tygodniu",
     )
     weight_schemes = models.ManyToManyField(
-        WeightScheme, related_name="products", through="product_weight_schemes", verbose_name="Schematy wagowe"
+        WeightScheme,
+        related_name="products",
+        through="product_weight_schemes",
+        verbose_name="Schematy wagowe",
     )
     is_active = models.BooleanField(default=True, verbose_name="Czy jest aktywny")
-    statuses = models.ManyToManyField(Status, related_name="products", blank=True, verbose_name="Statusy")
-    category = models.ForeignKey(
-        Category, related_name="products", on_delete=models.PROTECT, null=True, verbose_name="Kategoria"
+    statuses = models.ManyToManyField(
+        Status, related_name="products", blank=True, verbose_name="Statusy"
     )
-    subcategory = models.CharField(null=True, blank=True, max_length=100, verbose_name="Podkategoria")
-    unit = models.CharField(choices=unit_choices, max_length=100, verbose_name="Jednostka")
-    info = models.TextField(max_length=255, null=True, blank=True, verbose_name="Informacje")
-    is_stocked = models.BooleanField(default=False, verbose_name="Czy jest magazynowany")
+    category = models.ForeignKey(
+        Category,
+        related_name="products",
+        on_delete=models.PROTECT,
+        null=True,
+        verbose_name="Kategoria",
+    )
+    subcategory = models.CharField(
+        null=True, blank=True, max_length=100, verbose_name="Podkategoria"
+    )
+    unit = models.CharField(
+        choices=unit_choices, max_length=100, verbose_name="Jednostka"
+    )
+    info = models.TextField(
+        max_length=255, null=True, blank=True, verbose_name="Informacje"
+    )
+    is_stocked = models.BooleanField(
+        default=False, verbose_name="Czy jest magazynowany"
+    )
 
     class Meta:
         verbose_name = "Produkt"
@@ -133,8 +184,12 @@ class Product(models.Model):
 
 
 class product_weight_schemes(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Produkt")
-    weightscheme = models.ForeignKey(WeightScheme, on_delete=models.CASCADE, verbose_name="Schemat wagowy")
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, verbose_name="Produkt"
+    )
+    weightscheme = models.ForeignKey(
+        WeightScheme, on_delete=models.CASCADE, verbose_name="Schemat wagowy"
+    )
 
     def __str__(self):
         return f"{self.product}: " f"{self.weightscheme}"
@@ -144,7 +199,9 @@ class product_weight_schemes(models.Model):
             self_db = product_weight_schemes.objects.get(pk=self.pk)
             if self.weightscheme.quantity != 0 and self_db.weightscheme.quantity == 0:
                 return
-        if not product_weight_schemes.objects.filter(product=self.product, weightscheme=self.weightscheme).exists():
+        if not product_weight_schemes.objects.filter(
+            product=self.product, weightscheme=self.weightscheme
+        ).exists():
             super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
@@ -158,15 +215,28 @@ class Order(models.Model):
         ("czwartek", "czwartek"),
     ]
 
-    user = models.ForeignKey(ModelUser, on_delete=models.CASCADE, related_name="orders", verbose_name="Użytkownik")
-    products = models.ManyToManyField(
-        Product, through="OrderItem", related_name="orders", blank=True, verbose_name="Produkty"
+    user = models.ForeignKey(
+        ModelUser,
+        on_delete=models.CASCADE,
+        related_name="orders",
+        verbose_name="Użytkownik",
     )
-    pick_up_day = models.CharField(max_length=10, choices=PICKUP_CHOICES, verbose_name="Dzień odbioru")
+    products = models.ManyToManyField(
+        Product,
+        through="OrderItem",
+        related_name="orders",
+        blank=True,
+        verbose_name="Produkty",
+    )
+    pick_up_day = models.CharField(
+        max_length=10, choices=PICKUP_CHOICES, verbose_name="Dzień odbioru"
+    )
     date_created = models.DateTimeField(auto_now_add=True, verbose_name="Utworzono")
     is_given = models.BooleanField(default=False)  # do I need this?
     order_number = models.IntegerField(blank=True, verbose_name="Numer zamówienia")
-    paid_amount = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Zapłacono", null=True, blank=True)
+    paid_amount = models.DecimalField(
+        max_digits=8, decimal_places=2, verbose_name="Zapłacono", null=True, blank=True
+    )
 
     objects = OrderManager()
 
@@ -179,7 +249,9 @@ class Order(models.Model):
         ]
 
     def __str__(self):
-        return f"Zam {self.order_number} {self.user.get_full_name() or self.user.username}"
+        return (
+            f"Zam {self.order_number} {self.user.get_full_name() or self.user.username}"
+        )
 
     @cached_property
     def user_fund(self):
@@ -218,15 +290,23 @@ class OrderItem(models.Model):
     QUANTITY_CHOICES = get_quantity_choices()
 
     order = models.ForeignKey(
-        Order, on_delete=models.CASCADE, related_name="orderitems", verbose_name="Zamówienie"
+        Order,
+        on_delete=models.CASCADE,
+        related_name="orderitems",
+        verbose_name="Zamówienie",
     )
     product = models.ForeignKey(
-        Product, on_delete=models.CASCADE, related_name="orderitems", verbose_name="Produkt"
+        Product,
+        on_delete=models.CASCADE,
+        related_name="orderitems",
+        verbose_name="Produkt",
     )
     quantity = models.DecimalField(
         max_digits=6, decimal_places=3, choices=QUANTITY_CHOICES, verbose_name="Ilość"
     )
-    item_ordered_date = models.DateTimeField(auto_now_add=True, verbose_name="Utworzono")
+    item_ordered_date = models.DateTimeField(
+        auto_now_add=True, verbose_name="Utworzono"
+    )
 
     class Meta:
         verbose_name = "Produkt w zamówieniu"

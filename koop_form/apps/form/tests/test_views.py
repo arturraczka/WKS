@@ -83,8 +83,8 @@ class TestProductsView(TestCase):
         assert sorted(list(context_data["producers"])) == producers_list
 
 
-#this test is probably incorrect because order producers does not work, order_producers.html is in archive and maybe it this test and whole order_produers view should be deleted
-#TODO get confirmation from Artur
+# this test is probably incorrect because order producers does not work, order_producers.html is in archive and maybe it this test and whole order_produers view should be deleted
+# TODO get confirmation from Artur
 # @pytest.mark.django_db
 # class TestOrderProducersView(TestCase):
 #     def setUp(self):
@@ -113,8 +113,8 @@ class TestProductsView(TestCase):
 class TestOrderProductsFormView(TestCase):
     def setUp(self):
         factor_producers()
-        #TODO fix in future - refactor whole DEBUG dependency in app tests are always run with DEBUG=false https://docs.djangoproject.com/en/5.0/topics/testing/overview/#other-test-conditions
-        settings.DEBUG=True
+        # TODO fix in future - refactor whole DEBUG dependency in app tests are always run with DEBUG=false https://docs.djangoproject.com/en/5.0/topics/testing/overview/#other-test-conditions
+        settings.DEBUG = True
         self.producer1 = Producer.objects.get(name="Karol Jung")
         self.producer2 = Producer.objects.get(name="Adam Pritz")
         self.url = reverse("order-products-form", kwargs={"slug": self.producer1.slug})
@@ -122,7 +122,7 @@ class TestOrderProductsFormView(TestCase):
         self.client.force_login(self.user)
         self.weight_scheme_list = [
             WeightSchemeFactory(quantity=val)
-            for val in [ 0.500, 1.000, 2.000, 3.000, 4.000, 5.000]
+            for val in [0.500, 1.000, 2.000, 3.000, 4.000, 5.000]
         ]
         self.product0 = ProductFactory(
             name="agawa",
@@ -182,8 +182,11 @@ class TestOrderProductsFormView(TestCase):
 
         assert list(context_data["orderitems"]) == [self.orderitem1, self.orderitem2]
         assert context_data["order_cost"] == Decimal(19.75)
-        assert list(context_data["order"].products.all()) == [self.product1, self.product2]
-        #TODO fix ? ask Artur
+        assert list(context_data["order"].products.all()) == [
+            self.product1,
+            self.product2,
+        ]
+        # TODO fix ? ask Artur
         # assert context_data["products_description"] == [
         #     "test description 1",
         #     "test description 2",
@@ -219,7 +222,7 @@ class TestOrderProductsFormView(TestCase):
         assert f"{self.product0.name}: Produkt został dodany do zamówienia." in messages
 
     def test_max_quantity_validation(self):
-        #given
+        # given
         for _ in range(2):
             form_data = {
                 "form-TOTAL_FORMS": 1,
@@ -241,10 +244,10 @@ class TestOrderProductsFormView(TestCase):
         }
         pre_create_orderitem_count = OrderItem.objects.count()
 
-        #when
+        # when
         response = self.client.post(self.url, data=form_data, follow=True)
 
-        #then
+        # then
         post_create_orderitem_count = OrderItem.objects.count()
         messages = list_messages(response)
         assert pre_create_orderitem_count == post_create_orderitem_count
@@ -303,16 +306,16 @@ class TestOrderProductsFormView(TestCase):
 
 class TestOrderCreateView(TestCase):
     def setUp(self):
-        #TODO fix in future - refactor whole DEBUG dependency in app tests are always run with DEBUG=false https://docs.djangoproject.com/en/5.0/topics/testing/overview/#other-test-conditions
-        settings.DEBUG=True
+        # TODO fix in future - refactor whole DEBUG dependency in app tests are always run with DEBUG=false https://docs.djangoproject.com/en/5.0/topics/testing/overview/#other-test-conditions
+        settings.DEBUG = True
         self.producer = ProducerFactory()
         self.url = reverse("order-create")
         self.user = UserFactory()
         self.client.force_login(self.user)
 
     def tearDown(self):
-        #TODO fix in future - refactor whole DEBUG dependency in app tests are always run with DEBUG=false https://docs.djangoproject.com/en/5.0/topics/testing/overview/#other-test-conditions
-        settings.DEBUG=False
+        # TODO fix in future - refactor whole DEBUG dependency in app tests are always run with DEBUG=false https://docs.djangoproject.com/en/5.0/topics/testing/overview/#other-test-conditions
+        settings.DEBUG = False
 
     def test_response(self):
         response = self.client.get(self.url)
@@ -501,6 +504,7 @@ class TestOrderAdminRedirectView:
 
         msgs = list(get_messages(response.wsgi_request))
         assert any(
-            "cofnięto rozliczenie zamówienia" in m.message and str(paid_amount) in m.message
+            "cofnięto rozliczenie zamówienia" in m.message
+            and str(paid_amount) in m.message
             for m in msgs
         )

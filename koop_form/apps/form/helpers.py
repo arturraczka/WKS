@@ -16,4 +16,7 @@ def calculate_previous_weekday(day: int = 3, hour: int = 1) -> datetime:
 
 
 def koop_default_interval_start() -> datetime:
-    return calculate_previous_weekday(day=settings.KOOP_WEEK_INTERVAL_START_WEEKDAY, hour=settings.KOOP_WEEK_INTERVAL_START_HOUR)
+    return calculate_previous_weekday(
+        day=settings.KOOP_WEEK_INTERVAL_START_WEEKDAY,
+        hour=settings.KOOP_WEEK_INTERVAL_START_HOUR,
+    )

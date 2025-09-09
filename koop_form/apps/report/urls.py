@@ -17,8 +17,12 @@ from apps.report.views import (
     ProducerSuppliesListView,
     MassProducerBoxReportDownloadView,
     UsersFinanceReportDownloadView,
-    MassOrderBoxReportDownloadView, ProducerOrdersReportView, ProducerOrdersReportDownloadView,
-    ProducerOrdersListView, ProductsExcessReportView, UserDebtsReportView,
+    MassOrderBoxReportDownloadView,
+    ProducerOrdersReportView,
+    ProducerOrdersReportDownloadView,
+    ProducerOrdersListView,
+    ProductsExcessReportView,
+    UserDebtsReportView,
 )
 
 

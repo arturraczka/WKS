@@ -56,7 +56,13 @@ class UserProfileFundFactory(DjangoModelFactory):
     class Meta:
         model = UserProfileFund
 
-    value = Faker('pydecimal', left_digits=1, right_digits=2, min_value=Decimal("1.1"), max_value=Decimal("1.3"))
+    value = Faker(
+        "pydecimal",
+        left_digits=1,
+        right_digits=2,
+        min_value=Decimal("1.1"),
+        max_value=Decimal("1.3"),
+    )
 
 
 class ProfileFactory(DjangoModelFactory):
@@ -67,7 +73,9 @@ class ProfileFactory(DjangoModelFactory):
     fund = SubFactory(UserProfileFundFactory)
     koop_id = Faker("random_int", min=1, max=1000)
     phone_number = Faker("random_int", min=500000000, max=899999999)
-    payment_balance = Faker('pydecimal', left_digits=2, right_digits=2, min_value=Decimal("0"))
+    payment_balance = Faker(
+        "pydecimal", left_digits=2, right_digits=2, min_value=Decimal("0")
+    )
 
 
 class OrderFactory(DjangoModelFactory):
@@ -79,7 +87,9 @@ class OrderFactory(DjangoModelFactory):
     date_created = timezone.now()
     is_given = False
     order_number = 1
-    paid_amount = Faker('pydecimal', left_digits=2, right_digits=2, min_value=Decimal("0"))
+    paid_amount = Faker(
+        "pydecimal", left_digits=2, right_digits=2, min_value=Decimal("0")
+    )
 
     @post_generation
     def products(self, create, extracted, **kwargs):

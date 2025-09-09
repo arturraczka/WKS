@@ -2,8 +2,11 @@ from .base import *
 import sentry_sdk
 
 DEBUG = False
-ALLOWED_HOSTS = get_allowed_hosts(ALLOWED_HOSTS_CONFIG_PATH,["koop-formularz.pl", "www.koop-formularz.pl", "64.226.70.181"])
-CSRF_TRUSTED_ORIGINS = [ f"https://*.{host}" for host in ALLOWED_HOSTS ]
+ALLOWED_HOSTS = get_allowed_hosts(
+    ALLOWED_HOSTS_CONFIG_PATH,
+    ["koop-formularz.pl", "www.koop-formularz.pl", "64.226.70.181"],
+)
+CSRF_TRUSTED_ORIGINS = [f"https://*.{host}" for host in ALLOWED_HOSTS]
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -11,7 +14,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'django_crontab',
+    "django_crontab",
     "crispy_forms",
     "crispy_bootstrap5",
     "corsheaders",
@@ -28,11 +31,19 @@ INSTALLED_APPS = [
     "widget_tweaks",
 ]
 
-CRONTAB_COMMAND_PREFIX=f"ENV_CONFIG_PATH={ENV_CONFIG_PATH}"
+CRONTAB_COMMAND_PREFIX = f"ENV_CONFIG_PATH={ENV_CONFIG_PATH}"
 
 CRONJOBS = [
-    ('0 0 * * FRI', 'django.core.management.call_command', ['set_product_order_deadline']),
-    ('5 20 * * MON', 'django.core.management.call_command', ['send_order_summary_to_users']),
+    (
+        "0 0 * * FRI",
+        "django.core.management.call_command",
+        ["set_product_order_deadline"],
+    ),
+    (
+        "5 20 * * MON",
+        "django.core.management.call_command",
+        ["send_order_summary_to_users"],
+    ),
     # Add more cron jobs as needed
 ]
 

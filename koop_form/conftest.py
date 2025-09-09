@@ -6,8 +6,14 @@ from django.test import RequestFactory
 from django.contrib.auth.models import User
 
 from apps.user.models import UserProfileFund
-from factories.model_factories import UserFactory, ProfileFactory, OrderFactory, OrderItemFactory, \
-    UserProfileFundFactory, ProductFactory
+from factories.model_factories import (
+    UserFactory,
+    ProfileFactory,
+    OrderFactory,
+    OrderItemFactory,
+    UserProfileFundFactory,
+    ProductFactory,
+)
 
 
 @pytest.fixture
@@ -36,7 +42,7 @@ def order(db, user):
 
 @pytest.fixture
 def admin_user(db):
-    return User.objects.create_superuser('admin', 'admin@example.com', 'pass')
+    return User.objects.create_superuser("admin", "admin@example.com", "pass")
 
 
 @pytest.fixture
@@ -52,4 +58,3 @@ def admin_site():
 @pytest.fixture()
 def bare_order():
     return OrderFactory()
-
