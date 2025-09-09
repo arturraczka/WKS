@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # Unreleased
 
+# [1.2.1]
+
+### Added
+- [arturraczka] fixy_Q3: pre-commit hooks, admin fixes, repo cleanup
+
+# [1.2.0]
+
+### Added
+- [arturraczka] finanse_fixy: extended reports, fixes to finances and more
+
 # [1.1.1]
 
 ### Fixed

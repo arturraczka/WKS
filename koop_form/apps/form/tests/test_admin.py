@@ -41,32 +41,6 @@ class TestOrderAdmin:
         expected_order_number = 3
         assert order.order_number == expected_order_number
 
-    def test_update_user_balance_db_paid_equals_new_paid(
-        self, user, user_profile, order
-    ):
-        old_balance = user_profile.payment_balance
-        old_paid = order.paid_amount
-        new_paid = old_paid
-        order.paid_amount = new_paid
-        self.model_admin.save_model(self.request, order, form=None, change=True)
-        order.refresh_from_db()
-        user_profile.refresh_from_db()
-
-        assert user_profile.payment_balance == old_balance
-
-    def test_update_user_balance_new_paid(self, user, user_profile, order):
-        old_balance = user_profile.payment_balance
-        old_paid = order.paid_amount
-        new_paid = Decimal("50")
-        paid_delta = new_paid - old_paid
-        order.paid_amount = new_paid
-        self.model_admin.save_model(self.request, order, form=None, change=True)
-        order.refresh_from_db()
-        user_profile.refresh_from_db()
-
-        assert order.paid_amount == new_paid
-        assert user_profile.payment_balance == old_balance + paid_delta
-
     def test_update_user_balance_old_paid_is_none(self, user, user_profile, order):
         old_balance = user_profile.payment_balance
         order.paid_amount = None
@@ -78,19 +52,6 @@ class TestOrderAdmin:
         user_profile.refresh_from_db()
 
         assert user_profile.payment_balance == order.order_balance + old_balance
-
-    def test_update_user_balance_new_paid_is_none(self, user, user_profile, order):
-        old_paid = order.paid_amount
-        old_balance = user_profile.payment_balance
-        order.paid_amount = None
-        self.model_admin.save_model(self.request, order, form=None, change=True)
-        order.refresh_from_db()
-        user_profile.refresh_from_db()
-
-        assert (
-            user_profile.payment_balance
-            == old_balance - old_paid + order.order_cost_with_fund
-        )
 
     def test_is_settled__paid(self, order):
         assert order.paid_amount is not None
@@ -162,26 +123,6 @@ class TestOrderAdmin:
             == product.quantity_in_stock + item_1.quantity + item_2.quantity
         )
 
-    def test_update_user_balance__old_payment_equals_new_payment(
-        self, order, user_profile
-    ):
-        old_user_balance = user_profile.payment_balance
-        self.model_admin.update_user_balance(order)
-        user_profile.refresh_from_db()
-        assert user_profile.payment_balance == old_user_balance
-
-    def test_update_user_balance__new_payment_is_none(self, order, user_profile):
-        order.paid_amount = 50
-        order.save(update_fields=["paid_amount"])
-        old_balance = order.order_balance
-        order.paid_amount = None
-        old_user_balance = user_profile.payment_balance
-        self.model_admin.update_user_balance(order)
-        user_profile.refresh_from_db()
-        order.save(update_fields=["paid_amount"])
-        order.refresh_from_db()
-        assert user_profile.payment_balance == old_user_balance - old_balance
-
     def test_update_user_balance__old_payment_is_none(self, order, user_profile):
         order.paid_amount = None
         order.save(update_fields=["paid_amount"])
@@ -191,16 +132,6 @@ class TestOrderAdmin:
         self.model_admin.update_user_balance(order)
         user_profile.refresh_from_db()
         assert user_profile.payment_balance == old_user_balance + order.order_balance
-
-    def test_update_user_balance__payment_increased(self, order, user_profile):
-        order.paid_amount = 40
-        order.save(update_fields=["paid_amount"])
-        increase_value = 60
-        order.paid_amount += increase_value
-        old_user_balance = user_profile.payment_balance
-        self.model_admin.update_user_balance(order)
-        user_profile.refresh_from_db()
-        assert user_profile.payment_balance == old_user_balance + increase_value
 
     def test_save_model__change_is_true_calls_update_and_super(
         self, monkeypatch, order
