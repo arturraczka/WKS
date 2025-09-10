@@ -256,8 +256,25 @@ class OrderAdmin(admin.ModelAdmin):
 
     @staticmethod
     def update_user_balance(order):
+        db_order = Order.objects.get(id=order.id)
+        old_payment = db_order.paid_amount
+        old_balance = db_order.order_balance
+
+        new_payment = order.paid_amount
         new_balance = order.order_balance
-        order.user.userprofile.apply_order_balance(new_balance)
+
+        # po zmianie logiki tak, że nie można edytować zamówienia te wszystkie warunki są niepotrzebne
+        # dlatego że jedyna możliwa zmiana paid_amount to z None na not None czyli warunek old_payment is None
+        # zablokowanie edycji zamówienia handlowane jest w OrderAdminRedirectView
+        if old_payment == new_payment:
+            return
+        elif new_payment is None:
+            balance_to_apply = -old_balance
+        elif old_payment is None:
+            balance_to_apply = new_balance
+        else:
+            balance_to_apply = new_balance - old_balance
+        order.user.userprofile.apply_order_balance(balance_to_apply)
 
     def save_model(self, request, obj, form, change):
         if change:
