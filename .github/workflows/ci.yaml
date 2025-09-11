@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.18
+
+      - name: Cache pipenv dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.local/share/virtualenvs
+            ~/.cache/pip
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pipenv-
+
+      - name: Install pipenv
+        run: pip install --upgrade pip pipenv
+
+      - name: Install dependencies
+        run: pipenv install --dev
+
+      - name: Run pre-commit
+        run: |
+          pipenv run pre-commit run --all-files --show-diff-on-failure
+        continue-on-error: false
+
+      - name: Ensure logs folder exists
+        run: mkdir -p koop_form/logs
+
+      - name: Run pytest
+        run: |
+          cd koop_form
+          pipenv run pytest -v
+        continue-on-error: false

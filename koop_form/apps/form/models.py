@@ -237,6 +237,20 @@ class Order(models.Model):
     paid_amount = models.DecimalField(
         max_digits=8, decimal_places=2, verbose_name="Zapłacono", null=True, blank=True
     )
+    fund_snapshot = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        verbose_name="Fundusz w momencie rozliczenia zamówienia.",
+        null=True,
+        blank=True,
+    )
+    payment_balance_snapshot = models.DecimalField(
+        max_digits=7,
+        decimal_places=2,
+        verbose_name="Dług / nadpłata po rozliczeniu zamówienia.",
+        null=True,
+        blank=True,
+    )
 
     objects = OrderManager()
 
@@ -272,6 +286,8 @@ class Order(models.Model):
 
     @cached_property
     def order_cost_with_fund(self):
+        if self.fund_snapshot is not None:
+            return round(self.order_cost * self.fund_snapshot, 2)
         return round(self.order_cost * self.user_fund, 2)
 
     @cached_property

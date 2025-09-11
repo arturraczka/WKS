@@ -193,6 +193,7 @@ class OrderAdmin(admin.ModelAdmin):
         "__str__",
         "order_number",
         "order_cost_with_fund",
+        "user_fund",
         "user_balance",
         "is_settled",
         "paid_amount",
@@ -224,8 +225,10 @@ class OrderAdmin(admin.ModelAdmin):
             return "Tak"
         return "-"
 
-    @admin.display(description="Fundusz")
+    @admin.display(description="Fundusz zamówienia")
     def user_fund(self, obj):
+        if obj.fund_snapshot is not None:
+            return obj.fund_snapshot
         return obj.user_fund
 
     @admin.display(description="Kwota zamówienia bez funduszu")
@@ -263,9 +266,10 @@ class OrderAdmin(admin.ModelAdmin):
         new_payment = order.paid_amount
         new_balance = order.order_balance
 
-        # po zmianie logiki tak, że nie można edytować zamówienia te wszystkie warunki są niepotrzebne
+        # po zmianie logiki tak, że nie można edytować zamówienia część tej logiki jest niepotrzebna
         # dlatego że jedyna możliwa zmiana paid_amount to z None na not None czyli warunek old_payment is None
         # zablokowanie edycji zamówienia handlowane jest w OrderAdminRedirectView
+        # przy refaktoringu trzeba wziąć pod uwagę zapisywanie zamówienia bez robienia update'u zapłaconej kwoty
         if old_payment == new_payment:
             return
         elif new_payment is None:
@@ -278,7 +282,17 @@ class OrderAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if change:
-            self.update_user_balance(order=obj)
+            old_obj = Order.objects.get(pk=obj.pk)
+            if old_obj.paid_amount is None and obj.paid_amount is not None:
+                self.update_user_balance(order=obj)
+                obj.fund_snapshot = obj.user_fund
+                obj.payment_balance_snapshot = obj.user_balance
+                self.message_user(
+                    request,
+                    "Rozliczono zamówienie.",
+                    messages.SUCCESS,
+                )
+
         else:
             if obj.paid_amount is not None:
                 obj.paid_amount = None
@@ -296,6 +310,8 @@ class OrderAdmin(admin.ModelAdmin):
     order_cost_with_fund.short_description = "Kwota zamówienia z funduszem"
 
     def user_balance(self, obj):
+        if obj.payment_balance_snapshot is not None:
+            return display_as_zloty(obj.payment_balance_snapshot)
         return display_as_zloty(obj.user_balance)
 
     user_balance.short_description = "Dług / nadpłata koopowicza"
