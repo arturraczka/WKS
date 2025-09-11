@@ -21,4 +21,15 @@ class Migration(migrations.Migration):
                 verbose_name="Fundusz w momencie rozliczenia zamówienia.",
             ),
         ),
+        migrations.AddField(
+            model_name="order",
+            name="payment_balance_snapshot",
+            field=models.DecimalField(
+                blank=True,
+                decimal_places=2,
+                max_digits=7,
+                null=True,
+                verbose_name="Dług / nadpłata po rozliczeniu zamówienia.",
+            ),
+        ),
     ]

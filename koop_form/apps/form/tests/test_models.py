@@ -49,8 +49,8 @@ class TestProduct(TestCase):
         self.product = ProductFactory(order_max_quantity=100)
 
     def test_order_ordering(self):
-        self.assertEquals(self.order.order_number, 1)
-        self.assertEquals(self.order_second.order_number, 2)
+        self.assertEqual(self.order.order_number, 1)
+        self.assertEqual(self.order_second.order_number, 2)
 
     def test_signal_add_zero_as_weight_scheme(self):
         # given

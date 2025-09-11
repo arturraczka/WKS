@@ -22,10 +22,20 @@ class TestOrderAdmin:
         self.request = request_factory.post("")
         self.request.user = admin_user
 
-    def test_user_balance_method(self, user, user_profile, order):
-        assert self.model_admin.user_balance(
-            order
-        ) == f"{order.user_balance:.1f} zł".replace(".", ",")
+    def test_user_balance_method__no_payment_balance_snapshot(
+        self, user, user_profile, order
+    ):
+        assert self.model_admin.user_balance(order) == display_as_zloty(
+            order.user_balance
+        )
+
+    def test_user_balance_method__payment_balance_snapshot(self, order):
+        payment_balance_snapshot_value = Decimal("25.90")
+        order.payment_balance_snapshot = payment_balance_snapshot_value
+        order.save(update_fields=["payment_balance_snapshot"])
+        assert self.model_admin.user_balance(order) == display_as_zloty(
+            payment_balance_snapshot_value
+        )
 
     def test_order_cost_with_fund_method(self, user, user_profile, order):
         assert self.model_admin.order_cost_with_fund(
@@ -189,7 +199,7 @@ class TestOrderAdmin:
         assert user_profile.payment_balance == old_user_balance + increase_value
 
     def test_save_model__change_is_true_calls_update_and_super(
-        self, monkeypatch, order
+        self, monkeypatch, user, user_profile, order
     ):
         called = {"update_called": False, "super_called": False}
 
@@ -216,6 +226,9 @@ class TestOrderAdmin:
         self.model_admin.save_model(request, order, form=None, change=True)
 
         # assert
+        order.refresh_from_db()
+        assert order.fund_snapshot == order.user_fund
+        assert order.payment_balance_snapshot == order.user_balance
         assert called["update_called"] is True
         assert called["super_called"] is True
 
@@ -243,6 +256,9 @@ class TestOrderAdmin:
         self.model_admin.save_model(self.request, order, form=None, change=True)
 
         # assert
+        order.refresh_from_db()
+        assert order.fund_snapshot is None
+        assert order.payment_balance_snapshot is None
         assert called["update_called"] is False
         assert called["super_called"] is True
 

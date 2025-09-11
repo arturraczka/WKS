@@ -193,6 +193,7 @@ class OrderAdmin(admin.ModelAdmin):
         "__str__",
         "order_number",
         "order_cost_with_fund",
+        "user_fund",
         "user_balance",
         "is_settled",
         "paid_amount",
@@ -224,7 +225,7 @@ class OrderAdmin(admin.ModelAdmin):
             return "Tak"
         return "-"
 
-    @admin.display(description="Fundusz")
+    @admin.display(description="Fundusz zamówienia")
     def user_fund(self, obj):
         if obj.fund_snapshot is not None:
             return obj.fund_snapshot
@@ -285,6 +286,7 @@ class OrderAdmin(admin.ModelAdmin):
             if old_obj.paid_amount is None and obj.paid_amount is not None:
                 self.update_user_balance(order=obj)
                 obj.fund_snapshot = obj.user_fund
+                obj.payment_balance_snapshot = obj.user_balance
                 self.message_user(
                     request,
                     "Rozliczono zamówienie.",
@@ -308,6 +310,8 @@ class OrderAdmin(admin.ModelAdmin):
     order_cost_with_fund.short_description = "Kwota zamówienia z funduszem"
 
     def user_balance(self, obj):
+        if obj.payment_balance_snapshot is not None:
+            return display_as_zloty(obj.payment_balance_snapshot)
         return display_as_zloty(obj.user_balance)
 
     user_balance.short_description = "Dług / nadpłata koopowicza"

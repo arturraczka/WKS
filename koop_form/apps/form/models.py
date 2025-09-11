@@ -244,6 +244,13 @@ class Order(models.Model):
         null=True,
         blank=True,
     )
+    payment_balance_snapshot = models.DecimalField(
+        max_digits=7,
+        decimal_places=2,
+        verbose_name="Dług / nadpłata po rozliczeniu zamówienia.",
+        null=True,
+        blank=True,
+    )
 
     objects = OrderManager()
 
