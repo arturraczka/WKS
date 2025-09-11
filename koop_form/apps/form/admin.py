@@ -263,9 +263,10 @@ class OrderAdmin(admin.ModelAdmin):
         new_payment = order.paid_amount
         new_balance = order.order_balance
 
-        # po zmianie logiki tak, że nie można edytować zamówienia te wszystkie warunki są niepotrzebne
+        # po zmianie logiki tak, że nie można edytować zamówienia część tej logiki jest niepotrzebna
         # dlatego że jedyna możliwa zmiana paid_amount to z None na not None czyli warunek old_payment is None
         # zablokowanie edycji zamówienia handlowane jest w OrderAdminRedirectView
+        # przy refaktoringu trzeba wziąć pod uwagę zapisywanie zamówienia bez robienia update'u zapłaconej kwoty
         if old_payment == new_payment:
             return
         elif new_payment is None:
@@ -278,7 +279,15 @@ class OrderAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if change:
-            self.update_user_balance(order=obj)
+            old_obj = Order.objects.get(pk=obj.pk)
+            if old_obj.paid_amount is None and obj.paid_amount is not None:
+                self.update_user_balance(order=obj)
+                self.message_user(
+                    request,
+                    "Rozliczono zamówienie.",
+                    messages.SUCCESS,
+                )
+
         else:
             if obj.paid_amount is not None:
                 obj.paid_amount = None

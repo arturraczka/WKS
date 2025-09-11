@@ -2,6 +2,8 @@ from decimal import Decimal
 import pytest
 from unittest.mock import patch
 
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.test import RequestFactory
 from django.contrib import messages
 from django.contrib.admin.options import ModelAdmin as DjangoModelAdmin
 
@@ -40,18 +42,6 @@ class TestOrderAdmin:
         order.refresh_from_db()
         expected_order_number = 3
         assert order.order_number == expected_order_number
-
-    def test_update_user_balance_old_paid_is_none(self, user, user_profile, order):
-        old_balance = user_profile.payment_balance
-        order.paid_amount = None
-        order.save(update_fields=["paid_amount"])
-        new_paid = Decimal("50")
-        order.paid_amount = new_paid
-        self.model_admin.save_model(self.request, order, form=None, change=True)
-        order.refresh_from_db()
-        user_profile.refresh_from_db()
-
-        assert user_profile.payment_balance == order.order_balance + old_balance
 
     def test_is_settled__paid(self, order):
         assert order.paid_amount is not None
@@ -123,6 +113,55 @@ class TestOrderAdmin:
             == product.quantity_in_stock + item_1.quantity + item_2.quantity
         )
 
+    def test_update_user_balance_db_paid_equals_new_paid(
+        self, user, user_profile, order
+    ):
+        old_balance = user_profile.payment_balance
+        old_paid = order.paid_amount
+        new_paid = old_paid
+        order.paid_amount = new_paid
+        self.model_admin.save_model(self.request, order, form=None, change=True)
+        order.refresh_from_db()
+        user_profile.refresh_from_db()
+
+        assert user_profile.payment_balance == old_balance
+
+    def test_update_user_balance_old_paid_is_none(self, user, user_profile, order):
+        request = RequestFactory().get("/")
+        setattr(request, "session", {})
+        request_messages = FallbackStorage(request)
+        setattr(request, "_messages", request_messages)
+        old_balance = user_profile.payment_balance
+        order.paid_amount = None
+        order.save(update_fields=["paid_amount"])
+        new_paid = Decimal("50")
+        order.paid_amount = new_paid
+        self.model_admin.save_model(request, order, form=None, change=True)
+        order.refresh_from_db()
+        user_profile.refresh_from_db()
+
+        assert user_profile.payment_balance == order.order_balance + old_balance
+
+    def test_update_user_balance__old_payment_equals_new_payment(
+        self, order, user_profile
+    ):
+        old_user_balance = user_profile.payment_balance
+        self.model_admin.update_user_balance(order)
+        user_profile.refresh_from_db()
+        assert user_profile.payment_balance == old_user_balance
+
+    def test_update_user_balance__new_payment_is_none(self, order, user_profile):
+        order.paid_amount = 50
+        order.save(update_fields=["paid_amount"])
+        old_balance = order.order_balance
+        order.paid_amount = None
+        old_user_balance = user_profile.payment_balance
+        self.model_admin.update_user_balance(order)
+        user_profile.refresh_from_db()
+        order.save(update_fields=["paid_amount"])
+        order.refresh_from_db()
+        assert user_profile.payment_balance == old_user_balance - old_balance
+
     def test_update_user_balance__old_payment_is_none(self, order, user_profile):
         order.paid_amount = None
         order.save(update_fields=["paid_amount"])
@@ -133,32 +172,72 @@ class TestOrderAdmin:
         user_profile.refresh_from_db()
         assert user_profile.payment_balance == old_user_balance + order.order_balance
 
+    def test_update_user_balance__payment_increased(self, order, user_profile):
+        order.paid_amount = 40
+        order.save(update_fields=["paid_amount"])
+        increase_value = 60
+        order.paid_amount += increase_value
+        old_user_balance = user_profile.payment_balance
+        self.model_admin.update_user_balance(order)
+        user_profile.refresh_from_db()
+        assert user_profile.payment_balance == old_user_balance + increase_value
+
     def test_save_model__change_is_true_calls_update_and_super(
         self, monkeypatch, order
     ):
-        # arrange
         called = {"update_called": False, "super_called": False}
 
-        def fake_update_user_balance(*, order):
+        order_in_db = OrderFactory.create(paid_amount=None)
+        order.pk = order_in_db.pk
+        order.paid_amount = 100
+
+        request = RequestFactory().get("/")
+        setattr(request, "session", {})
+        request_messages = FallbackStorage(request)
+        setattr(request, "_messages", request_messages)
+
+        def fake_update_user_balance(self, order):
             called["update_called"] = True
 
         def fake_super_save_model(self, request, obj, form, change):
             called["super_called"] = True
-            # simulate DB save like the real super() would do
             obj.save()
 
-        monkeypatch.setattr(
-            OrderAdmin, "update_user_balance", staticmethod(fake_update_user_balance)
-        )
-        monkeypatch.setattr(
-            DjangoModelAdmin, "save_model", fake_super_save_model, raising=True
-        )
+        monkeypatch.setattr(OrderAdmin, "update_user_balance", fake_update_user_balance)
+        monkeypatch.setattr(DjangoModelAdmin, "save_model", fake_super_save_model)
+
+        # act
+        self.model_admin.save_model(request, order, form=None, change=True)
+
+        # assert
+        assert called["update_called"] is True
+        assert called["super_called"] is True
+
+    def test_save_model__paid_amount_none_to_none_does_not_call_update(
+        self, monkeypatch, order
+    ):
+        called = {"update_called": False, "super_called": False}
+
+        # simulate previous state in DB
+        order_in_db = OrderFactory.create(paid_amount=None)
+        order.pk = order_in_db.pk
+        order.paid_amount = None  # still None -> None
+
+        def fake_update_user_balance(self, order):
+            called["update_called"] = True
+
+        def fake_super_save_model(self, request, obj, form, change):
+            called["super_called"] = True
+            obj.save()
+
+        monkeypatch.setattr(OrderAdmin, "update_user_balance", fake_update_user_balance)
+        monkeypatch.setattr(DjangoModelAdmin, "save_model", fake_super_save_model)
 
         # act
         self.model_admin.save_model(self.request, order, form=None, change=True)
 
         # assert
-        assert called["update_called"] is True
+        assert called["update_called"] is False
         assert called["super_called"] is True
 
     def test_save_model__change_is_false_sets_number_calls_super_when_no_paid(
