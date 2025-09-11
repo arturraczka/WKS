@@ -226,6 +226,8 @@ class OrderAdmin(admin.ModelAdmin):
 
     @admin.display(description="Fundusz")
     def user_fund(self, obj):
+        if obj.fund_snapshot is not None:
+            return obj.fund_snapshot
         return obj.user_fund
 
     @admin.display(description="Kwota zamówienia bez funduszu")
@@ -282,6 +284,7 @@ class OrderAdmin(admin.ModelAdmin):
             old_obj = Order.objects.get(pk=obj.pk)
             if old_obj.paid_amount is None and obj.paid_amount is not None:
                 self.update_user_balance(order=obj)
+                obj.fund_snapshot = obj.user_fund
                 self.message_user(
                     request,
                     "Rozliczono zamówienie.",

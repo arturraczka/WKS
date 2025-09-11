@@ -167,6 +167,15 @@ class TestOrder:
     def test_order_cost_with_fund(self, bare_order):
         assert bare_order.order_cost_with_fund == self.expected_cost_with_fund
 
+    def test_order_cost_with_fund_snapshot(self, bare_order):
+        fund_snapshot_value = Decimal("1.2")
+        bare_order.fund_snapshot = fund_snapshot_value
+        bare_order.save(update_fields=["fund_snapshot"])
+        assert (
+            bare_order.order_cost_with_fund
+            == Decimal(self.expected_cost) * fund_snapshot_value
+        )
+
     def test_get_paid_amount_no_paid_amount(self, bare_order):
         bare_order.paid_amount = None
         bare_order.save()

@@ -57,9 +57,15 @@ class TestOrderAdmin:
         order.save(update_fields=["paid_amount"])
         assert self.model_admin.is_settled(order) == "-"
 
-    def test_user_fund(self, order):
+    def test_user_fund__no_fund_snapshot(self, order):
         assert order.user_fund is not None
         assert self.model_admin.user_fund(order) == order.user_fund
+
+    def test_user_fund__fund_snapshot(self, order):
+        fund_snapshot_value = Decimal("1.2")
+        order.fund_snapshot = fund_snapshot_value
+        order.save(update_fields=["fund_snapshot"])
+        assert self.model_admin.user_fund(order) == fund_snapshot_value
 
     def test_order_cost(self, order):
         assert order.order_cost is not None
