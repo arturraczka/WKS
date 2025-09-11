@@ -1,6 +1,9 @@
 from .base import *
 
 DEBUG = True
+
+SECRET_KEY = env("SECRET_KEY", default="")
+
 ALLOWED_HOSTS = get_allowed_hosts(
     ALLOWED_HOSTS_CONFIG_PATH, ["localhost", "127.0.0.1", "mylocal"]
 )

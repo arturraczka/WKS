@@ -206,6 +206,8 @@ LOGGING = {
     "loggers": LOGGERS,
 }
 
+os.makedirs(BASE_DIR / "koop_form/logs", exist_ok=True)
+
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
