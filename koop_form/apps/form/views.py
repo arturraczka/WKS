@@ -622,8 +622,9 @@ class OrderAdminRedirectView(RedirectView):
         self.request.session["paid_amount"] = str(paid_amount)
         self.request.session["order_id"] = order.id
         order.paid_amount = None
+        order.fund_snapshot = None
         with transaction.atomic():
-            order.save(update_fields=["paid_amount"])
+            order.save(update_fields=["paid_amount", "fund_snapshot"])
             order.user.userprofile.apply_order_balance(
                 order.order_cost_with_fund - paid_amount
             )

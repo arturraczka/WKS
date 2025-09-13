@@ -478,6 +478,7 @@ class TestOrderAdminRedirectView:
 
     def test_staff_revert_payment_and_redirects_back(self, order, user_profile):
         assert order.paid_amount is not None
+        order.fund_snapshot = Decimal("1.3")
         paid_amount = Decimal(order.paid_amount)
         expected_delta = Decimal(order.order_cost_with_fund) - paid_amount
         old_balance = user_profile.payment_balance
@@ -494,6 +495,7 @@ class TestOrderAdminRedirectView:
 
         order.refresh_from_db()
         assert order.paid_amount is None
+        assert order.fund_snapshot is None
 
         user_profile.refresh_from_db()
         assert user_profile.payment_balance == old_balance + expected_delta

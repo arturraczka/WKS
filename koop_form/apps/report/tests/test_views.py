@@ -77,7 +77,7 @@ class MassOrderBoxReportDownloadView(TestCase):
         df = pd.read_csv(
             StringIO(response.content.decode("utf-8")), sep=",", header=None
         )
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertTrue(((df[1] == "cebula") & (df[2] == "5")).any())
         self.assertTrue(((df[1] == "warzywo") & (df[2] == "2,5")).any())
         self.assertTrue(((df[1] == "ziemniak") & (df[2] == "10")).any())
@@ -114,7 +114,7 @@ class MassOrderBoxReportDownloadView(TestCase):
         df = pd.read_csv(
             StringIO(response.content.decode("utf-8")), sep=",", header=None
         )
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertTrue(((df[1] == "cebula") & (df[2] == "5")).any())
         self.assertTrue(((df[1] == "warzywo") & (df[2] == "2,5")).any())
         self.assertTrue(((df[1] == "ziemniak") & (df[2] == "10")).any())
@@ -152,7 +152,7 @@ class MassOrderBoxReportDownloadView(TestCase):
         df = pd.read_csv(
             StringIO(response.content.decode("utf-8")), sep=",", header=None
         )
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertTrue(((df[1] == "cebula") & (df[2] == "5")).any())
         self.assertTrue(((df[1] == "warzywo") & (df[2] == "2,5")).any())
         self.assertTrue(((df[1] == "ziemniak") & (df[2] == "10")).any())
