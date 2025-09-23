@@ -631,8 +631,10 @@ class MassProducerBoxReportDownloadView(TemplateView):
         products_qs = (
             Product.objects.prefetch_related("orderitems", "orders")
             .select_related("producer")
-            .filter(Q(orders__date_created__gte=config.report_interval_start))
-            .filter(Q(orders__date_created__lte=config.report_interval_end))
+            .filter(
+                orders__date_created__gte=config.report_interval_start,
+                orders__date_created__lte=config.report_interval_end,
+            )
             .annotate(ordered_quantity=Sum("orderitems__quantity"))
             .distinct()
             .order_by("producer__short")
