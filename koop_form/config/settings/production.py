@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "import_export",
     "axes",
     "widget_tweaks",
+    "django_tables2",
 ]
 
 CRONTAB_COMMAND_PREFIX = f"ENV_CONFIG_PATH={ENV_CONFIG_PATH}"

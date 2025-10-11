@@ -7,12 +7,15 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
 from django.db.models import Q
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect, Http404, HttpResponse
+from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
 from django.urls import reverse, reverse_lazy
 from django.forms import modelformset_factory
+from django.views.decorators.http import require_POST
 from django.views.generic import (
     ListView,
     CreateView,
@@ -22,6 +25,7 @@ from django.views.generic import (
     FormView,
     RedirectView,
 )
+from django_tables2 import SingleTableMixin
 
 from apps.form.custom_mixins import FormOpenMixin
 from apps.form.models import Producer, Order, OrderItem, Product, Category
@@ -49,6 +53,7 @@ from apps.form.services import (
     calculate_order_number,
     staff_check,
 )
+from apps.form.tables import ProductTable
 from apps.form.validations import (
     perform_create_orderitem_validations,
     validate_order_exists,
@@ -563,6 +568,113 @@ class OrderProductsAllFormView(OrderProductsFormView):
     def get_order_and_producer(self):
         self.order = get_users_last_order(Order, self.request.user)
         self.producer = Producer.objects.filter(is_active=True).first()
+
+
+# TODO 1 convert to CBV
+# TODO 2 make a base template out of it? or mixin?
+# TODO 3 add pagination to table
+# TODO 4 add login required, order required
+def product_ordering_view(request):
+    order_id = request.user.orders.first().id
+    order = Order.objects.prefetch_related("orderitems").get(id=order_id)
+    table = ProductTable(
+        Product.objects.select_related("producer").prefetch_related("weight_schemes")[
+            :50
+        ],
+        csrf_token=get_token(request),
+        order=order,
+    )
+    template_name = "form/table_view.html"
+
+    return render(request, template_name, {"table": table})
+
+
+# TODO 1 dodac select_for_update
+@require_POST
+def create_orderitem_htmx_view(request):
+    product_id = request.POST.get("product_id")
+    order_id = request.POST.get("order_id")
+    row_num = request.POST.get("row_num")
+    quantity = Decimal(request.POST.get(f"{row_num}-quantity"))
+
+    data = {
+        "order_id": order_id,
+        "product_id": product_id,
+        "quantity": quantity,
+    }
+
+    product = Product.objects.get(id=product_id)
+    product_qs = Product.objects.filter(id=product_id)
+
+    if product.can_make_order(quantity):
+        reduce_product_stock(Product, product_id, quantity)
+        OrderItem.objects.create(**data)
+        print("sukces")
+        # TODO success message
+    else:
+        # TODO failure message
+        print("porażka, bo za mało")
+
+    order = Order.objects.get(id=order_id)
+    table = ProductTable(
+        product_qs,
+        csrf_token=get_token(request),
+        order=order,
+        row_num=row_num,
+    )
+    html = render_to_string(
+        "form/components/table_row_partial.html", {"table": table}, request=request
+    )
+    return HttpResponse(html)
+
+
+# TODO 1 dodac select_for_update
+@require_POST
+def update_orderitem_htmx_view(request):
+    product_id = request.POST.get("product_id")
+    orderitem_id = request.POST.get("orderitem_id")
+    row_num = request.POST.get("row_num")
+    quantity = Decimal(request.POST.get(f"{row_num}-quantity"))
+
+    order_item = OrderItem.objects.get(id=orderitem_id)
+    quantity_diff = quantity - order_item.quantity
+    if quantity == 0:
+        reduce_product_stock(Product, product_id, order_item.quantity, negative=True)
+        order_item.delete()
+        print("deleted")
+        # TODO success message
+    elif order_item.quantity != quantity:
+        if quantity_diff > 0:
+            product = Product.objects.get(id=product_id)
+            can_make_order = product.can_make_order(quantity_diff)
+            if can_make_order:
+                reduce_product_stock(Product, product_id, quantity_diff)
+                order_item.quantity = quantity
+                order_item.save(update_fields=["quantity"])
+                print("changed")
+                # TODO success message
+            else:
+                # TODO failure message
+                print("porażka, bo za mało")
+        else:
+            reduce_product_stock(Product, product_id, quantity_diff)
+            order_item.quantity = quantity
+            order_item.save(update_fields=["quantity"])
+            print("changed")
+            # TODO success message
+
+    product_qs = Product.objects.filter(id=product_id)
+    table = ProductTable(
+        product_qs,
+        csrf_token=get_token(request),
+        order=order_item.order,
+        row_num=row_num,
+    )
+
+    html = render_to_string(
+        "form/components/table_row_partial.html", {"table": table}, request=request
+    )
+    return HttpResponse(html)
 
 
 @method_decorator(login_required, name="dispatch")

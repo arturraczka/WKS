@@ -1,0 +1,11 @@
+<button
+  type="button"
+  class="btn btn-margin-fix btn-primary"
+  hx-post="{{ post_url }}"
+  hx-vals='{"product_id": {{ record.id }}, "order_id": {{ order.id }}, "row_num": {{ row_num }}}'
+  hx-target="#row-{{ record.id }}"
+  hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+  hx-swap="outerHTML"
+  hx-include="#id_{{ row_num }}-quantity">
+  Zamów
+</button>

@@ -1,0 +1,8 @@
+<div>
+  {{ product_name }}
+  <br>
+  <span class="text-muted">Status: </span>
+  {% for status in statuses %}
+    <span class="text-muted"><strong>{{ status }},</strong></span>
+  {% endfor %}
+</div>

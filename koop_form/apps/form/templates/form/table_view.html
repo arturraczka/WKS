@@ -1,0 +1,19 @@
+{% extends "form/base_order_sidebar.html" %}
+
+{% load render_table from django_tables2 %}
+
+{% block content %}
+    <div>
+        <table class="table">
+          {% for row in table.rows %}
+            <tr id="row-{{ row.record.id }}">
+              {% for column, cell in row.items %}
+                <td>
+                    <div class="d-flex align-items-center gap-2">{{ cell }}</div>
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </table>
+    </div>
+{% endblock content%}

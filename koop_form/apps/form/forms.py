@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 
 from django.forms import (
     ModelForm,
@@ -8,7 +9,6 @@ from django.forms import (
     BaseModelFormSet,
     ModelChoiceField,
     BaseInlineFormSet,
-    widgets,
 )
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
@@ -86,6 +86,36 @@ class CreateOrderItemForm(ModelForm):
         self.helper.form_tag = False
         # self.helper.add_input(Submit("submit", "Dodaj"))
         # # wywalenie add_input i dodanie submitu do templatki
+
+
+# TODO to jest nowy form do zamawiania
+class CreateOrderItemFromProductForm(ModelForm):
+    class Meta:
+        model = OrderItem
+        fields = ["quantity"]
+
+    def __init__(self, *args, product, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.product = product
+        quantity = self.fields["quantity"]
+        quantity.label = ""
+        quantity.choices = self.get_product_weight_schemes_list()
+        quantity.widget.attrs.update(
+            {
+                "name": "quantity",
+            }
+        )
+
+    def get_product_weight_schemes_list(self):
+        weight_schemes = []
+        for scheme in self.product.weight_schemes.all():
+            weight_schemes.append(
+                (
+                    Decimal(scheme.quantity),
+                    f"{scheme.quantity}".rstrip("0").rstrip("."),
+                )
+            )
+        return weight_schemes
 
 
 class CreateOrderItemFormSet(BaseModelFormSet):

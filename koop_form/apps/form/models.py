@@ -182,6 +182,17 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name}"
 
+    def can_make_order(self, quantity):
+        if self.order_max_quantity is not None and self.quantity_in_stock is not None:
+            max_possible_quantity = min(self.order_max_quantity, self.quantity_in_stock)
+        elif self.order_max_quantity is not None:
+            max_possible_quantity = self.order_max_quantity
+        elif self.quantity_in_stock is not None:
+            max_possible_quantity = self.quantity_in_stock
+        else:
+            return True
+        return quantity <= max_possible_quantity
+
 
 class product_weight_schemes(models.Model):
     product = models.ForeignKey(

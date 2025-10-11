@@ -188,8 +188,8 @@ LOGGERS = {
     },
     "django.template": {
         "handlers": ["error_handler"],
-        "level": "DEBUG",
-        "propagate": True,
+        "level": "WARNING",
+        "propagate": False,
     },
     "django.server": {
         "handlers": ["error_handler"],

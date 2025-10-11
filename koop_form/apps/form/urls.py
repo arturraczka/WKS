@@ -13,6 +13,9 @@ from apps.form.views import (
     OrderProductsAllFormView,
     OrderCategoriesFormView,
     OrderAdminRedirectView,
+    product_ordering_view,
+    create_orderitem_htmx_view,
+    update_orderitem_htmx_view,
 )
 
 
@@ -63,6 +66,21 @@ urlpatterns = [
         "zamowienie/produkty/",
         OrderProductsAllFormView.as_view(),
         name="order-products-all-form",
+    ),
+    path(
+        "zamowienie/produkty2/",
+        product_ordering_view,
+        name="order-products-all-form2",
+    ),
+    path(
+        "zamowienie/dodaj-produkt/",
+        create_orderitem_htmx_view,
+        name="create-orderitem-htmx-view",
+    ),
+    path(
+        "zamowienie/zmien-produkt/",
+        update_orderitem_htmx_view,
+        name="update-orderitem-htmx-view",
     ),
     path(
         "zamowienie/admin/cofnij-rozliczenie/<int:pk>/",
