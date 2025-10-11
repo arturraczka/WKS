@@ -571,7 +571,7 @@ class OrderProductsAllFormView(OrderProductsFormView):
 
 
 # TODO 1 convert to CBV
-# TODO 2 make a base template out of it? or mixin?
+# TODO 2 make a base class out of it? or mixin?
 # TODO 3 add pagination to table
 # TODO 4 add login required, order required
 def product_ordering_view(request):
@@ -609,11 +609,11 @@ def create_orderitem_htmx_view(request):
     if product.can_make_order(quantity):
         reduce_product_stock(Product, product_id, quantity)
         OrderItem.objects.create(**data)
-        print("sukces")
-        # TODO success message
+        messages.success(
+            request, f"Dodano do zamówienia '{product}' w ilości: {quantity}."
+        )
     else:
-        # TODO failure message
-        print("porażka, bo za mało")
+        messages.error(request, f"Nie ma tyle! Nie zamówiono '{product}'")
 
     order = Order.objects.get(id=order_id)
     table = ProductTable(
@@ -625,7 +625,16 @@ def create_orderitem_htmx_view(request):
     html = render_to_string(
         "form/components/table_row_partial.html", {"table": table}, request=request
     )
-    return HttpResponse(html)
+
+    msg_html = render_to_string(
+        "core/partials/messages.html", {"messages": messages.get_messages(request)}
+    )
+
+    msg_container_html = render_to_string(
+        "core/htmx/htmx_messages.html", {"messages": msg_html}
+    )
+
+    return HttpResponse(html + msg_container_html)
 
 
 # TODO 1 dodac select_for_update

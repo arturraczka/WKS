@@ -70,23 +70,44 @@
     </header>
 
     <main role="main" class="container custom-container">
-          {% if messages %}
-            {% for message in messages %}
-              <div class="alert alert-{{ message.tags }}">
-                  {{ message }}
-              </div>
-            {% endfor %}
-          {% endif %}
+        <div id="messages" class="position-fixed w-100 top-0 mt-5 d-flex flex-column align-items-center" style="z-index:1050;">
+            {% include 'core/partials/messages.html' %}
+        </div>
       <div class="row">
           {% block content %}{% endblock %}
           <div class="col-md-3">
           {% block sidebar %}{% endblock %}
           </div>
           {% block javascript %}
-          <script src="{% static 'js/display_messages.js' %}"></script>
           {% endblock %}
       </div>
     </main>
+    <script src="{% static 'js/display_messages.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<!--    <script>-->
+<!--      function armAlerts(root=document) {-->
+<!--        // Fade-in: start with .fade only, then add .show on next frame-->
+<!--        root.querySelectorAll('#messages .alert.fade:not([data-armed])').forEach(el => {-->
+<!--          el.setAttribute('data-armed','1');-->
+<!--          requestAnimationFrame(() => el.classList.add('show'));-->
+<!--          // Auto-hide → fade-out then remove-->
+<!--          setTimeout(() => {-->
+<!--            el.classList.remove('show');-->
+<!--            el.addEventListener('transitionend', () => el.remove(), { once: true });-->
+<!--          }, 750000);-->
+<!--        });-->
+<!--      }-->
+
+<!--      // Make fade duration 0.5s (scoped to messages only)-->
+<!--      const style = document.createElement('style');-->
+<!--      style.textContent = `#messages .fade { transition-duration:.5s !important; }`;-->
+<!--      document.head.appendChild(style);-->
+
+<!--      document.addEventListener('DOMContentLoaded', () => armAlerts(document));-->
+<!--      // Re-arm after HTMX OOB swap-->
+<!--      document.body.addEventListener('htmx:oobAfterSwap', (e) => {-->
+<!--        if (e.target.id === 'messages') armAlerts(e.target);-->
+<!--      });-->
+<!--    </script>-->
 </body>
 </html>
