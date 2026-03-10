@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # Unreleased
 
+# [1.4.0]
+
+# Added
+- [arturraczka/26_03_minor_updates] admin reports
+
 # [1.3.1]
 
 ### Fixed
