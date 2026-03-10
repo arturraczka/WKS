@@ -50,6 +50,7 @@ class OrderItemEmptyInLine(admin.TabularInline):
     verbose_name_plural = "Dodaj nowy produkt do zamówienia:"
     verbose_name = "Dodaj nowy produkt do zamówienia:"
     formset = OrderItemEmptyInlineFormset
+    autocomplete_fields = ("product",)
 
 
 class OrderInLine(admin.StackedInline):

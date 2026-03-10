@@ -1,0 +1,13 @@
+{% extends "admin/change_form.html" %}
+
+{% block object-tools %}
+{{ block.super }}
+<hr/>
+<h2>Raporty:</h2>
+<p></p>
+<a href="{% url 'admin:core-report' %}?report_name=most_ordered&order_count=100" class="button">Najczęściej zamawiane</a>
+<p></p>
+<a href="{% url 'admin:core-report' %}?report_name=least_ordered&order_count=5" class="button">Najrzadziej zamawiane</a>
+<p></p>
+<hr/>
+{% endblock %}
