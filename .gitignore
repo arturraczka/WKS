@@ -155,3 +155,5 @@ cython_debug/
 
 db_dump*
 /dockercompose_prod
+ionos_deployment/data/*
+!ionos_deployment/data/.gitkeep

@@ -1,0 +1,20 @@
+# TODO: review this file - DOCKER_COMPOSE_COMMAND, APP_PATH, Exec stop for graceful shutdowns, posible other issues 
+# TODO: add a sytemd timer that triggers dump_database.sh?
+# TODO: figure out how to nicely commision this file onto the server 
+#       manual process with README for now, and later have an automated ansible script for this and other apps?
+
+[Unit]
+Description=Docker Compose Application Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=${APP_PATH}
+User=root
+Environment=DOCKER_COMPOSE_COMMAND="/usr/local/bin/docker-compose"
+ExecStart=${APP_PATH}/scripts/compose-run.sh ${APP_PATH}/compose.yaml
+
+[Install]
+WantedBy=multi-user.target

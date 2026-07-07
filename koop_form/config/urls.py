@@ -17,6 +17,8 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 from apps.core.views import HomepageTemplateView
 
@@ -33,3 +35,10 @@ urlpatterns = [
     path("uzytkownik/", include("apps.user.urls")),
     path("__debug__/", include("debug_toolbar.urls")),
 ]
+
+# TODO: remove this once done debugging?
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.STATIC_URL,
+        document_root=settings.BASE_DIR / "apps/static/static",
+    )
