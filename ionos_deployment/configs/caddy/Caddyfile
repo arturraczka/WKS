@@ -1,0 +1,16 @@
+:9090 {
+    # Enable Prometheus metrics
+    metrics
+}
+
+# Main site
+{$DOMAIN} {
+    # Serve Django static files directly
+    handle_path /static/* {
+        root * /srv/koop_form/staticfiles
+        file_server
+    }
+
+    # Everything else goes straight to Django
+    reverse_proxy webapp:8000
+}

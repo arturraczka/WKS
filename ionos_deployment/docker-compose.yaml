@@ -1,10 +1,12 @@
-# TODO: cleanups and further simplifications
+# TODO: cleanups, consistent formatting and further simplifications
 # TODO: rework volumes to have persistency on the disk and easier backups? How does the backups work on the IONOS server?
+name: koop-zamowienia
 
 services:
   webapp:
     build:
       context: ../
+    restart: unless-stopped
     # TODO: we are getting rid of env_file block in favour of inlined envs.
     #       if we will ever need a compose for local testing env we can always create a local override file instead of a whole dir structure.
     env_file:
@@ -17,37 +19,43 @@ services:
     configs:
       - env
       - allowhosts
-    ports:
-      - 8000:8000 # TODO: remove this after initial testsing
+    # ports:
+    #   - 8000:8000 # TODO: remove this after initial testsing
     volumes:
-      - static-volume:/app/koop_form/staticfiles
-
-  # TODO: recreate this using Caddy - should be much simpler, with the cert auto-renewed from Lets Encrypt
+      - webapp-staticfiles:/app/koop_form/staticfiles
+    depends_on:
+      - database
+  
   # TODO: ask Marcin about the prometheus metrics - why do we need them? We could probably get rid of it and have a simpler setup?
-
-  # nginx:
-  #   image: openresty/openresty:1.25.3.1-2-alpine-fat
-  #   ports:
-  #     - "80:80"  # Expose port 80 of the container to port 80 on the host
-  #     - "443:443"
-  #     - "9145:9145"
-  #   volumes:
-  #     - ./main-nginx.conf:/etc/nginx/conf.d/default.conf  # Mount your Nginx configuration file
-  #     - ./nginx-lua-prometheus:/nginx-lua-prometheus
-  #     - ../parameters/nginx-conf:/nginx-conf
-  #     - static-volume:/app/koop_form/staticfiles
-  #     - ../parameters/website.crt:/website.crt
-  #     - ../parameters/website.key:/website.key
-  #   depends_on:
-  #     - webapp  # Ensure webapp service starts before Nginx
+  
+  gateway:
+    image: caddy:2.11.4-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: zamowienia.koop-app.localhost # TODO: provide the name through .env file or some other convenient way. *.localhost can be used for self-signed certs while testing
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # required to support HTTP/3.
+      - "9090:9090" # prometheus metrics, optional
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
+    volumes:
+      - webapp-staticfiles:/srv/koop_form/staticfiles
+      - caddy-data:/data
+    depends_on:
+      - webapp
 
   database:
     # TODO: use a more recent postgres version? 
-    #       Also - maybe reuse a postgres instance from other apps? 
+    # TODO: consider reusing a postgres instance from other apps? 
     #       Running several instances may be a little too heavy on the server.
     #       But running a single DB has its own issues, we would probably need to create a separate lifecycle management for it.
     #       Or even switch to sqlite?
-    image: postgres:14 
+    #       Anyway, this is probablly a separate task in itself, lets avoid scope creep.
+    image: postgres:14
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password # TODO: update the user+password for production
@@ -59,15 +67,19 @@ services:
       # We can also reuse it as subsequent emergency restore from future backups.
       # Although its probably safer to avoid automated restoration - can be a source of serious user confusion.
       - ./data/db_backup_dump.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - 5432:5432 # TODO: remove this after initial testsing
+    # ports:
+    #   - 5432:5432 # TODO: remove this after initial testsing
 
 volumes:
-  db-data: {}
-  static-volume: {}
+  db-data: # db data persistence # TODO: mount a dir from host filesystem instead of a loose volume for safer persistence?
+  webapp-staticfiles: # Shares the webapp static files between the django app and api gateway
+  caddy-data: # Stores TLS certs, private keys and other persistent state
 
+# TODO: rethink what to do with configs - either use them consistently or replace everything through simple volumes
 configs:
   env:  # TODO: where can I find this file? Anything important there? Should I login int the live container and extract it?
     file: ./configs/koop_form/koop-envs
   allowhosts: 
     file: ./configs/koop_form/allowhosts.json
+  caddyfile: 
+    file: ./configs/caddy/Caddyfile
