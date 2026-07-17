@@ -14,8 +14,6 @@ COPY Pipfile Pipfile.lock ./
 # Install project dependencies
 RUN pipenv install --system
 COPY . .
-# Collect static files (if applicable)
-RUN python koop_form/manage.py collectstatic --no-input
 
 # Expose port (adjust if needed)
 EXPOSE 8000

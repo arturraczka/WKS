@@ -6,6 +6,7 @@ from environ import Env
 from pathlib import Path
 import json
 import traceback
+from django.core.exceptions import ImproperlyConfigured
 
 from apps.core.constants import IntervalWeekdayMap
 
@@ -46,7 +47,12 @@ env.read_env(ENV_CONFIG_PATH)
 ALLOWED_HOSTS_CONFIG_PATH = env("ALLOWED_HOSTS_CONFIG_PATH", default=None)
 print(ALLOWED_HOSTS_CONFIG_PATH)
 
-SECRET_KEY = env("SECRET_KEY", default=None)
+if _secret_key := env("SECRET_KEY", default=None):
+    SECRET_KEY = _secret_key
+elif _secret_key_file := env("SECRET_KEY_FILE", default=None):
+    SECRET_KEY = Path(_secret_key_file).read_text().strip()
+else:
+    raise ImproperlyConfigured("SECRET_KEY or SECRET_KEY_FILE must be configured")
 
 AUTHENTICATION_BACKENDS = [
     # AxesStandaloneBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
@@ -81,9 +87,28 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    "default": env.db("DATABASE_URL", default=None),
-}
+if _database_url := env("DATABASE_URL", default="").strip():
+    DATABASES = {"default": env.db_url_config(_database_url)}
+else:
+    if (_db_password := env("DB_PASSWORD", default=None)) is None:
+        # If no DB_PASSWORD provided then fallback to DB_PASSWORD_FILE
+        if _db_password_file := env("DB_PASSWORD_FILE", default=None):
+            _db_password = Path(_db_password_file).read_text().strip()
+        else:
+            raise ImproperlyConfigured(
+                "DB_PASSWORD or DB_PASSWORD_FILE must be configured"
+            )
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("DB_NAME"),
+            "USER": env("DB_USER"),
+            "PASSWORD": _db_password,
+            "HOST": env("DB_HOST"),
+            "PORT": env("DB_PORT"),
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -216,7 +241,17 @@ EMAIL_PORT = 465
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
+
+if _email_pass := env("EMAIL_HOST_PASSWORD", default=None):
+    EMAIL_HOST_PASSWORD = _email_pass
+elif _email_pass_file := env("EMAIL_HOST_PASSWORD_FILE", default=None):
+    EMAIL_HOST_PASSWORD = Path(_email_pass_file).read_text().strip()
+else:
+    EMAIL_HOST_PASSWORD = None
+    logging.warning(
+        "neither EMAIL_HOST_PASSWORD nor EMAIL_HOST_PASSWORD_FILE are configured"
+    )
+
 EMAIL_TIMEOUT = 30
 
 AXES_FAILURE_LIMIT = 25
